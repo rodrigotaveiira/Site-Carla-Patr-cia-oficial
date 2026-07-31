@@ -132,7 +132,7 @@ function HomePage() {
 
       <header className="nav-wrap">
         <a className="brand" href="#inicio" aria-label="Carla Patrícia Medina — início">
-          <span className="brand-mark">CP</span>
+          <span className="brand-mark"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></span>
           <span><b>Carla Patrícia</b><small>Medina · Educação</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
@@ -156,6 +156,10 @@ function HomePage() {
           <div className="eyebrow"><span /> Educação que transforma resultados</div>
           <h1>Sua aprovação começa por uma <em>redação de excelência.</em></h1>
           <p>Aulas de Redação e Gramática com metodologia exclusiva, correção personalizada e acompanhamento completo para ENEM, vestibulares e concursos.</p>
+          <div className="hero-proof">
+            <strong>4,9/5</strong>
+            <span>avaliação média dos alunos</span>
+          </div>
           <div className="hero-buttons">
             <a className="button" href="#cursos">Quero começar <ArrowRight size={18} /></a>
             <a className="button ghost" href="#metodologia"><CirclePlay size={19} /> Conheça o método</a>
@@ -195,7 +199,10 @@ function HomePage() {
           <h2>Experiência, sensibilidade e um olhar <em>único</em> para cada aluno.</h2>
           <p>Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 15 anos, transforma insegurança em repertório, técnica e autonomia.</p>
           <p>Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz.</p>
-          <div className="signature">Carla Patrícia <span>Medina</span></div>
+          <div className="signature">
+            <span className="signature-name">Carla Patrícia Medina</span>
+            <small>Domine as palavras. Transforme suas ideias.</small>
+          </div>
           <div className="mini-values">
             <span><ShieldCheck /> Ensino responsável</span><span><Users /> Acompanhamento humano</span>
           </div>

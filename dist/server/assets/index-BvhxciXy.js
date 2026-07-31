@@ -118,7 +118,7 @@ function HomePage() {
     ] }),
     /* @__PURE__ */ jsxs("header", { className: "nav-wrap", children: [
       /* @__PURE__ */ jsxs("a", { className: "brand", href: "#inicio", "aria-label": "Carla Patrícia Medina — início", children: [
-        /* @__PURE__ */ jsx("span", { className: "brand-mark", children: "CP" }),
+        /* @__PURE__ */ jsx("span", { className: "brand-mark", children: /* @__PURE__ */ jsx("img", { src: "https://i.im.ge/QM8BQuT/carla-t300.webp", alt: "Carla" }) }),
         /* @__PURE__ */ jsxs("span", { children: [
           /* @__PURE__ */ jsx("b", { children: "Carla Patrícia" }),
           /* @__PURE__ */ jsx("small", { children: "Medina · Educação" })
@@ -158,6 +158,10 @@ function HomePage() {
           /* @__PURE__ */ jsx("em", { children: "redação de excelência." })
         ] }),
         /* @__PURE__ */ jsx("p", { children: "Aulas de Redação e Gramática com metodologia exclusiva, correção personalizada e acompanhamento completo para ENEM, vestibulares e concursos." }),
+        /* @__PURE__ */ jsxs("div", { className: "hero-proof", children: [
+          /* @__PURE__ */ jsx("strong", { children: "4,9/5" }),
+          /* @__PURE__ */ jsx("span", { children: "avaliação média dos alunos" })
+        ] }),
         /* @__PURE__ */ jsxs("div", { className: "hero-buttons", children: [
           /* @__PURE__ */ jsxs("a", { className: "button", href: "#cursos", children: [
             "Quero começar ",
@@ -223,7 +227,7 @@ function HomePage() {
     ] }),
     /* @__PURE__ */ jsxs("section", { className: "section about", id: "sobre", children: [
       /* @__PURE__ */ jsxs(motion.div, { className: "about-collage", ...reveal, children: [
-        /* @__PURE__ */ jsx("div", { className: "about-main-image", children: /* @__PURE__ */ jsx("img", { src: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1000&q=90", alt: "Professora preparando uma aula" }) }),
+        /* @__PURE__ */ jsx("div", { className: "about-main-image", children: /* @__PURE__ */ jsx("img", { src: "https://i.im.ge/QM8BQuT/carla-t300.webp", alt: "Professora Carla Patrícia Medina" }) }),
         /* @__PURE__ */ jsxs("div", { className: "quote-card", children: [
           /* @__PURE__ */ jsx(Quote, { size: 28 }),
           /* @__PURE__ */ jsx("p", { children: "Ensinar a escrever é ensinar a organizar ideias, defender sonhos e ocupar espaços." })
@@ -247,8 +251,8 @@ function HomePage() {
         /* @__PURE__ */ jsx("p", { children: "Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 15 anos, transforma insegurança em repertório, técnica e autonomia." }),
         /* @__PURE__ */ jsx("p", { children: "Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz." }),
         /* @__PURE__ */ jsxs("div", { className: "signature", children: [
-          "Carla Patrícia ",
-          /* @__PURE__ */ jsx("span", { children: "Medina" })
+          /* @__PURE__ */ jsx("span", { className: "signature-name", children: "Carla Patrícia Medina" }),
+          /* @__PURE__ */ jsx("small", { children: "Domine as palavras. Transforme suas ideias." })
         ] }),
         /* @__PURE__ */ jsxs("div", { className: "mini-values", children: [
           /* @__PURE__ */ jsxs("span", { children: [

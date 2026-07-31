@@ -1,8 +1,13 @@
-import { jsxs, jsx } from "react/jsx-runtime";
+import { jsxs, jsx, Fragment } from "react/jsx-runtime";
 import { useNavigate, Link } from "@tanstack/react-router";
 import { signup, login, AuthError } from "@netlify/identity";
 import { ArrowLeft, Sparkles, Check, GraduationCap, Mail, LockKeyhole, EyeOff, Eye, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { r as registerLocalUser, l as loginLocalUser } from "./router-BSoNPTDa.js";
+import "../server.js";
+import "node:async_hooks";
+import "node:stream";
+import "@tanstack/react-router/ssr/server";
 function LoginPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState("login");
@@ -10,19 +15,50 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const isLocalDemoMode = typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname);
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError("");
     setNotice("");
     const data = new FormData(event.currentTarget);
-    const email = String(data.get("email"));
-    const password = String(data.get("password"));
-    const name = String(data.get("name") || "");
+    const email = String(data.get("email") || "").trim();
+    const password = String(data.get("password") || "");
+    const name = String(data.get("name") || "Aluno").trim();
+    const cpf = String(data.get("cpf") || "").trim();
     try {
+      if (isLocalDemoMode) {
+        if (mode === "signup") {
+          if (!name || !cpf || !email || password.length < 6) {
+            setError("Preencha nome, CPF, e-mail e senha com pelo menos 6 caracteres.");
+            return;
+          }
+          const registered = registerLocalUser({
+            name,
+            cpf,
+            email,
+            password
+          });
+          if (!registered) {
+            setError("Já existe uma conta para este e-mail. Faça login ou use outro endereço.");
+            return;
+          }
+          setNotice("Conta criada com sucesso. Redirecionando...");
+          await navigate({
+            to: "/dashboard"
+          });
+          return;
+        }
+        const localUser = loginLocalUser(email, password);
+        if (!localUser) {
+          setError("E-mail ou senha inválidos no ambiente local. Crie a conta primeiro.");
+          return;
+        }
+      }
       if (mode === "signup") {
         const user = await signup(email, password, {
-          full_name: name
+          full_name: name,
+          cpf
         });
         if (!user.confirmedAt) {
           setNotice("Cadastro realizado. Confirme o link enviado para o seu e-mail.");
@@ -35,7 +71,25 @@ function LoginPage() {
         to: "/dashboard"
       });
     } catch (caughtError) {
-      setError(caughtError instanceof AuthError ? caughtError.message : "Não foi possível acessar. Tente novamente.");
+      const message = caughtError instanceof AuthError ? caughtError.message : "Não foi possível acessar. Tente novamente.";
+      if (isLocalDemoMode && mode === "signup") {
+        const registered = registerLocalUser({
+          name,
+          cpf,
+          email,
+          password
+        });
+        if (!registered) {
+          setError("Já existe uma conta para este e-mail. Faça login ou use outro endereço.");
+          return;
+        }
+        setNotice("Ambiente local sem Netlify Identity configurado. Conta criada localmente para uso de teste.");
+        await navigate({
+          to: "/dashboard"
+        });
+        return;
+      }
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -99,11 +153,20 @@ function LoginPage() {
         /* @__PURE__ */ jsx("button", { className: mode === "signup" ? "active" : "", onClick: () => setMode("signup"), children: "Criar conta" })
       ] }),
       /* @__PURE__ */ jsxs("form", { className: "login-form", onSubmit: handleSubmit, children: [
-        mode === "signup" && /* @__PURE__ */ jsxs("label", { children: [
-          "Nome completo",
-          /* @__PURE__ */ jsxs("div", { className: "input-icon", children: [
-            /* @__PURE__ */ jsx(GraduationCap, {}),
-            /* @__PURE__ */ jsx("input", { name: "name", placeholder: "Seu nome completo", required: true })
+        mode === "signup" && /* @__PURE__ */ jsxs(Fragment, { children: [
+          /* @__PURE__ */ jsxs("label", { children: [
+            "Nome completo",
+            /* @__PURE__ */ jsxs("div", { className: "input-icon", children: [
+              /* @__PURE__ */ jsx(GraduationCap, {}),
+              /* @__PURE__ */ jsx("input", { name: "name", placeholder: "Seu nome completo", required: true })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs("label", { children: [
+            "CPF",
+            /* @__PURE__ */ jsxs("div", { className: "input-icon", children: [
+              /* @__PURE__ */ jsx(GraduationCap, {}),
+              /* @__PURE__ */ jsx("input", { name: "cpf", placeholder: "000.000.000-00", inputMode: "numeric", required: true })
+            ] })
           ] })
         ] }),
         /* @__PURE__ */ jsxs("label", { children: [

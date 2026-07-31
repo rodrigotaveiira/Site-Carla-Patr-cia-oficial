@@ -1,21 +1,146 @@
 import { jsxs, jsx } from "react/jsx-runtime";
 import { Link } from "@tanstack/react-router";
-import { X, Home, CirclePlay, Library, Files, CircleHelp, Target, FileCheck2, CalendarDays, BookMarked, Zap, TrendingUp, User, MessageSquareText, LogOut, Menu, Search, Bell, ChevronRight, MoreHorizontal, Clock3, Trophy, BookOpen } from "lucide-react";
+import { X, Home, CirclePlay, Library, Files, CircleHelp, Target, FileCheck2, CalendarDays, BookMarked, Zap, TrendingUp, User, MessageSquareText, LogOut, Menu, Search, Bell, ChevronRight, MoreHorizontal, Clock3, Trophy, BookOpen, ShieldCheck, Download } from "lucide-react";
 import { useState } from "react";
-import { u as useIdentity } from "./router-Cx2miZ-E.js";
+import { u as useIdentity } from "./router-BSoNPTDa.js";
 import "@netlify/identity";
 import "../server.js";
 import "node:async_hooks";
 import "node:stream";
 import "@tanstack/react-router/ssr/server";
-const sidebarItems = [[Home, "Dashboard"], [CirclePlay, "Aulas"], [Library, "Biblioteca"], [Files, "Materiais"], [CircleHelp, "Questões"], [Target, "Simulados"], [FileCheck2, "Redações"], [CalendarDays, "Calendário"], [BookMarked, "Repertórios"], [Zap, "Dicas"], [TrendingUp, "Meu progresso"], [User, "Perfil"]];
+const sidebarItems = [{
+  icon: Home,
+  label: "Dashboard",
+  href: "#top"
+}, {
+  icon: CirclePlay,
+  label: "Aulas",
+  href: "#em-breve"
+}, {
+  icon: Library,
+  label: "Biblioteca",
+  href: "#em-breve"
+}, {
+  icon: Files,
+  label: "Materiais",
+  href: "#materiais"
+}, {
+  icon: CircleHelp,
+  label: "Questões",
+  href: "#em-breve"
+}, {
+  icon: Target,
+  label: "Simulados",
+  href: "#em-breve"
+}, {
+  icon: FileCheck2,
+  label: "Redações",
+  href: "#em-breve"
+}, {
+  icon: CalendarDays,
+  label: "Calendário",
+  href: "#em-breve"
+}, {
+  icon: BookMarked,
+  label: "Repertórios",
+  href: "#em-breve"
+}, {
+  icon: Zap,
+  label: "Dicas",
+  href: "#em-breve"
+}, {
+  icon: TrendingUp,
+  label: "Meu progresso",
+  href: "#em-breve"
+}, {
+  icon: User,
+  label: "Perfil",
+  href: "#em-breve"
+}];
+const materials = [{
+  title: "Mapa mental da redação",
+  tag: "Estratégia",
+  accent: "#6d28d9",
+  description: "Estrutura completa para organizar tese, argumentos e conclusão com clareza."
+}, {
+  title: "Checklist de revisão",
+  tag: "Prático",
+  accent: "#0f7890",
+  description: "Lista rápida para revisar coesão, concordância, pontuação e bordão de apresentação."
+}, {
+  title: "Guia de repertório",
+  tag: "Exclusivo",
+  accent: "#c8a24d",
+  description: "Temas e ideias prontas para enriquecer seus textos com segurança e naturalidade."
+}];
+function slugify(value) {
+  return value.toLowerCase().normalize("NFD").replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").replace(/-+/g, "-");
+}
+function downloadProtectedMaterial(materialTitle, studentName) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 1600;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const background = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  background.addColorStop(0, "#f8f4ff");
+  background.addColorStop(1, "#eef7ff");
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#0f2342";
+  ctx.font = "700 72px Arial";
+  ctx.fillText("Material exclusivo", 100, 140);
+  ctx.fillStyle = "#6d28d9";
+  ctx.font = "700 92px Arial";
+  ctx.fillText(materialTitle, 100, 260);
+  ctx.strokeStyle = "#d9d7e7";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(100, 330);
+  ctx.lineTo(1100, 330);
+  ctx.stroke();
+  ctx.fillStyle = "#3b4455";
+  ctx.font = "500 38px Arial";
+  ctx.fillText("Propriedade do aluno:", 100, 418);
+  ctx.fillStyle = "#111827";
+  ctx.font = "700 52px Arial";
+  ctx.fillText(studentName, 100, 490);
+  ctx.fillStyle = "#a1a9b7";
+  ctx.font = "600 26px Arial";
+  ctx.fillText("Download protegido · uso pessoal com marca d'água", 100, 560);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(100, 640, 1e3, 720);
+  ctx.strokeStyle = "#ece7f7";
+  ctx.strokeRect(100, 640, 1e3, 720);
+  ctx.fillStyle = "#111827";
+  ctx.font = "700 54px Arial";
+  ctx.fillText("Conteúdo do material", 150, 730);
+  ctx.fillStyle = "#4b5563";
+  ctx.font = "500 34px Arial";
+  const lines = ["• Estratégia clara e visual", "• Conteúdo pensado para o aluno", "• Uso exclusivo da plataforma", "• Proteção por marca d'água com identidade"];
+  lines.forEach((line, index) => {
+    ctx.fillText(line, 150, 805 + index * 58);
+  });
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(-0.58);
+  ctx.fillStyle = "rgba(109, 40, 217, 0.09)";
+  ctx.font = "700 112px Arial";
+  ctx.fillText(studentName.toUpperCase(), -620, 0);
+  ctx.restore();
+  const link = document.createElement("a");
+  const fileName = `${slugify(materialTitle)}-${slugify(studentName)}.png`;
+  link.download = fileName;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
 function DashboardPage() {
   const {
     user,
     logout
   } = useIdentity();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const studentName = user?.name?.split(" ")[0] || "Marina";
+  const studentName = user?.name || "Marina Azevedo";
   return /* @__PURE__ */ jsxs("main", { className: "student-app", children: [
     /* @__PURE__ */ jsxs("aside", { className: sidebarOpen ? "student-sidebar open" : "student-sidebar", children: [
       /* @__PURE__ */ jsxs("div", { className: "sidebar-head", children: [
@@ -28,10 +153,14 @@ function DashboardPage() {
         ] }),
         /* @__PURE__ */ jsx("button", { onClick: () => setSidebarOpen(false), children: /* @__PURE__ */ jsx(X, {}) })
       ] }),
-      /* @__PURE__ */ jsx("nav", { children: sidebarItems.map(([Icon, label], index) => /* @__PURE__ */ jsxs("a", { className: index === 0 ? "active" : "", href: index === 0 ? "#top" : "#em-breve", children: [
+      /* @__PURE__ */ jsx("nav", { children: sidebarItems.map(({
+        icon: Icon,
+        label,
+        href
+      }, index) => /* @__PURE__ */ jsxs("a", { className: index === 0 ? "active" : "", href, children: [
         /* @__PURE__ */ jsx(Icon, {}),
         label,
-        index === 6 && /* @__PURE__ */ jsx("i", { children: "2" })
+        label === "Redações" && /* @__PURE__ */ jsx("i", { children: "2" })
       ] }, label)) }),
       /* @__PURE__ */ jsxs("div", { className: "sidebar-help", children: [
         /* @__PURE__ */ jsx(MessageSquareText, {}),
@@ -194,6 +323,30 @@ function DashboardPage() {
               ] }),
               /* @__PURE__ */ jsx("button", { children: /* @__PURE__ */ jsx(CirclePlay, {}) })
             ] }, title))
+          ] }),
+          /* @__PURE__ */ jsxs("section", { className: "dashboard-card material-card", id: "materiais", children: [
+            /* @__PURE__ */ jsxs("div", { className: "card-title", children: [
+              /* @__PURE__ */ jsxs("div", { children: [
+                /* @__PURE__ */ jsx("span", { children: "Arquivos exclusivos" }),
+                /* @__PURE__ */ jsx("h3", { children: "Material protegido" })
+              ] }),
+              /* @__PURE__ */ jsx(ShieldCheck, {})
+            ] }),
+            /* @__PURE__ */ jsx("p", { className: "material-intro", children: "Baixe os materiais do curso com uma marca d'água personalizada com o nome do aluno para proteger cada arquivo." }),
+            /* @__PURE__ */ jsx("div", { className: "material-list", children: materials.map((material) => /* @__PURE__ */ jsxs("div", { className: "material-item", children: [
+              /* @__PURE__ */ jsx("div", { className: "material-badge", style: {
+                background: `${material.accent}1a`,
+                color: material.accent
+              }, children: material.tag }),
+              /* @__PURE__ */ jsxs("div", { children: [
+                /* @__PURE__ */ jsx("b", { children: material.title }),
+                /* @__PURE__ */ jsx("small", { children: material.description })
+              ] }),
+              /* @__PURE__ */ jsxs("button", { onClick: () => downloadProtectedMaterial(material.title, studentName), children: [
+                /* @__PURE__ */ jsx(Download, {}),
+                " Baixar"
+              ] })
+            ] }, material.title)) })
           ] }),
           /* @__PURE__ */ jsxs("section", { className: "dashboard-card correction-card", children: [
             /* @__PURE__ */ jsxs("div", { className: "card-title", children: [

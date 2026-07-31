@@ -10,11 +10,78 @@ function CallbackHandler({ children }) {
   }, []);
   return children;
 }
+const LOCAL_USERS_KEY = "cpm-local-users";
+const LOCAL_SESSION_KEY = "cpm-local-user";
+function readLocalUsers() {
+  if (typeof window === "undefined") return [];
+  const stored = window.localStorage.getItem(LOCAL_USERS_KEY);
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function getLocalUserSession() {
+  if (typeof window === "undefined") return null;
+  const stored = window.localStorage.getItem(LOCAL_SESSION_KEY);
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored);
+    if (!parsed?.email) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+function readLocalUser() {
+  return getLocalUserSession();
+}
+function createLocalUserRecord(data) {
+  return {
+    id: crypto.randomUUID(),
+    email: data.email,
+    password: data.password,
+    cpf: data.cpf,
+    user_metadata: { full_name: data.name, cpf: data.cpf },
+    confirmed_at: (/* @__PURE__ */ new Date()).toISOString()
+  };
+}
+function registerLocalUser(data) {
+  if (typeof window === "undefined") return null;
+  const users = readLocalUsers();
+  const exists = users.some((user) => user.email?.toLowerCase() === data.email.toLowerCase());
+  if (exists) return null;
+  const newUser = createLocalUserRecord(data);
+  users.push(newUser);
+  window.localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  window.localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(newUser));
+  return newUser;
+}
+function loginLocalUser(email, password) {
+  if (typeof window === "undefined") return null;
+  const users = readLocalUsers();
+  const match = users.find((user) => user.email?.toLowerCase() === email.toLowerCase() && user.password === password);
+  if (!match) return null;
+  window.localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(match));
+  return match;
+}
+function clearLocalUser() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(LOCAL_SESSION_KEY);
+}
 const IdentityContext = createContext(null);
 function IdentityProvider({ children }) {
   const [user, setUser] = useState(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    const localUser = readLocalUser();
+    if (localUser) {
+      setUser(localUser);
+      setReady(true);
+      return;
+    }
     getUser().then((currentUser) => {
       setUser(currentUser);
       setReady(true);
@@ -22,7 +89,11 @@ function IdentityProvider({ children }) {
     return onAuthChange((_event, currentUser) => setUser(currentUser));
   }, []);
   const logout$1 = async () => {
-    await logout();
+    try {
+      await logout();
+    } catch {
+    }
+    clearLocalUser();
     setUser(null);
   };
   return /* @__PURE__ */ jsx(IdentityContext.Provider, { value: { user, ready, logout: logout$1 }, children });
@@ -94,7 +165,7 @@ function RootDocument({ children }) {
     ] })
   ] });
 }
-const $$splitComponentImporter$2 = () => import("./login-Bc7j7Usg.js");
+const $$splitComponentImporter$2 = () => import("./login-cm75Dsnx.js");
 const Route$2 = createFileRoute("/login")({
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
@@ -113,9 +184,15 @@ var createSsrRpc = (functionId) => {
 const getServerUser = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("49106938b52c8bf2e7795ac418917757130e43844a341613882f98c174227919"));
-const $$splitComponentImporter$1 = () => import("./dashboard-C1jDwU6y.js");
+const $$splitComponentImporter$1 = () => import("./dashboard-C2cKgm-U.js");
 const Route$1 = createFileRoute("/dashboard")({
   beforeLoad: async () => {
+    if (typeof window !== "undefined") {
+      const localUser = readLocalUser();
+      if (localUser) return {
+        user: localUser
+      };
+    }
     const user = await getServerUser();
     if (!user) throw redirect({
       to: "/login"
@@ -126,7 +203,7 @@ const Route$1 = createFileRoute("/dashboard")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./index-5mPBJ73p.js");
+const $$splitComponentImporter = () => import("./index-BvhxciXy.js");
 const Route = createFileRoute("/")({
   component: lazyRouteComponent($$splitComponentImporter, "component")
 });
@@ -164,6 +241,8 @@ const router = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   getRouter
 }, Symbol.toStringTag, { value: "Module" }));
 export {
-  router as r,
+  router as a,
+  loginLocalUser as l,
+  registerLocalUser as r,
   useIdentity as u
 };
