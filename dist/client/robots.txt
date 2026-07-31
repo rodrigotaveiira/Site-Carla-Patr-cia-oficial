@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://friendly-pothos-3cd60f.netlify.app/sitemap.xml

@@ -49,7 +49,7 @@ const courses = [
     tag: 'Mais procurado',
     title: 'Redação de Excelência',
     text: 'Do planejamento à conclusão: domine as competências avaliadas e escreva com segurança.',
-    image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1000&q=85',
+    image: 'https://i.im.ge/QM8BQuT/carla-t300.webp',
     items: ['Correções individuais', 'Aulas semanais', 'Temas inéditos'],
   },
   {
@@ -171,7 +171,7 @@ function HomePage() {
         <motion.div className="hero-visual" initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .9, delay: .15 }}>
           <div className="portrait-frame">
             <div className="portrait-label">Prof.ª Carla<br /><b>Patrícia Medina</b></div>
-            <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=90" alt="Professora em ambiente de estudo" />
+            <a href="https://im.ge/i/QM8BQuT"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></a>
             <div className="floating-card score-card"><span>Nota alcançada</span><b>960</b><small><TrendingUp size={14} /> +180 pontos</small></div>
             <div className="floating-card experience-card"><Award size={22} /><div><b>15+ anos</b><span>de experiência</span></div></div>
           </div>
@@ -186,7 +186,7 @@ function HomePage() {
 
       <section className="section about" id="sobre">
         <motion.div className="about-collage" {...reveal}>
-          <div className="about-main-image"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1000&q=90" alt="Professora preparando uma aula" /></div>
+          <div className="about-main-image"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Professora Carla Patrícia Medina" /></div>
           <div className="quote-card"><Quote size={28} /><p>Ensinar a escrever é ensinar a organizar ideias, defender sonhos e ocupar espaços.</p></div>
           <div className="gold-seal"><span>CP</span><small>Excelência<br />em educação</small></div>
         </motion.div>
