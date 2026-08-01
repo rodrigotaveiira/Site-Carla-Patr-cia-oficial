@@ -24,19 +24,18 @@ export const Route = createFileRoute('/dashboard')({
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', href: '#top' },
-  { icon: CirclePlay, label: 'Aulas', href: '#em-breve' },
-  { icon: Library, label: 'Biblioteca', href: '#em-breve' },
+  { icon: CirclePlay, label: 'Aulas', href: '/em-breve/aulas' },
+  { icon: Library, label: 'Biblioteca', href: '/em-breve/biblioteca' },
   { icon: Files, label: 'Materiais', href: '#materiais' },
-  { icon: CircleHelp, label: 'Questões', href: '#em-breve' },
-  { icon: Target, label: 'Simulados', href: '#em-breve' },
-  { icon: FileCheck2, label: 'Redações', href: '#em-breve' },
-  { icon: CalendarDays, label: 'Calendário', href: '#em-breve' },
-  { icon: BookMarked, label: 'Repertórios', href: '#em-breve' },
-  { icon: Zap, label: 'Dicas', href: '#em-breve' },
-  { icon: TrendingUp, label: 'Meu progresso', href: '#em-breve' },
-  { icon: User, label: 'Perfil', href: '#em-breve' },
+  { icon: CircleHelp, label: 'Questões', href: '/em-breve/questoes' },
+  { icon: Target, label: 'Simulados', href: '/em-breve/simulados' },
+  { icon: FileCheck2, label: 'Redações', href: '/em-breve/redacoes' },
+  { icon: CalendarDays, label: 'Calendário', href: '/em-breve/calendario' },
+  { icon: BookMarked, label: 'Repertórios', href: '/em-breve/repertorios' },
+  { icon: Zap, label: 'Dicas', href: '/em-breve/dicas' },
+  { icon: TrendingUp, label: 'Meu progresso', href: '/em-breve/progresso' },
+  { icon: User, label: 'Perfil', href: '/em-breve/perfil' },
 ] as const
-
 const materials = [
   { title: 'Mapa mental da redação', tag: 'Estratégia', accent: '#6d28d9', description: 'Estrutura completa para organizar tese, argumentos e conclusão com clareza.' },
   { title: 'Checklist de revisão', tag: 'Prático', accent: '#0f7890', description: 'Lista rápida para revisar coesão, concordância, pontuação e bordão de apresentação.' },
@@ -127,7 +126,7 @@ function downloadProtectedMaterial(materialTitle: string, studentName: string) {
 function DashboardPage() {
   const { user, logout } = useIdentity()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const studentName = user?.name || 'Marina Azevedo'
+  const studentName = user?.name || ' '
 
   return (
     <main className="student-app">
@@ -139,10 +138,10 @@ function DashboardPage() {
       </aside>
 
       <section className="student-main" id="top">
-        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search"><Search /><input placeholder="Buscar aulas, materiais, temas..." /></div><div className="topbar-actions"><button><Bell /><i /></button><div className="user-chip"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Perfil" /><span><b>{studentName} Azevedo</b><small>Aluna · Redação</small></span><ChevronRight /></div></div></header>
+        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search"><Search /><input placeholder="Buscar aulas, materiais, temas..." /></div><div className="topbar-actions"><button><Bell /><i /></button><div className="user-chip"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Perfil" /><span><b>{studentName} </b><small>Aluna · Redação</small></span><ChevronRight /></div></div></header>
 
         <div className="dashboard-content">
-          <div className="welcome-row"><div><span>TERÇA-FEIRA, 28 DE JULHO</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><button className="outline-button"><CalendarDays /> Ver calendário</button></div>
+          <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><button className="outline-button"><CalendarDays /> Ver calendário</button></div>
 
           <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>103 dias</em> para o ENEM.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><button>Continuar estudando <CirclePlay /></button></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
 

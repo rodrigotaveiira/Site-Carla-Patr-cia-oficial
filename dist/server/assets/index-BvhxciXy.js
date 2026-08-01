@@ -65,7 +65,7 @@ const courses = [{
   items: ["Plano sob medida", "Contato direto", "Metas personalizadas"]
 }];
 const testimonials = [{
-  name: "Marina Azevedo",
+  name: " ",
   result: "Direito — UFMG",
   text: "Eu saí dos 720 para 960 pontos. A Carla não entrega uma fórmula: ela ensina a pensar, argumentar e confiar no próprio texto.",
   image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"
@@ -503,7 +503,8 @@ function HomePage() {
         ] }),
         /* @__PURE__ */ jsx("p", { children: "Conte seus objetivos. Nossa equipe ajuda você a escolher o melhor caminho." }),
         /* @__PURE__ */ jsxs("div", { className: "contact-channels", children: [
-          /* @__PURE__ */ jsxs("a", { href: "https://wa.me/5500000000000", children: [
+          /* @__PURE__ */ jsxs("a", { href: "https://wa.me/2299932-5306
+", children: [
             /* @__PURE__ */ jsx(MessageCircle, {}),
             " WhatsApp"
           ] }),
@@ -511,7 +512,7 @@ function HomePage() {
             /* @__PURE__ */ jsx(Mail, {}),
             " E-mail"
           ] }),
-          /* @__PURE__ */ jsxs("a", { href: "https://instagram.com", children: [
+          /* @__PURE__ */ jsxs("a", { href: "https://instagram.com/carlapatricia.medina", children: [
             /* @__PURE__ */ jsx(Instagram, {}),
             " Instagram"
           ] })
@@ -559,8 +560,8 @@ function HomePage() {
           ] }),
           /* @__PURE__ */ jsx("p", { children: "Sua aprovação começa por uma redação de excelência." }),
           /* @__PURE__ */ jsxs("div", { className: "socials", children: [
-            /* @__PURE__ */ jsx("a", { href: "https://instagram.com", "aria-label": "Instagram", children: /* @__PURE__ */ jsx(Instagram, {}) }),
-            /* @__PURE__ */ jsx("a", { href: "https://wa.me/5500000000000", "aria-label": "WhatsApp", children: /* @__PURE__ */ jsx(MessageCircle, {}) }),
+            /* @__PURE__ */ jsx("a", { href: "https://instagram.com/carlapatricia.medina", "aria-label": "Instagram", children: /* @__PURE__ */ jsx(Instagram, {}) }),
+            /* @__PURE__ */ jsx("a", { href: "https://wa.me/2299932-5306", "aria-label": "WhatsApp", children: /* @__PURE__ */ jsx(MessageCircle, {}) }),
             /* @__PURE__ */ jsx("a", { href: "mailto:contato@carlapatriciamedina.com.br", "aria-label": "E-mail", children: /* @__PURE__ */ jsx(Mail, {}) })
           ] })
         ] }),
@@ -597,7 +598,7 @@ function HomePage() {
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ jsx("a", { className: "whatsapp-float", href: "https://wa.me/5500000000000", "aria-label": "Conversar no WhatsApp", children: /* @__PURE__ */ jsx(MessageCircle, {}) })
+    /* @__PURE__ */ jsx("a", { className: "whatsapp-float", href: "https://wa.me/5522999325306", "aria-label": "Conversar no WhatsApp", children: /* @__PURE__ */ jsx(MessageCircle, {}) })
   ] });
 }
 export {

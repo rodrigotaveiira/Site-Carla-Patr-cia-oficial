@@ -70,7 +70,7 @@ const courses = [
 
 const testimonials = [
   {
-    name: 'Marina Azevedo',
+    name: '',
     result: 'Direito — UFMG',
     text: 'Eu saí dos 720 para 960 pontos. A Carla não entrega uma fórmula: ela ensina a pensar, argumentar e confiar no próprio texto.',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
@@ -199,10 +199,7 @@ function HomePage() {
           <h2>Experiência, sensibilidade e um olhar <em>único</em> para cada aluno.</h2>
           <p>Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 15 anos, transforma insegurança em repertório, técnica e autonomia.</p>
           <p>Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz.</p>
-          <div className="signature">
-            <span className="signature-name">Carla Patrícia Medina</span>
-            <small>Domine as palavras. Transforme suas ideias.</small>
-          </div>
+          <div className="signature">Carla Patrícia <span>Medina</span></div>
           <div className="mini-values">
             <span><ShieldCheck /> Ensino responsável</span><span><Users /> Acompanhamento humano</span>
           </div>
@@ -300,7 +297,7 @@ function HomePage() {
       <section className="contact section-full" id="contato">
         <div className="contact-card">
           <div className="contact-copy"><div className="section-kicker">Vamos conversar?</div><h2>O próximo capítulo da sua história pode começar <em>agora.</em></h2><p>Conte seus objetivos. Nossa equipe ajuda você a escolher o melhor caminho.</p>
-            <div className="contact-channels"><a href="https://wa.me/5500000000000"><MessageCircle /> WhatsApp</a><a href="mailto:contato@carlapatriciamedina.com.br"><Mail /> E-mail</a><a href="https://instagram.com"><Instagram /> Instagram</a></div>
+            <div className="contact-channels"><a href="https://wa.me/5522999325306"><MessageCircle /> WhatsApp</a><a href="mailto:contato@carlapatriciamedina.com.br"><Mail /> E-mail</a><a href="https://instagram.com/carlapatricia.medina"><Instagram /> Instagram</a></div>
           </div>
           <form className="contact-form" name="contato" onSubmit={submitContact}>
             <input type="hidden" name="form-name" value="contato" /><input className="hidden-field" name="bot-field" tabIndex={-1} autoComplete="off" />
@@ -315,15 +312,15 @@ function HomePage() {
       </section>
 
       <footer>
-        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia</b><small>Medina · Educação</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5500000000000" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
+        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia</b><small>Medina · Educação</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
           <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a></div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
           <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
-        <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="#">Privacidade</a><a href="#">Termos de uso</a><a href="#">LGPD</a></div></div>
+        <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="#"><div><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/lgpd">LGPD</a></div></a><a href="#">Termos de uso</a><a href="#">LGPD</a></div></div>
       </footer>
 
-      <a className="whatsapp-float" href="https://wa.me/5500000000000" aria-label="Conversar no WhatsApp"><MessageCircle /></a>
+      <a className="whatsapp-float" href="https://wa.me/5522999325306" aria-label="Conversar no WhatsApp"><MessageCircle /></a>
     </main>
   )
 }

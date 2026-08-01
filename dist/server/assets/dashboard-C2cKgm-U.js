@@ -140,7 +140,7 @@ function DashboardPage() {
     logout
   } = useIdentity();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const studentName = user?.name || "Marina Azevedo";
+  const studentName = user?.name || "";
   return /* @__PURE__ */ jsxs("main", { className: "student-app", children: [
     /* @__PURE__ */ jsxs("aside", { className: sidebarOpen ? "student-sidebar open" : "student-sidebar", children: [
       /* @__PURE__ */ jsxs("div", { className: "sidebar-head", children: [
@@ -190,7 +190,7 @@ function DashboardPage() {
             /* @__PURE__ */ jsxs("span", { children: [
               /* @__PURE__ */ jsxs("b", { children: [
                 studentName,
-                " Azevedo"
+                " "
               ] }),
               /* @__PURE__ */ jsx("small", { children: "Aluna · Redação" })
             ] }),
@@ -379,4 +379,5 @@ function DashboardPage() {
 }
 export {
   DashboardPage as component
-};
+}
+
