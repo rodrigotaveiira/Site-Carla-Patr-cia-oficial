@@ -131,7 +131,7 @@ function DashboardPage() {
   return (
     <main className="student-app">
       <aside className={sidebarOpen ? 'student-sidebar open' : 'student-sidebar'}>
-        <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark">CP</span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
+        <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark"><img src="/logo-icone.png" alt="CPM" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
         <nav>{sidebarItems.map(({ icon: Icon, label, href }, index) => <a className={index === 0 ? 'active' : ''} href={href} key={label}><Icon />{label}{label === 'Redações' && <i>2</i>}</a>)}</nav>
         <div className="sidebar-help"><MessageSquareText /><b>Precisa de ajuda?</b><p>Nossa equipe está por perto.</p><a href="mailto:contato@carlapatriciamedina.com.br">Falar com suporte</a></div>
         <button className="logout" onClick={() => void logout()}><LogOut /> Sair da conta</button>
