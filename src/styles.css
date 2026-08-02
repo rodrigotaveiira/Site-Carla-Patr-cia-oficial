@@ -537,6 +537,93 @@ footer .brand b { color: white; }
   .dashboard-grid { grid-template-columns: 1fr; }
   .progress-card, .recent-content { grid-column: span 1; }
   .progress-list > div { grid-template-columns: 87px 1fr 30px; }
+  /* Letras maiores no celular para melhor legibilidade */
+  .announcement { font-size: 14px; }
+  .brand small, .dashboard-brand small { font-size: 13px; }
+  .eyebrow, .section-kicker { font-size: 14px; }
+  .hero-proof span { font-size: 14px; }
+  .hero-trust small { font-size: 14px; }
+  .score-card span { font-size: 13px; }
+  .score-card small { font-size: 13px; }
+  .experience-card span { font-size: 13px; }
+  .stats-strip span { font-size: 13px; }
+  .gold-seal small { font-size: 13px; }
+  .signature small { font-size: 14px; }
+  .mini-values span { font-size: 14px; }
+  .inline-arrow { font-size: 14px; }
+  .method-card p { font-size: 14px; }
+  .course-image span { font-size: 13px; }
+  .course-body > small { font-size: 13px; }
+  .course-body p { font-size: 14px; }
+  .course-body li { font-size: 14px; }
+  .course-body > a { font-size: 14px; }
+  .result-numbers span { font-size: 13px; }
+  .student b { font-size: 14px; }
+  .student small { font-size: 13px; }
+  .pill { font-size: 13px; }
+  .platform-features span { font-size: 14px; }
+  .mock-content > p { font-size: 13px; }
+  .mock-progress small, .mock-class small { font-size: 13px; }
+  .mock-class em { font-size: 13px; }
+  .faq-intro > p { font-size: 14px; }
+  .faq-intro > a { font-size: 14px; }
+  .faq-item p { font-size: 14px; }
+  .contact-channels a { font-size: 14px; }
+  .contact-form label, .login-form > label { font-size: 13px; }
+  .contact-form input, .contact-form textarea { font-size: 14px; }
+  .form-message { font-size: 14px; }
+  .footer-main > div > b { font-size: 14px; }
+  .footer-main > div > a, .footer-main > div > span { font-size: 14px; }
+  .footer-bottom { font-size: 13px; }
+  .back-home { font-size: 14px; }
+  .login-brand small { font-size: 13px; }
+  .login-benefits span { font-size: 14px; }
+  .login-quote span { font-size: 13px; }
+  .login-heading > span { font-size: 13px; }
+  .login-heading p { font-size: 14px; }
+  .auth-tabs button { font-size: 14px; }
+  .input-icon input { font-size: 14px; }
+  .login-options { font-size: 13px; }
+  .login-options button { font-size: 13px; }
+  .login-support { font-size: 13px; }
+  .student-sidebar nav a { font-size: 14px; }
+  .student-sidebar nav a i { font-size: 13px; }
+  .sidebar-help b { font-size: 14px; }
+  .sidebar-help p { font-size: 13px; }
+  .sidebar-help a { font-size: 13px; }
+  .logout { font-size: 13px; }
+  .dashboard-search input { font-size: 14px; }
+  .user-chip b { font-size: 13px; }
+  .user-chip small { font-size: 13px; }
+  .welcome-row > div > span { font-size: 13px; }
+  .welcome-row p { font-size: 14px; }
+  .outline-button { font-size: 13px; }
+  .dashboard-hero-card p { font-size: 13px; }
+  .dashboard-hero-card button { font-size: 13px; }
+  .hero-ring span { font-size: 13px; }
+  .card-title span { font-size: 13px; }
+  .progress-list b { font-size: 13px; }
+  .progress-list small { font-size: 13px; }
+  .progress-list strong { font-size: 13px; }
+  .progress-card > a, .recent-content .card-title a { font-size: 13px; }
+  .next-class > small { font-size: 13px; }
+  .next-class > p { font-size: 13px; }
+  .next-class > button, .correction-card > button { font-size: 13px; }
+  .week-days i { font-size: 13px; }
+  .week-days small { font-size: 13px; }
+  .weekly-goal > p { font-size: 13px; }
+  .recent-item b { font-size: 13px; }
+  .recent-item small { font-size: 13px; }
+  .recent-item > span:not(.recent-icon) { font-size: 13px; }
+  .material-intro { font-size: 13px; }
+  .material-badge { font-size: 13px; }
+  .material-item b { font-size: 13px; }
+  .material-item small { font-size: 13px; }
+  .material-item button { font-size: 13px; }
+  .correction-card > p { font-size: 13px; }
+  .competencies small { font-size: 13px; }
+  .competencies b { font-size: 13px; }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
