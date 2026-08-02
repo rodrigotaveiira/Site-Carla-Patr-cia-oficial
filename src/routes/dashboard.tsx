@@ -17,6 +17,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
+    if (!user.app_metadata?.approved) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: DashboardPage,
