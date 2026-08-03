@@ -8,6 +8,21 @@ import { useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 
+// O pacote @netlify/identity pode devolver as roles em formatos diferentes
+// dependendo da versão/contexto (snake_case ou camelCase, aninhado ou direto).
+// Essa função procura em todos os lugares possíveis para não depender de um formato só.
+function userHasApprovedRole(user: unknown): boolean {
+  const u = user as Record<string, any>
+  const candidates: unknown[] = [
+    u?.app_metadata?.roles,
+    u?.appMetadata?.roles,
+    u?.roles,
+    u?.app_metadata?.role,
+    u?.appMetadata?.role,
+  ]
+  return candidates.some((value) => Array.isArray(value) && value.includes('aprovado'))
+}
+
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
@@ -17,7 +32,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login', search: { debug: 'sem-usuario-no-servidor' } })
-    if (!user.app_metadata?.roles?.includes('aprovado')) {
+    if (!userHasApprovedRole(user)) {
       throw redirect({
         to: '/aguardando-aprovacao',
         search: { debug: JSON.stringify(user, null, 2) },
@@ -27,6 +42,7 @@ export const Route = createFileRoute('/dashboard')({
   },
   component: DashboardPage,
 })
+
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', href: '#top' },
