@@ -17,17 +17,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if beforeLoad: async () => {
-    if (typeof window !== 'undefined') {
-      const localUser = readLocalUser()
-      if (localUser) return { user: localUser }
-    }
-
-    const user = await getServerUser()
-    if (!user) throw redirect({ to: '/login' })
-    if (!user.app_metadata?.roles?.includes('aprovado')) throw redirect({ to: '/aguardando-aprovacao' })
-    return { user }
-  },(!user.app_metadata?.approved) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!user.app_metadata?.approved) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: DashboardPage,
