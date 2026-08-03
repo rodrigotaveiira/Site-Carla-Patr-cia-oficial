@@ -16,8 +16,13 @@ export const Route = createFileRoute('/dashboard')({
     }
 
     const user = await getServerUser()
-    if (!user) throw redirect({ to: '/login' })
-    if (!user.app_metadata?.approved) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!user) throw redirect({ to: '/login', search: { debug: 'sem-usuario-no-servidor' } })
+    if (!user.app_metadata?.roles?.includes('aprovado')) {
+      throw redirect({
+        to: '/aguardando-aprovacao',
+        search: { debug: JSON.stringify({ email: user.email, app_metadata: user.app_metadata }) },
+      })
+    }
     return { user }
   },
   component: DashboardPage,
