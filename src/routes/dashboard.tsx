@@ -20,7 +20,7 @@ export const Route = createFileRoute('/dashboard')({
     if (!user.app_metadata?.roles?.includes('aprovado')) {
       throw redirect({
         to: '/aguardando-aprovacao',
-        search: { debug: JSON.stringify({ email: user.email, app_metadata: user.app_metadata }) },
+        search: { debug: JSON.stringify(user, null, 2) },
       })
     }
     return { user }
