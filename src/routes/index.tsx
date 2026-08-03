@@ -182,7 +182,7 @@ function HomePage() {
         </motion.div>
 
         <motion.div className="stats-strip" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .65 }}>
-          {[['5.000+', 'redações corrigidas'], ['200+', 'alunos aprovados'], ['15 anos', 'de experiência'], ['4,9/5', 'satisfação dos alunos']].map(([number, label]) => (
+          {[['5.000+', 'redações corrigidas'], ['200+', 'alunos aprovados'], ['22 anos', 'de experiência'], ['4,9/5', 'satisfação dos alunos']].map(([number, label]) => (
             <div key={label}><b>{number}</b><span>{label}</span></div>
           ))}
         </motion.div>

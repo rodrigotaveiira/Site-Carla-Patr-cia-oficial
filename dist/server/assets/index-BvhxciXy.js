@@ -59,8 +59,8 @@ const courses = [{
   items: ["Trilha progressiva", "Exercícios comentados", "Revisões práticas"]
 }, {
   tag: "Experiência VIP",
-  title: "Mentoria Individual",
-  text: "Plano de estudos personalizado, encontros exclusivos e acompanhamento próximo.",
+  title: "Encontro Individual",
+  text: "Plano de estudos personalizado, encontros exclusivos e acompanhamento da sua redação do início ao fim.",
   image: "https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85",
   items: ["Plano sob medida", "Contato direto", "Metas personalizadas"]
 }];
@@ -109,7 +109,7 @@ function HomePage() {
     /* @__PURE__ */ jsxs("div", { className: "announcement", children: [
       /* @__PURE__ */ jsxs("span", { children: [
         /* @__PURE__ */ jsx(Sparkles, { size: 14 }),
-        " Turmas 2026 abertas"
+        " Turmas 2026/2027 abertas"
       ] }),
       /* @__PURE__ */ jsxs("a", { href: "#cursos", children: [
         "Garanta sua vaga ",
@@ -220,7 +220,7 @@ function HomePage() {
         y: 0
       }, transition: {
         delay: 0.65
-      }, children: [["5.000+", "redações corrigidas"], ["200+", "alunos aprovados"], ["15 anos", "de experiência"], ["4,9/5", "satisfação dos alunos"]].map(([number, label]) => /* @__PURE__ */ jsxs("div", { children: [
+      }, children: [["5.000+", "redações corrigidas"], ["300+", "alunos aprovados"], ["22 anos", "de experiência"], ["4,9/5", "satisfação dos alunos"]].map(([number, label]) => /* @__PURE__ */ jsxs("div", { children: [
         /* @__PURE__ */ jsx("b", { children: number }),
         /* @__PURE__ */ jsx("span", { children: label })
       ] }, label)) })
