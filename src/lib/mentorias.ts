@@ -38,7 +38,7 @@ export const listMentoriaSlots = createServerFn({ method: 'GET' }).handler(async
 })
 
 export const createMentoriaSlot = createServerFn({ method: 'POST' })
-  .validator((data: { date: string; time: string; duration: number }) => data)
+  .inputValidator((data: { date: string; time: string; duration: number }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -63,7 +63,7 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
   })
 
 export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
-  .validator((data: { id: string }) => data)
+  .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -74,7 +74,7 @@ export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
   })
 
 export const bookMentoriaSlot = createServerFn({ method: 'POST' })
-  .validator((data: { id: string }) => data)
+  .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
@@ -111,7 +111,7 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
   })
 
 export const cancelMentoriaSlot = createServerFn({ method: 'POST' })
-  .validator((data: { id: string }) => data)
+  .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
