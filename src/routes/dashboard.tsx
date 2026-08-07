@@ -7,21 +7,7 @@ import {
 import { useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-
-// O pacote @netlify/identity pode devolver as roles em formatos diferentes
-// dependendo da versão/contexto (snake_case ou camelCase, aninhado ou direto).
-// Essa função procura em todos os lugares possíveis para não depender de um formato só.
-function userHasApprovedRole(user: unknown): boolean {
-  const u = user as Record<string, any>
-  const candidates: unknown[] = [
-    u?.app_metadata?.roles,
-    u?.appMetadata?.roles,
-    u?.roles,
-    u?.app_metadata?.role,
-    u?.appMetadata?.role,
-  ]
-  return candidates.some((value) => Array.isArray(value) && value.includes('aprovado'))
-}
+import { userHasRole } from '@/lib/roles'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -32,7 +18,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login', search: { debug: 'sem-usuario-no-servidor' } })
-    if (!userHasApprovedRole(user)) {
+    if (!userHasRole(user, 'aprovado')) {
       throw redirect({
         to: '/aguardando-aprovacao',
         search: { debug: JSON.stringify(user, null, 2) },
@@ -52,7 +38,7 @@ const sidebarItems = [
   { icon: CircleHelp, label: 'Questões', href: '/em-breve/questoes' },
   { icon: Target, label: 'Simulados', href: '/em-breve/simulados' },
   { icon: FileCheck2, label: 'Redações', href: '/em-breve/redacoes' },
-  { icon: CalendarDays, label: 'Calendário', href: '/em-breve/calendario' },
+  { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
   { icon: BookMarked, label: 'Repertórios', href: '/em-breve/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/em-breve/dicas' },
   { icon: TrendingUp, label: 'Meu progresso', href: '/em-breve/progresso' },
