@@ -15,7 +15,7 @@ export const Route = createFileRoute('/mentorias')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: MentoriasPage,

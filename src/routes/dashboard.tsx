@@ -18,7 +18,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login', search: { debug: 'sem-usuario-no-servidor' } })
-    if (!userHasRole(user, 'aprovado')) {
+    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) {
       throw redirect({
         to: '/aguardando-aprovacao',
         search: { debug: JSON.stringify(user, null, 2) },

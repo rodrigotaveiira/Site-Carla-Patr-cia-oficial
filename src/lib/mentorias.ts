@@ -78,7 +78,7 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
-    if (!userHasRole(user, 'aprovado')) throw new Error('Sua conta ainda não foi aprovada.')
+    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw new Error('Sua conta ainda não foi aprovada.')
 
     const store = slotsStore()
     const entry = await store.getWithMetadata(data.id, { type: 'json' })

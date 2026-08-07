@@ -10,5 +10,10 @@ export function userHasRole(user: unknown, role: string): boolean {
     u?.app_metadata?.role,
     u?.appMetadata?.role,
   ]
-  return candidates.some((value) => Array.isArray(value) && value.includes(role))
+  const target = role.trim().toLowerCase()
+  return candidates.some(
+    (value) =>
+      Array.isArray(value) &&
+      value.some((item) => typeof item === 'string' && item.trim().toLowerCase() === target),
+  )
 }
