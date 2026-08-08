@@ -67,12 +67,15 @@ const courses = [{
 const testimonials = [{
   name: " ",
   result: "Direito — UFMG",
-  text: "Eu saí dos 720 para 960 pontos. A Carla não entrega uma fórmula: ela ensina a pensar, argumentar e confiar no próprio texto.",
+  text: "Carlinha é uma professora diferenciada! Entrei em fevereiro, e no primeiro semestre passei para a FMC. Ela é diferente não só na didática, é também no aspecto emocional,  que prioriza nossa sanidade mental, com muitas conversas. Em relação ao conteúdo, ela usa todos os métodos, monitorias (que avalia nossa redação parte por parte), aula, simulados, simuladinhos e o WhatsApp 100% disponível em qualquer horário. Eu indicaria para QUALQUER pessoa, independente do nível de escolaridade. O curso é extremamente acolhedor, eu sou apaixonada na didática e no ambiente.",
   image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80"
 }, {
   name: "Lucas Fernandes",
   result: "Medicina — UFJF",
-  text: "As correções são extremamente detalhadas. Pela primeira vez entendi exatamente o que precisava melhorar e como fazer isso.",
+  text: "Ter Carlinha do meu lado durante a minha trajetória no vestibular foi crucial. Ela acreditava em mim mesmo quando eu estava exausta e pensando em desistir. 
+Estar no saberes tornou o processo, que não é fácil, muito mais leve! O ambiente é super acolhedor nos mínimos detalhes! 
+Minha gratidão eterna a esse lugar e essa profissional maravilhosa. 
+É difícil achar alguém como Carlinha hoje em dia",
   image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80"
 }, {
   name: "Beatriz Moura",

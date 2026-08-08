@@ -70,21 +70,24 @@ const courses = [
 
 const testimonials = [
   {
-    name: '',
-    result: 'Direito — UFMG',
-    text: 'Eu saí dos 720 para 960 pontos. A Carla não entrega uma fórmula: ela ensina a pensar, argumentar e confiar no próprio texto.',
+    name: 'Isabel Pontes',
+    result: 'Medicina — FMC',
+    text: 'Carlinha é uma professora diferenciada! Entrei em fevereiro, e no primeiro semestre passei para a FMC. Ela é diferente não só na didática, é também no aspecto emocional,  que prioriza nossa sanidade mental, com muitas conversas. Em relação ao conteúdo, ela usa todos os métodos, monitorias (que avalia nossa redação parte por parte), aula, simulados, simuladinhos e o WhatsApp 100% disponível em qualquer horário. Eu indicaria para QUALQUER pessoa, independente do nível de escolaridade. O curso é extremamente acolhedor, eu sou apaixonada na didática e no ambiente.',
     image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
   },
   {
-    name: 'Lucas Fernandes',
-    result: 'Medicina — UFJF',
-    text: 'As correções são extremamente detalhadas. Pela primeira vez entendi exatamente o que precisava melhorar e como fazer isso.',
+    name: 'Maria Clara Kemp',
+    result: 'Medicina — FMC e FMP',
+    text: `Ter Carlinha do meu lado durante a minha trajetória no vestibular foi crucial. Ela acreditava em mim mesmo quando eu estava exausta e pensando em desistir. 
+Estar no saberes tornou o processo, que não é fácil, muito mais leve! O ambiente é super acolhedor nos mínimos detalhes! 
+Minha gratidão eterna a esse lugar e essa profissional maravilhosa. 
+É difícil achar alguém como Carlinha hoje em dia`,
     image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
   },
   {
-    name: 'Beatriz Moura',
+    name: 'Thaís Taveres',
     result: 'Analista — TRT',
-    text: 'A metodologia trouxe organização e objetividade para a minha escrita. Foi decisiva para a aprovação no concurso.',
+    text: 'Mais do que uma professora, você foi a pessoa que acreditou em mim quando eu mesma não conseguia acreditar. Seu incentivo, carinho e confiança mudaram a minha história e fizeram parte da realização de um grande sonho. Hoje tenho a felicidade de dizer que, além de uma profissional extraordinária, ganhei uma amiga para sempre. Você sempre terá um lugar muito especial no meu coração! Obrigada por tudo, Carlinha, amo muito você!',
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
   },
 ]
@@ -249,7 +252,7 @@ function HomePage() {
           <h2>Mais do que notas.<br /><em>Novas possibilidades.</em></h2>
           <p>Quando existe método, acompanhamento e constância, a evolução deixa de ser promessa e vira conquista.</p>
           <div className="result-numbers">
-            <div><b>98%</b><span>recomendam o método</span></div><div><b>+180</b><span>pontos de evolução média</span></div>
+            <div><b>84%</b><span>Alcançaram 30+ na redação</span></div><div><b>82%</b><span>Aprovados no vestibular</span></div>
           </div>
         </motion.div>
         <div className="university-cloud" aria-label="Universidades com alunos aprovados">
@@ -312,7 +315,7 @@ function HomePage() {
       </section>
 
       <footer>
-        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia</b><small>Medina · Educação</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
+        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
           <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a></div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
           <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
