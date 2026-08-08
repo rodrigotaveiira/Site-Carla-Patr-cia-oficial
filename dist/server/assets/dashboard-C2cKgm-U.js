@@ -224,7 +224,7 @@ function DashboardPage() {
             /* @__PURE__ */ jsxs("h2", { children: [
               "Faltam ",
               /* @__PURE__ */ jsx("em", { children: "103 dias" }),
-              " para o ENEM."
+              " para a Prova da FMC."
             ] }),
             /* @__PURE__ */ jsx("p", { children: "Cada aula concluída hoje deixa você mais perto da aprovação." }),
             /* @__PURE__ */ jsxs("button", { children: [

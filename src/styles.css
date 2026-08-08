@@ -336,6 +336,11 @@ footer .brand b { color: white; }
 .topbar-actions > button i { position: absolute; top: 1px; right: 3px; width: 6px; height: 6px; background: #ef4444; border: 1px solid white; border-radius: 50%; }
 .user-chip { display: flex; align-items: center; gap: 9px; padding-left: 20px; border-left: 1px solid #e5e7eb; }
 .user-chip img { width: 34px; height: 34px; object-fit: cover; border-radius: 50%; }
+.avatar-edit-button { position: relative; width: 34px; height: 34px; padding: 0; border: none; background: none; border-radius: 50%; cursor: pointer; display: block; }
+.avatar-edit-button:disabled { cursor: default; opacity: .7; }
+.avatar-edit-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(15, 35, 66, 0.55); color: #fff; font-size: 12px; opacity: 0; transition: opacity .15s ease; }
+.avatar-edit-button:hover .avatar-edit-overlay, .avatar-edit-button:disabled .avatar-edit-overlay { opacity: 1; }
+.avatar-edit-error { color: #c0392b; font-size: 11px; padding: 4px 34px; margin: 0; }
 .user-chip span { display: flex; flex-direction: column; }
 .user-chip b { color: var(--navy); font-size: 9px; }
 .user-chip small { color: #98a1ad; font-size: 8px; }

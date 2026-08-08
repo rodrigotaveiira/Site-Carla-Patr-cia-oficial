@@ -4,10 +4,12 @@ import {
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
   MoreHorizontal, Search, ShieldCheck, Target, TrendingUp, Trophy, User, X, Zap,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
+import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
+import { registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -131,10 +133,77 @@ function downloadProtectedMaterial(materialTitle: string, studentName: string) {
   link.click()
 }
 
+const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'
+
+const ENEM_DATE = new Date('2026-11-22T00:00:00')
+const WEEKDAY_LETTERS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'] // segunda a domingo
+
+function diasParaEnem() {
+  const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0)
+  const diffMs = ENEM_DATE.getTime() - hoje.getTime()
+  return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)))
+}
+
 function DashboardPage() {
   const { user, logout } = useIdentity()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const studentName = user?.name || ' '
+
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    getMyProfilePhoto()
+      .then((saved) => { if (saved) setPhotoUrl(saved) })
+      .catch(() => { /* aluno ainda não tem foto salva, sem problema */ })
+  }, [])
+
+  const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
+
+  useEffect(() => {
+    registerAccessAndGetWeeklyGoal()
+      .then((result) => { if (result) setWeeklyGoal(result) })
+      .catch(() => { /* sem conexão com o servidor, o card usa o estado padrão */ })
+  }, [])
+
+  function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = '' // permite escolher o mesmo arquivo de novo depois
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Escolha um arquivo de imagem (JPG, PNG ou WEBP).')
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError('Essa imagem é muito grande. Escolha uma foto de até 2MB.')
+      return
+    }
+
+    setPhotoError('')
+    setUploadingPhoto(true)
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = reader.result as string
+      try {
+        await saveMyProfilePhoto({ data: { dataUrl } })
+        setPhotoUrl(dataUrl)
+      } catch (error) {
+        setPhotoError(error instanceof Error ? error.message : 'Não foi possível salvar a foto.')
+      } finally {
+        setUploadingPhoto(false)
+      }
+    }
+    reader.onerror = () => {
+      setPhotoError('Não foi possível ler o arquivo. Tente outra imagem.')
+      setUploadingPhoto(false)
+    }
+    reader.readAsDataURL(file)
+  }
 
   return (
     <main className="student-app">
@@ -146,12 +215,20 @@ function DashboardPage() {
       </aside>
 
       <section className="student-main" id="top">
-        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search"><Search /><input placeholder="Buscar aulas, materiais, temas..." /></div><div className="topbar-actions"><button><Bell /><i /></button><div className="user-chip"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt="Perfil" /><span><b>{studentName} </b><small>Aluna · Redação</small></span><ChevronRight /></div></div></header>
+        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search"><Search /><input placeholder="Buscar aulas, materiais, temas..." /></div><div className="topbar-actions"><button><Bell /><i /></button><div className="user-chip">
+          <button type="button" className="avatar-edit-button" onClick={() => photoInputRef.current?.click()} disabled={uploadingPhoto} title="Trocar foto de perfil">
+            <img src={photoUrl || DEFAULT_AVATAR} alt="Perfil" />
+            <span className="avatar-edit-overlay">{uploadingPhoto ? '...' : '✎'}</span>
+          </button>
+          <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+          <span><b>{studentName} </b><small>Estudante · Redação</small></span><ChevronRight />
+        </div></div></header>
+        {photoError && <p className="avatar-edit-error">{photoError}</p>}
 
         <div className="dashboard-content">
           <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><button className="outline-button"><CalendarDays /> Ver calendário</button></div>
 
-          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>103 dias</em> para o ENEM.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><button>Continuar estudando <CirclePlay /></button></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para o ENEM.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><button>Continuar estudando <CirclePlay /></button></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button><MoreHorizontal /></button></div><div className="progress-list">
@@ -160,7 +237,17 @@ function DashboardPage() {
 
             <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Hoje, às 19h</h3></div><span className="live-dot">Ao vivo</span></div><div className="class-thumb"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=85" alt="Caderno de estudos" /><span><CirclePlay /></span></div><small>MÓDULO 04 · REDAÇÃO</small><h4>Projeto de texto: da tese à conclusão</h4><p><Clock3 /> 1h30 de duração · Prof.ª Carla</p><button>Entrar na aula <ChevronRight /></button></section>
 
-            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>4 de 5 atividades</h3></div><Trophy /></div><div className="week-days">{['S','T','Q','Q','S','S','D'].map((day, index) => <span className={index < 4 ? 'done' : index === 4 ? 'today' : ''} key={`${day}${index}`}><i>{index < 4 ? '✓' : index + 28}</i><small>{day}</small></span>)}</div><p>Você está a uma atividade de completar sua meta!</p></section>
+            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div><Trophy /></div><div className="week-days">{(weeklyGoal ? weeklyGoal.dates : []).map((date, index) => {
+              const isDone = weeklyGoal?.completedDates.includes(date)
+              const isToday = date === new Date().toISOString().slice(0, 10)
+              const dayNumber = Number(date.slice(8, 10))
+              return (
+                <span className={isDone ? 'done' : isToday ? 'today' : ''} key={date}>
+                  <i>{isDone ? '✓' : dayNumber}</i>
+                  <small>{WEEKDAY_LETTERS[index]}</small>
+                </span>
+              )
+            })}</div><p>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? 'Você completou sua meta semanal! 🎉' : weeklyGoal ? `Você está a ${weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!` : 'Carregando sua meta semanal...'}</p></section>
 
             <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><a href="#aulas">Ver todas</a></div>{[
               ['Competência 3: argumentação', 'Redação · 72%', '32 min'], ['Concordância verbal', 'Gramática · 45%', '28 min'], ['Repertório sociocultural', 'Repertório · 20%', '41 min'],
