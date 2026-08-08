@@ -109,7 +109,7 @@ function HomePage() {
     /* @__PURE__ */ jsxs("div", { className: "announcement", children: [
       /* @__PURE__ */ jsxs("span", { children: [
         /* @__PURE__ */ jsx(Sparkles, { size: 14 }),
-        " Turmas 2026/2027 abertas"
+        " Turmas 2026-2027 abertas"
       ] }),
       /* @__PURE__ */ jsxs("a", { href: "#cursos", children: [
         "Garanta sua vaga ",
@@ -151,7 +151,7 @@ function HomePage() {
       }, children: [
         /* @__PURE__ */ jsxs("div", { className: "eyebrow", children: [
           /* @__PURE__ */ jsx("span", {}),
-          " Educação que transforma resultados"
+          " Estratégia que transforma resultados"
         ] }),
         /* @__PURE__ */ jsxs("h1", { children: [
           "Sua aprovação começa por uma ",
@@ -248,7 +248,7 @@ function HomePage() {
           /* @__PURE__ */ jsx("em", { children: "único" }),
           " para cada aluno."
         ] }),
-        /* @__PURE__ */ jsx("p", { children: "Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 15 anos, transforma insegurança em repertório, técnica e autonomia." }),
+        /* @__PURE__ */ jsx("p", { children: "Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 22 anos, transforma insegurança em repertório, técnica e autonomia." }),
         /* @__PURE__ */ jsx("p", { children: "Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz." }),
         /* @__PURE__ */ jsxs("div", { className: "signature", children: [
           /* @__PURE__ */ jsx("span", { className: "signature-name", children: "Carla Patrícia Medina" }),

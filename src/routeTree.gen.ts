@@ -11,9 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
+import { Route as MentoriasRouteImport } from './routes/mentorias'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmBreveSecaoRouteImport } from './routes/em-breve.$secao'
@@ -26,6 +29,16 @@ const TermosRoute = TermosRouteImport.update({
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
+  id: '/mentorias-admin',
+  path: '/mentorias-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasRoute = MentoriasRouteImport.update({
+  id: '/mentorias',
+  path: '/mentorias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -41,6 +54,11 @@ const LgpdRoute = LgpdRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
@@ -62,9 +80,12 @@ const EmBreveSecaoRoute = EmBreveSecaoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/mentorias': typeof MentoriasRoute
+  '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
@@ -72,9 +93,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/mentorias': typeof MentoriasRoute
+  '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
@@ -83,9 +107,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/mentorias': typeof MentoriasRoute
+  '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/termos': typeof TermosRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
@@ -95,9 +122,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/aguardando-aprovacao'
+    | '/calendario'
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/mentorias'
+    | '/mentorias-admin'
     | '/privacidade'
     | '/termos'
     | '/em-breve/$secao'
@@ -105,9 +135,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aguardando-aprovacao'
+    | '/calendario'
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/mentorias'
+    | '/mentorias-admin'
     | '/privacidade'
     | '/termos'
     | '/em-breve/$secao'
@@ -115,9 +148,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/aguardando-aprovacao'
+    | '/calendario'
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/mentorias'
+    | '/mentorias-admin'
     | '/privacidade'
     | '/termos'
     | '/em-breve/$secao'
@@ -126,9 +162,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  CalendarioRoute: typeof CalendarioRoute
   DashboardRoute: typeof DashboardRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
+  MentoriasRoute: typeof MentoriasRoute
+  MentoriasAdminRoute: typeof MentoriasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   TermosRoute: typeof TermosRoute
   EmBreveSecaoRoute: typeof EmBreveSecaoRoute
@@ -150,6 +189,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mentorias-admin': {
+      id: '/mentorias-admin'
+      path: '/mentorias-admin'
+      fullPath: '/mentorias-admin'
+      preLoaderRoute: typeof MentoriasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorias': {
+      id: '/mentorias'
+      path: '/mentorias'
+      fullPath: '/mentorias'
+      preLoaderRoute: typeof MentoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -169,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aguardando-aprovacao': {
@@ -198,9 +258,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  CalendarioRoute: CalendarioRoute,
   DashboardRoute: DashboardRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
+  MentoriasRoute: MentoriasRoute,
+  MentoriasAdminRoute: MentoriasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   TermosRoute: TermosRoute,
   EmBreveSecaoRoute: EmBreveSecaoRoute,

@@ -62,7 +62,7 @@ const courses = [
   {
     tag: 'Experiência VIP',
     title: 'Mentoria Individual',
-    text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento próximo.',
+    text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento da redação.',
     image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85',
     items: ['Plano sob medida', 'Contato direto', 'Metas personalizadas'],
   },
@@ -90,7 +90,7 @@ const testimonials = [
 ]
 
 const faqs = [
-  ['Para quem são os cursos?', 'Para estudantes do ensino médio, ENEM, vestibulares, concursos e universitários que desejam escrever com mais clareza, técnica e confiança.'],
+  ['Para quem são os cursos?', 'PVoltado para estudantes do Ensino Médio, candidatos ao ENEM, vestibulares e concursos, e universitários que desejam aprimorar a escrita, desenvolver maior clareza e domínio técnico, e escrever com mais confiança.'],
   ['Como funcionam as correções?', 'Cada texto recebe uma análise criteriosa dos critérios da prova, comentários por trecho, nota detalhada e orientações práticas para a próxima produção.'],
   ['As aulas ficam gravadas?', 'Sim. As aulas ao vivo ficam disponíveis na plataforma para revisão durante o período de acesso do curso.'],
   ['Posso começar do zero?', 'Com certeza. A trilha respeita seu nível atual e conduz passo a passo da estrutura básica às estratégias avançadas.'],
@@ -126,14 +126,14 @@ function HomePage() {
   return (
     <main className="site-shell">
       <div className="announcement">
-        <span><Sparkles size={14} /> Turmas 2026 abertas</span>
+        <span><Sparkles size={14} /> Turmas 2026/2027 abertas</span>
         <a href="#cursos">Garanta sua vaga <ArrowRight size={14} /></a>
       </div>
 
       <header className="nav-wrap">
         <a className="brand" href="#inicio" aria-label="Carla Patrícia Medina — início">
           <span className="brand-mark"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></span>
-          <span><b>Carla Patrícia</b><small>Medina · Educação</small></span>
+          <span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
           {['Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados', 'FAQ', 'Contato'].map((item) => (
@@ -153,7 +153,7 @@ function HomePage() {
       <section className="hero" id="inicio">
         <div className="hero-orb orb-one" /><div className="hero-orb orb-two" />
         <motion.div className="hero-copy" initial={{ opacity: 0, x: -35 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .8 }}>
-          <div className="eyebrow"><span /> Educação que transforma resultados</div>
+          <div className="eyebrow"><span /> Estratégia que transforma resultados</div>
           <h1>Sua aprovação começa por uma <em>redação de excelência.</em></h1>
           <p>Aulas de Redação e Gramática com metodologia exclusiva, correção personalizada e acompanhamento completo para ENEM, vestibulares e concursos.</p>
           <div className="hero-proof">
@@ -168,21 +168,21 @@ function HomePage() {
             <div className="avatar-stack">
               {testimonials.map((item) => <img key={item.name} src={item.image} alt="" />)}
             </div>
-            <div><span>{[1,2,3,4,5].map(n => <Star key={n} size={13} fill="currentColor" />)}</span><small>Mais de 200 histórias de aprovação</small></div>
+            <div><span>{[1,2,3,4,5].map(n => <Star key={n} size={13} fill="currentColor" />)}</span><small>Mais de 300 histórias de aprovação</small></div>
           </div>
         </motion.div>
 
         <motion.div className="hero-visual" initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .9, delay: .15 }}>
           <div className="portrait-frame">
-            <div className="portrait-label">Prof.ª Carla<br /><b>Patrícia Medina</b></div>
+            <div className="portrait-label"><br /><b></b></div>
             <a href="https://im.ge/i/QM8BQuT"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></a>
             <div className="floating-card score-card"><span>Nota alcançada</span><b>960</b><small><TrendingUp size={14} /> +180 pontos</small></div>
-            <div className="floating-card experience-card"><Award size={22} /><div><b>15+ anos</b><span>de experiência</span></div></div>
+            <div className="floating-card experience-card"><Award size={22} /><div><b>22+ anos</b><span>de experiência</span></div></div>
           </div>
         </motion.div>
 
         <motion.div className="stats-strip" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .65 }}>
-          {[['5.000+', 'redações corrigidas'], ['200+', 'alunos aprovados'], ['22 anos', 'de experiência'], ['4,9/5', 'satisfação dos alunos']].map(([number, label]) => (
+          {[['5.000+', 'redações corrigidas'], ['300+', 'alunos aprovados'], ['22 anos', 'de experiência'], ['4,9/5', 'satisfação dos alunos']].map(([number, label]) => (
             <div key={label}><b>{number}</b><span>{label}</span></div>
           ))}
         </motion.div>
@@ -197,7 +197,7 @@ function HomePage() {
         <motion.div className="about-copy" {...reveal}>
           <div className="section-kicker">Conheça sua professora</div>
           <h2>Experiência, sensibilidade e um olhar <em>único</em> para cada aluno.</h2>
-          <p>Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 15 anos, transforma insegurança em repertório, técnica e autonomia.</p>
+          <p>Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 22 anos, transforma insegurança em repertório, técnica e autonomia.</p>
           <p>Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz.</p>
           <div className="signature">Carla Patrícia <span>Medina</span></div>
           <div className="mini-values">
@@ -225,7 +225,7 @@ function HomePage() {
       <section className="courses section-full" id="cursos">
         <div className="section-heading split">
           <div><div className="section-kicker">Escolha sua jornada</div><h2>Cursos criados para o seu <em>próximo nível.</em></h2></div>
-          <p>Da base à alta performance, encontre a experiência que combina com seu momento e seus objetivos.</p>
+          <p></p>
         </div>
         <div className="course-grid">
           {courses.map((course, index) => (
@@ -253,7 +253,7 @@ function HomePage() {
           </div>
         </motion.div>
         <div className="university-cloud" aria-label="Universidades com alunos aprovados">
-          {['USP', 'UFMG', 'UNESP', 'UFJF', 'PUC', 'UnB'].map((name, i) => <motion.span key={name} {...reveal} transition={{ delay: i * .06 }}>{name}<small>aprovações</small></motion.span>)}
+          {['FMC', 'FMP', 'UFF', 'UENF', 'UVV', 'UFRJ'].map((name, i) => <motion.span key={name} {...reveal} transition={{ delay: i * .06 }}>{name}<small>aprovações</small></motion.span>)}
         </div>
       </section>
 
