@@ -86,7 +86,7 @@ Minha gratidão eterna a esse lugar e essa profissional maravilhosa.
   },
   {
     name: 'Thaís Taveres',
-    result: 'Analista — TRT',
+    result: 'Medicina — FMC',
     text: 'Mais do que uma professora, você foi a pessoa que acreditou em mim quando eu mesma não conseguia acreditar. Seu incentivo, carinho e confiança mudaram a minha história e fizeram parte da realização de um grande sonho. Hoje tenho a felicidade de dizer que, além de uma profissional extraordinária, ganhei uma amiga para sempre. Você sempre terá um lugar muito especial no meu coração! Obrigada por tudo, Carlinha, amo muito você!',
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
   },
