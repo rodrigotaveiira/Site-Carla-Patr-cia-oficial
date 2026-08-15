@@ -345,6 +345,9 @@ footer .brand b { color: white; }
 .user-chip b { color: var(--navy); font-size: 9px; }
 .user-chip small { color: #98a1ad; font-size: 8px; }
 .user-chip > svg { width: 13px; color: #a5acb7; transform: rotate(90deg); }
+.topbar-logout { color: #75869d; background: none; border: 0; cursor: pointer; padding: 6px; display: flex; align-items: center; }
+.topbar-logout svg { width: 18px; }
+.topbar-logout:hover { color: #ef4444; }
 .dashboard-content { max-width: 1320px; margin: auto; padding: 32px 38px 60px; }
 .welcome-row { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
 .welcome-row > div > span { color: #9aa2ae; font-size: 8px; font-weight: 800; letter-spacing: .11em; }

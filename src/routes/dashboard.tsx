@@ -13,6 +13,10 @@ import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '
 
 // Tempo mínimo que o aluno precisa ficar na plataforma para o dia contar na meta semanal.
 const MINUTES_TO_COUNT_ACCESS = 10
+
+// Tempo de inatividade (sem tocar na tela/teclado/mouse) até deslogar o aluno automaticamente.
+const INACTIVITY_LIMIT_MINUTES = 15
+
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
@@ -163,7 +167,38 @@ function DashboardPage() {
       .catch(() => { /* aluno ainda não tem foto salva, sem problema */ })
   }, [])
 
-const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
+  // Desloga automaticamente o aluno depois de INACTIVITY_LIMIT_MINUTES minutos sem uso
+  // (sem tocar na tela, sem digitar, sem rolar — inclusive com o celular apagado).
+  useEffect(() => {
+    const LAST_ACTIVITY_KEY = 'cpm:last-activity-at'
+    const markActivity = () => { localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now())) }
+    markActivity()
+
+    const checkInactivity = () => {
+      const last = Number(localStorage.getItem(LAST_ACTIVITY_KEY) || Date.now())
+      const minutesIdle = (Date.now() - last) / (60 * 1000)
+      if (minutesIdle >= INACTIVITY_LIMIT_MINUTES) {
+        void logout()
+      }
+    }
+
+    const activityEvents = ['mousemove', 'keydown', 'touchstart', 'scroll', 'click']
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, markActivity))
+
+    // Se o celular apaga e volta a tela (ou o app volta pro primeiro plano), confere na hora.
+    const handleVisibility = () => { if (document.visibilityState === 'visible') checkInactivity() }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    const interval = setInterval(checkInactivity, 30 * 1000)
+
+    return () => {
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, markActivity))
+      document.removeEventListener('visibilitychange', handleVisibility)
+      clearInterval(interval)
+    }
+  }, [logout])
+
+  const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
 
   // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
   useEffect(() => {
@@ -182,11 +217,6 @@ const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
     }, MINUTES_TO_COUNT_ACCESS * 60 * 1000)
 
     return () => clearTimeout(timer)
-  }, [])
-  useEffect(() => {
-    registerAccessAndGetWeeklyGoal()
-      .then((result) => { if (result) setWeeklyGoal(result) })
-      .catch(() => { /* sem conexão com o servidor, o card usa o estado padrão */ })
   }, [])
 
   function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -242,7 +272,7 @@ const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
           </button>
           <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
           <span><b>{studentName} </b><small>Estudante · Redação</small></span><ChevronRight />
-        </div></div></header>
+        </div><button className="topbar-logout" onClick={() => void logout()} title="Sair da conta"><LogOut /></button></div></header>
         {photoError && <p className="avatar-edit-error">{photoError}</p>}
 
         <div className="dashboard-content">
