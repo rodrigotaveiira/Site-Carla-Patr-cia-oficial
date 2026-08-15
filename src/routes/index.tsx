@@ -73,7 +73,7 @@ const testimonials = [
     name: 'Isabel Pontes',
     result: 'Medicina — FMC',
     text: 'Carlinha é uma professora diferenciada! Entrei em fevereiro, e no primeiro semestre passei para a FMC. Ela é diferente não só na didática, é também no aspecto emocional,  que prioriza nossa sanidade mental, com muitas conversas. Em relação ao conteúdo, ela usa todos os métodos, monitorias (que avalia nossa redação parte por parte), aula, simulados, simuladinhos e o WhatsApp 100% disponível em qualquer horário. Eu indicaria para QUALQUER pessoa, independente do nível de escolaridade. O curso é extremamente acolhedor, eu sou apaixonada na didática e no ambiente.',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    image: '/depoimentos/isabel-pontes.jpeg',
   },
   {
     name: 'Maria Clara Kemp',
@@ -88,7 +88,7 @@ Minha gratidão eterna a esse lugar e essa profissional maravilhosa.
     name: 'Thaís Taveres',
     result: 'Medicina — FMC',
     text: 'Mais do que uma professora, você foi a pessoa que acreditou em mim quando eu mesma não conseguia acreditar. Seu incentivo, carinho e confiança mudaram a minha história e fizeram parte da realização de um grande sonho. Hoje tenho a felicidade de dizer que, além de uma profissional extraordinária, ganhei uma amiga para sempre. Você sempre terá um lugar muito especial no meu coração! Obrigada por tudo, Carlinha, amo muito você!',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    image: '/depoimentos/thais-tavares.jpeg',
   },
 ]
 
