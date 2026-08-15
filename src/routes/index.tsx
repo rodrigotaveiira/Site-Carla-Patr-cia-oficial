@@ -82,7 +82,7 @@ const testimonials = [
 Estar no saberes tornou o processo, que não é fácil, muito mais leve! O ambiente é super acolhedor nos mínimos detalhes! 
 Minha gratidão eterna a esse lugar e essa profissional maravilhosa. 
 É difícil achar alguém como Carlinha hoje em dia`,
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    image: 'h/maria-clara-kemp.jpeg',
   },
   {
     name: 'Thaís Taveres',
