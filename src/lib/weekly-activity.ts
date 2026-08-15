@@ -39,8 +39,27 @@ export type WeeklyGoal = {
   goal: number
 }
 
+// Lê a semana atual do aluno logado, sem marcar nenhum acesso novo.
+// Chamado assim que o dashboard carrega, só para exibir o estado já salvo.
+export const getWeeklyGoal = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<WeeklyGoal | null> => {
+    const user = await getServerUser()
+    if (!user) return null
+
+    const store = activityStore()
+    const dates = weekDates(new Date())
+    const completedDates: string[] = []
+    for (const date of dates) {
+      const value = await store.get(`${user.id}:${date}`)
+      if (value) completedDates.push(date)
+    }
+
+    return { dates, completedDates, goal: WEEKLY_GOAL }
+  },
+)
+
 // Marca "hoje" como um dia de acesso do aluno logado e devolve a semana inteira.
-// Chamado automaticamente sempre que o dashboard carrega.
+// Chamado só depois que o aluno fica pelo menos 10 minutos com o dashboard aberto.
 export const registerAccessAndGetWeeklyGoal = createServerFn({ method: 'POST' }).handler(
   async (): Promise<WeeklyGoal | null> => {
     const user = await getServerUser()
