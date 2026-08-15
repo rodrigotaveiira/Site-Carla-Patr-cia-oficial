@@ -9,8 +9,10 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
-import { registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
+import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 
+// Tempo mínimo que o aluno precisa ficar na plataforma para o dia contar na meta semanal.
+const MINUTES_TO_COUNT_ACCESS = 10
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
@@ -161,8 +163,26 @@ function DashboardPage() {
       .catch(() => { /* aluno ainda não tem foto salva, sem problema */ })
   }, [])
 
-  const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
+const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
 
+  // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
+  useEffect(() => {
+    getWeeklyGoal()
+      .then((result) => { if (result) setWeeklyGoal(result) })
+      .catch(() => { /* sem conexão com o servidor, o card usa o estado padrão */ })
+  }, [])
+
+  // Só depois que o aluno fica MINUTES_TO_COUNT_ACCESS minutos com a aba aberta,
+  // o dia de hoje é registrado como um dia de acesso na meta semanal.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      registerAccessAndGetWeeklyGoal()
+        .then((result) => { if (result) setWeeklyGoal(result) })
+        .catch(() => { /* sem conexão com o servidor, tenta de novo na próxima visita */ })
+    }, MINUTES_TO_COUNT_ACCESS * 60 * 1000)
+
+    return () => clearTimeout(timer)
+  }, [])
   useEffect(() => {
     registerAccessAndGetWeeklyGoal()
       .then((result) => { if (result) setWeeklyGoal(result) })
