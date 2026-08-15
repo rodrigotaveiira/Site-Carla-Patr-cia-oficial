@@ -17,6 +17,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+html, body { max-width: 100%; overflow-x: hidden; }
 body { margin: 0; font-family: var(--sans); color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
 button, input, textarea { font: inherit; }
 a { color: inherit; text-decoration: none; }
@@ -636,4 +637,21 @@ footer .brand b { color: white; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Ajustes finos para celulares bem compactos (iPhone SE e similares) */
+@media (max-width: 380px) {
+  .hero h1 { font-size: 38px; }
+  .hero { padding-left: 18px; padding-right: 18px; }
+  .section { padding-left: 18px; padding-right: 18px; }
+  .section-full { padding-left: 18px; padding-right: 18px; }
+  .stats-strip { left: 12px; right: 12px; }
+  .stats-strip div { padding: 8px 6px; }
+  .testimonial-wrap article { padding: 32px 16px; }
+  .contact-card { padding: 30px 16px; }
+  .dashboard-content { padding: 18px 12px 40px; }
+  .dashboard-hero-card { padding: 22px 18px; }
+  .dashboard-grid { gap: 14px; }
+  .progress-list > div { grid-template-columns: 70px 1fr 26px; gap: 6px; }
+  .week-days { gap: 4px; }
 }
