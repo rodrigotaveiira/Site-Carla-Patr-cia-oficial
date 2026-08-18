@@ -66,7 +66,7 @@ function ConteudoPage() {
     <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
       <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>{sectionLabel}</h1>
-      <p style={{ color: '#6b7280' }}>Materiais em PDF enviados pela professora Carla.</p>
+      <p style={{ color: '#6b7280' }}>Materiais em PDF enviados pela professora Carla. Cada download é protegido com seu nome e CPF.</p>
 
       {error && <p style={{ color: '#dc2626' }}>{error}</p>}
       {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}

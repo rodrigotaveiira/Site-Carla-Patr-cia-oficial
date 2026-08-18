@@ -73,7 +73,7 @@ function MateriaisAdminPage() {
       return
     }
     if (!file) {
-      setError('Escolha um arquivo Word (.doc/.docx) ou PDF para enviar.')
+      setError('Escolha um arquivo Word (.docx) ou PDF para enviar.')
       return
     }
 
@@ -107,8 +107,8 @@ function MateriaisAdminPage() {
       <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Materiais dos alunos</h1>
       <p style={{ color: '#6b7280' }}>
-        Envie arquivos em Word (.doc/.docx) ou PDF. Eles aparecem na área do aluno, em "Arquivos exclusivos",
-        prontos para download.
+        Envie arquivos em Word (.docx) ou PDF. Eles aparecem na área do aluno, em "Arquivos exclusivos", já
+        protegidos com o nome e o CPF de quem baixa.
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, marginTop: 24, maxWidth: 480 }}>
@@ -159,7 +159,7 @@ function MateriaisAdminPage() {
           <input
             ref={fileInputRef}
             type="file"
-            accept=".doc,.docx,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+            accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             style={{ display: 'none' }}
           />

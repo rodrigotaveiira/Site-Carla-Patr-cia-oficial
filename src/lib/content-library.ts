@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
-import { userHasRole } from './roles'
+import { userHasRole, getStudentIdentity } from './roles'
+import { watermarkPdfDataUrl } from './watermark'
 
 // Seções de conteúdo em PDF geridas pela admin. Cada uma tem sua própria "gaveta" de arquivos.
 export const CONTENT_SECTIONS = {
@@ -67,14 +68,21 @@ export const listContentItems = createServerFn({ method: 'GET' })
 export const getContentItemFile = createServerFn({ method: 'GET' })
   .inputValidator((data: { section: ContentSection; id: string }) => data)
   .handler(async ({ data }) => {
-    await requireStudent()
+    const user = await requireStudent()
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
 
     const store = storeFor(data.section)
     const item = await store.get(data.id, { type: 'json' })
     if (!item) throw new Error('Arquivo não encontrado.')
     const { fileName, fileDataUrl } = item as ContentItem
-    return { fileName, fileDataUrl }
+    const { name, cpf } = getStudentIdentity(user)
+    let watermarked = fileDataUrl
+    try {
+      watermarked = await watermarkPdfDataUrl(fileDataUrl, name, cpf)
+    } catch {
+      // se a marca d'água falhar, o aluno ainda recebe o arquivo original
+    }
+    return { fileName, fileDataUrl: watermarked }
   })
 
 export const addContentItem = createServerFn({ method: 'POST' })

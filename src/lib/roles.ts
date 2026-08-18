@@ -17,3 +17,20 @@ export function userHasRole(user: unknown, role: string): boolean {
       value.some((item) => typeof item === 'string' && item.trim().toLowerCase() === target),
   )
 }
+
+// Extrai nome completo e CPF do usuário, procurando nos formatos possíveis
+// (snake_case ou camelCase) que o @netlify/identity pode devolver.
+export function getStudentIdentity(user: unknown): { name: string; cpf: string } {
+  const u = user as Record<string, any>
+  const name =
+    u?.user_metadata?.full_name ||
+    u?.userMetadata?.full_name ||
+    u?.name ||
+    'Aluno'
+  const cpf =
+    u?.user_metadata?.cpf ||
+    u?.userMetadata?.cpf ||
+    u?.cpf ||
+    ''
+  return { name: String(name).trim(), cpf: String(cpf).trim() }
+}

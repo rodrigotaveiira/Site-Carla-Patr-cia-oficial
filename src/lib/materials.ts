@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
-import { userHasRole } from './roles'
+import { userHasRole, getStudentIdentity } from './roles'
+import { watermarkFileDataUrl } from './watermark'
 
 export type Material = {
   id: string
@@ -17,7 +18,7 @@ export type Material = {
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
 const MAX_FILE_DATA_URL_LENGTH = 16_000_000
 
-const ALLOWED_EXTENSIONS = ['.doc', '.docx', '.pdf']
+const ALLOWED_EXTENSIONS = ['.docx', '.pdf']
 
 function materialsStore() {
   return getStore({ name: 'student-materials', consistency: 'strong' })
@@ -51,6 +52,7 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 })
 
 // Busca o arquivo de um material específico (só quando o aluno clica em baixar).
+// O arquivo é carimbado na hora com o nome e o CPF de quem está baixando.
 export const getMaterialFile = createServerFn({ method: 'GET' })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
@@ -62,7 +64,9 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     const material = await store.get(data.id, { type: 'json' })
     if (!material) throw new Error('Material não encontrado.')
     const { fileName, fileDataUrl } = material as Material
-    return { fileName, fileDataUrl }
+    const { name, cpf } = getStudentIdentity(user)
+    const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
+    return { fileName, fileDataUrl: watermarked }
   })
 
 export const addMaterial = createServerFn({ method: 'POST' })
@@ -82,7 +86,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
 
     const extension = data.fileName.toLowerCase().slice(data.fileName.lastIndexOf('.'))
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
-      throw new Error('Envie um arquivo Word (.doc ou .docx) ou PDF.')
+      throw new Error('Envie um arquivo Word (.docx) ou PDF.')
     }
 
     if (data.fileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {

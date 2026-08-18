@@ -11,6 +11,7 @@ import { userHasRole } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type Material } from '@/lib/materials'
+import { getContentCounts, type ContentCounts } from '@/lib/progress'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -54,7 +55,7 @@ const sidebarItems = [
   { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
   { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
-  { icon: TrendingUp, label: 'Meu progresso', href: '/em-breve/progresso' },
+  { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
   { icon: User, label: 'Perfil', href: '/em-breve/perfil' },
 ] as const
 async function downloadMaterial(id: string) {
@@ -110,6 +111,11 @@ function DashboardPage() {
     ['Concordância verbal', 'Gramática · 45%', '28 min'],
     ['Repertório sociocultural', 'Repertório · 20%', '41 min'],
   ] as const
+
+  const [contentCounts, setContentCounts] = useState<ContentCounts | null>(null)
+  useEffect(() => {
+    getContentCounts().then(setContentCounts).catch(() => { /* mantém null, card mostra "Carregando..." */ })
+  }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
   const query = searchQuery.trim().toLowerCase()
@@ -277,8 +283,16 @@ function DashboardPage() {
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => alert('Em breve: mais opções de personalização do progresso.')}><MoreHorizontal /></button></div><div className="progress-list">
-              {[['Redação', '18 de 24 aulas', 75, '#6d28d9'], ['Gramática', '14 de 20 aulas', 70, '#0f7890'], ['Repertório', '8 de 16 aulas', 50, '#c8a24d']].map(([title, detail, value, color]) => <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${value}%`, background: color }} /></div><strong>{value}%</strong></div>)}
-            </div><Link to="/em-breve/$secao" params={{ secao: 'progresso' }}>Ver relatório completo <ChevronRight /></Link></section>
+              {contentCounts ? [
+                ['Aulas em vídeo', `${contentCounts.aulas} aula${contentCounts.aulas === 1 ? '' : 's'} disponíveis`, contentCounts.aulas, '#6d28d9'],
+                ['Materiais', `${contentCounts.materiais} arquivo${contentCounts.materiais === 1 ? '' : 's'} disponíveis`, contentCounts.materiais, '#0f7890'],
+                ['Biblioteca de conteúdos', `${Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0)} arquivo(s) disponíveis`, Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0), '#c8a24d'],
+              ].map(([title, detail, value, color]) => {
+                const maxValue = Math.max(1, contentCounts.aulas, contentCounts.materiais, Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0))
+                const percent = Math.round((Number(value) / maxValue) * 100)
+                return <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{value}</strong></div>
+              }) : <p className="material-intro">Carregando...</p>}
+            </div><Link to="/progresso">Ver relatório completo <ChevronRight /></Link></section>
 
             <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Hoje, às 19h</h3></div><span className="live-dot">Ao vivo</span></div><div className="class-thumb"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=85" alt="Caderno de estudos" /><span><CirclePlay /></span></div><small>MÓDULO 04 · REDAÇÃO</small><h4>Projeto de texto: da tese à conclusão</h4><p><Clock3 /> 1h30 de duração · Prof.ª Carla</p><a href={WHATSAPP_LINK} target="_blank" rel="noreferrer">Entrar na aula <ChevronRight /></a></section>
 
@@ -304,7 +318,7 @@ function DashboardPage() {
                 <div><span>Arquivos exclusivos</span><h3>Material protegido</h3></div>
                 <ShieldCheck />
               </div>
-              <p className="material-intro">Baixe os materiais do curso enviados pela professora, em Word ou PDF.</p>
+              <p className="material-intro">Baixe os materiais do curso enviados pela professora, em Word ou PDF. Cada download é protegido com seu nome e CPF.</p>
               {materialsError && <p className="avatar-edit-error">{materialsError}</p>}
               <div className="material-list">
                 {filteredMaterials.map((material) => (

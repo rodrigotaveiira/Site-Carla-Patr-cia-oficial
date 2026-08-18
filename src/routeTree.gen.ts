@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
 import { Route as RedacoesRouteImport } from './routes/redacoes'
+import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
@@ -42,6 +43,11 @@ const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
 const RedacoesRoute = RedacoesRouteImport.update({
   id: '/redacoes',
   path: '/redacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressoRoute = ProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
     | '/termos'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
     | '/termos'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
     | '/termos'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  ProgressoRoute: typeof ProgressoRoute
   RedacoesRoute: typeof RedacoesRoute
   RedacoesAdminRoute: typeof RedacoesAdminRoute
   TermosRoute: typeof TermosRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/redacoes'
       fullPath: '/redacoes'
       preLoaderRoute: typeof RedacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progresso': {
+      id: '/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof ProgressoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -429,6 +449,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  ProgressoRoute: ProgressoRoute,
   RedacoesRoute: RedacoesRoute,
   RedacoesAdminRoute: RedacoesAdminRoute,
   TermosRoute: TermosRoute,
