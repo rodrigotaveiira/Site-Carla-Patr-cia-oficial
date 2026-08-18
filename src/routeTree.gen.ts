@@ -13,12 +13,14 @@ import { Route as TermosRouteImport } from './routes/termos'
 import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
 import { Route as RedacoesRouteImport } from './routes/redacoes'
 import { Route as ProgressoRouteImport } from './routes/progresso'
+import { Route as ProfessorRouteImport } from './routes/professor'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
 import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
+import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
@@ -50,6 +52,11 @@ const ProgressoRoute = ProgressoRouteImport.update({
   path: '/progresso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfessorRoute = ProfessorRouteImport.update({
+  id: '/professor',
+  path: '/professor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
@@ -78,6 +85,11 @@ const LoginRoute = LoginRouteImport.update({
 const LgpdRoute = LgpdRouteImport.update({
   id: '/lgpd',
   path: '/lgpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LembretesAdminRoute = LembretesAdminRouteImport.update({
+  id: '/lembretes-admin',
+  path: '/lembretes-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -139,12 +151,14 @@ export interface FileRoutesByFullPath {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
+  '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
@@ -161,12 +175,14 @@ export interface FileRoutesByTo {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
+  '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
@@ -184,12 +200,14 @@ export interface FileRoutesById {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
+  '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
@@ -208,12 +226,14 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
+    | '/lembretes-admin'
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
@@ -230,12 +250,14 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
+    | '/lembretes-admin'
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
@@ -252,12 +274,14 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
+    | '/lembretes-admin'
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
@@ -275,12 +299,14 @@ export interface RootRouteChildren {
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioRoute: typeof CalendarioRoute
   DashboardRoute: typeof DashboardRoute
+  LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
   MateriaisAdminRoute: typeof MateriaisAdminRoute
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  ProfessorRoute: typeof ProfessorRoute
   ProgressoRoute: typeof ProgressoRoute
   RedacoesRoute: typeof RedacoesRoute
   RedacoesAdminRoute: typeof RedacoesAdminRoute
@@ -318,6 +344,13 @@ declare module '@tanstack/react-router' {
       path: '/progresso'
       fullPath: '/progresso'
       preLoaderRoute: typeof ProgressoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professor': {
+      id: '/professor'
+      path: '/professor'
+      fullPath: '/professor'
+      preLoaderRoute: typeof ProfessorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -360,6 +393,13 @@ declare module '@tanstack/react-router' {
       path: '/lgpd'
       fullPath: '/lgpd'
       preLoaderRoute: typeof LgpdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lembretes-admin': {
+      id: '/lembretes-admin'
+      path: '/lembretes-admin'
+      fullPath: '/lembretes-admin'
+      preLoaderRoute: typeof LembretesAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -443,12 +483,14 @@ const rootRouteChildren: RootRouteChildren = {
   AulasAdminRoute: AulasAdminRoute,
   CalendarioRoute: CalendarioRoute,
   DashboardRoute: DashboardRoute,
+  LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
   MateriaisAdminRoute: MateriaisAdminRoute,
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  ProfessorRoute: ProfessorRoute,
   ProgressoRoute: ProgressoRoute,
   RedacoesRoute: RedacoesRoute,
   RedacoesAdminRoute: RedacoesAdminRoute,

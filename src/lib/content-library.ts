@@ -34,9 +34,12 @@ function storeFor(section: ContentSection) {
   return getStore({ name: `content-library-${section}`, consistency: 'strong' })
 }
 
-async function requireAdmin() {
+async function requireAdmin(section: ContentSection) {
   const user = await getServerUser()
-  if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+  if (!user) throw new Error('Acesso negado.')
+  // "admin" pode gerenciar qualquer seção. "professor" só pode gerenciar Dicas.
+  const allowed = userHasRole(user, 'admin') || (section === 'dicas' && userHasRole(user, 'professor'))
+  if (!allowed) throw new Error('Acesso negado.')
   return user
 }
 
@@ -94,7 +97,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
     fileDataUrl: string
   }) => data)
   .handler(async ({ data }) => {
-    await requireAdmin()
+    await requireAdmin(data.section)
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
     if (!data.title.trim()) throw new Error('Dê um título para o arquivo.')
     if (!data.fileDataUrl || !data.fileName) throw new Error('Escolha um arquivo PDF para enviar.')
@@ -123,7 +126,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
 export const deleteContentItem = createServerFn({ method: 'POST' })
   .inputValidator((data: { section: ContentSection; id: string }) => data)
   .handler(async ({ data }) => {
-    await requireAdmin()
+    await requireAdmin(data.section)
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
     const store = storeFor(data.section)
     await store.delete(data.id)

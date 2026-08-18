@@ -13,14 +13,18 @@ export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
     if (!isContentSection(params.secao)) throw redirect({ to: '/admin' })
 
+    // "admin" acessa qualquer seção. "professor" só acessa a seção Dicas.
+    const canManage = (user: unknown) =>
+      userHasRole(user, 'admin') || (params.secao === 'dicas' && userHasRole(user, 'professor'))
+
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
-      if (localUser && userHasRole(localUser, 'admin')) return { user: localUser }
+      if (localUser && canManage(localUser)) return { user: localUser }
     }
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'admin')) throw redirect({ to: '/dashboard' })
+    if (!canManage(user)) throw redirect({ to: '/dashboard' })
     return { user }
   },
   component: ConteudoAdminPage,

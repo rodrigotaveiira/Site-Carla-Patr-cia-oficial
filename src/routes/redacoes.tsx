@@ -3,7 +3,7 @@ import { Download, Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import { getRedacaoFile, listMyRedacoes, submitRedacao, type RedacaoSubmission } from '@/lib/redacoes'
 
 export const Route = createFileRoute('/redacoes')({
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/redacoes')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: RedacoesPage,
@@ -166,7 +166,7 @@ function RedacoesPage() {
 
               {submission.status === 'corrigida' && (
                 <div style={{ marginTop: 12, background: '#f4f2fb', borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontWeight: 800, color: '#6d28d9', fontSize: 20 }}>{submission.grade}</div>
+                  <div style={{ fontWeight: 800, color: '#6d28d9', fontSize: 20 }}>{submission.grade}/40</div>
                   {submission.competencyScores && submission.competencyScores.length > 0 && (
                     <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
                       {submission.competencyScores.map((score) => (

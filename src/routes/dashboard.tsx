@@ -7,12 +7,14 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type Material } from '@/lib/materials'
-import { getContentCounts, type ContentCounts } from '@/lib/progress'
+import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
+import { getCompetencyScheme, type Competency } from '@/lib/competencies'
+import { listLembretes, type Lembrete } from '@/lib/lembretes'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -33,7 +35,7 @@ export const Route = createFileRoute('/dashboard')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login', search: { debug: 'sem-usuario-no-servidor' } })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) {
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) {
       throw redirect({
         to: '/aguardando-aprovacao',
         search: { debug: JSON.stringify(user, null, 2) },
@@ -84,6 +86,7 @@ function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const studentName = user?.name || ' '
   const isAdmin = userHasRole(user, 'admin')
+  const isProfessor = userHasRole(user, 'professor') && !isAdmin
 
   const [materials, setMaterials] = useState<MaterialMeta[]>([])
   const [materialsError, setMaterialsError] = useState('')
@@ -118,6 +121,11 @@ function DashboardPage() {
     getContentCounts().then(setContentCounts).catch(() => { /* mantém null, card mostra "Carregando..." */ })
   }, [])
 
+  const [studentProgress, setStudentProgress] = useState<StudentProgress | null>(null)
+  useEffect(() => {
+    getStudentProgress().then(setStudentProgress).catch(() => { /* mantém null, anel mostra "..." */ })
+  }, [])
+
   const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl'> | null | undefined>(undefined)
   useEffect(() => {
     listMyRedacoes()
@@ -126,6 +134,11 @@ function DashboardPage() {
         setLatestCorrection(corrected[0] ?? null)
       })
       .catch(() => setLatestCorrection(null))
+  }, [])
+
+  const [competencyScheme, setCompetencyScheme] = useState<Competency[]>([])
+  useEffect(() => {
+    getCompetencyScheme().then(setCompetencyScheme).catch(() => { /* quadro mostra as barras vazias */ })
   }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -204,8 +217,16 @@ function DashboardPage() {
     return () => clearTimeout(timer)
   }, [])
 
+  const [lembretes, setLembretes] = useState<Lembrete[]>([])
+  useEffect(() => {
+    listLembretes().then(setLembretes).catch(() => { /* sem lembretes por enquanto */ })
+  }, [])
+
   const notifications = useMemo(() => {
     const items: { id: string; text: string }[] = []
+    for (const lembrete of lembretes) {
+      items.push({ id: `lembrete-${lembrete.id}`, text: lembrete.message })
+    }
     const recentMaterial = materials[0]
     if (recentMaterial) {
       const addedDaysAgo = (Date.now() - new Date(recentMaterial.createdAt).getTime()) / (1000 * 60 * 60 * 24)
@@ -218,7 +239,7 @@ function DashboardPage() {
     }
     items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque uma mentoria individual.' })
     return items
-  }, [materials, weeklyGoal])
+  }, [materials, weeklyGoal, lembretes])
 
   function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -262,6 +283,7 @@ function DashboardPage() {
         <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark"><img src="/logo-icone.png" alt="CPM" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
         <nav>{sidebarItems.map(({ icon: Icon, label, href }, index) => <a className={index === 0 ? 'active' : ''} href={href} key={label}><Icon />{label}{label === 'Redações' && <i>2</i>}</a>)}
           {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
+          {isProfessor && <Link to="/professor"><Settings />Painel do professor</Link>}
         </nav>
         <div className="sidebar-help"><MessageSquareText /><b>Precisa de ajuda?</b><p>Nossa equipe está por perto.</p><a href="mailto:contato@carlapatriciamedina.com.br">Falar com suporte</a></div>
         <button className="logout" onClick={() => void logout()}><LogOut /> Sair da conta</button>
@@ -290,7 +312,7 @@ function DashboardPage() {
         <div className="dashboard-content">
           <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/mentorias"><CalendarDays /> Ver calendário</Link></div>
 
-          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring"><div><b>{studentProgress ? `${studentProgress.overallPercent}%` : '...'}</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => alert('Em breve: mais opções de personalização do progresso.')}><MoreHorizontal /></button></div><div className="progress-list">
@@ -351,10 +373,17 @@ function DashboardPage() {
 
             {latestCorrection === undefined ? (
               <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Carregando...</h3></div></div></section>
-            ) : latestCorrection === null ? (
-              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Nenhuma correção ainda</h3></div></div><p>Envie sua primeira redação para receber uma correção detalhada da professora.</p><Link to="/redacoes">Enviar redação <ChevronRight /></Link></section>
             ) : (
-              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>{latestCorrection.title}</h3></div><span className="grade">{latestCorrection.grade}</span></div><p>{latestCorrection.feedback || 'Sua correção está pronta.'}</p><div className="competencies">{(latestCorrection.competencyScores ?? []).map((score) => <span key={score.id}><i style={{ height: `${(score.value / score.maxValue) * 100}%` }} /><small>{score.label.split(' ')[0]}</small><b>{score.value}</b></span>)}</div><Link to="/redacoes">Ver correção detalhada <ChevronRight /></Link></section>
+              <section className="dashboard-card correction-card">
+                <div className="card-title"><div><span>Redação corrigida</span><h3>{latestCorrection ? latestCorrection.title : 'Nenhuma correção ainda'}</h3></div>{latestCorrection && <span className="grade">{latestCorrection.grade}/40</span>}</div>
+                <p>{latestCorrection ? (latestCorrection.feedback || 'Sua correção está pronta.') : 'Envie sua primeira redação para receber uma correção detalhada pelos critérios da banca Econ Rio.'}</p>
+                <div className="competencies">{competencyScheme.map((competency) => {
+                  const score = latestCorrection?.competencyScores?.find((s) => s.id === competency.id)
+                  const value = score?.value ?? 0
+                  return <span key={competency.id}><i style={{ height: `${(value / competency.maxValue) * 100}%` }} /><small>{competency.label.split(' ')[0]}</small><b>{score ? value : '–'}</b></span>
+                })}</div>
+                <Link to="/redacoes">{latestCorrection ? 'Ver correção detalhada' : 'Enviar redação'} <ChevronRight /></Link>
+              </section>
             )}
           </div>
         </div>

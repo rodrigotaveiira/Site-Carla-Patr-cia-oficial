@@ -3,7 +3,7 @@ import { CalendarDays, Clock3 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
 
 export const Route = createFileRoute('/mentorias')({
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/mentorias')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: MentoriasPage,

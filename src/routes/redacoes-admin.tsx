@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Download, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
 import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
 
@@ -11,12 +11,12 @@ export const Route = createFileRoute('/redacoes-admin')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
-      if (localUser && userHasRole(localUser, 'admin')) return { user: localUser }
+      if (localUser && isStaff(localUser)) return { user: localUser }
     }
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'admin')) throw redirect({ to: '/dashboard' })
+    if (!isStaff(user)) throw redirect({ to: '/dashboard' })
     return { user }
   },
   component: RedacoesAdminPage,
@@ -84,7 +84,7 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
         <button onClick={addRow} style={{ color: '#6d28d9', background: 'none', border: '1px dashed #c9befd', borderRadius: 6, padding: '7px 12px', cursor: 'pointer', fontWeight: 600 }}>+ Adicionar competência</button>
-        <span style={{ fontSize: 13, color: '#6b7280' }}>Nota máxima total: <b style={{ color: '#0f2342' }}>{total}</b></span>
+        <span style={{ fontSize: 13, color: '#6b7280' }}>Nota bruta máxima: <b style={{ color: '#0f2342' }}>{total}</b> · Nota final máxima (peso 4): <b style={{ color: '#0f2342' }}>{total * 4}</b></span>
       </div>
       <button onClick={handleSave} disabled={saving} style={{ marginTop: 12, background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 700, cursor: 'pointer' }}>
         {saving ? 'Salvando...' : 'Salvar esquema de competências'}
@@ -109,7 +109,8 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
     setScores((prev) => prev.map((s) => (s.id === id ? { ...s, value } : s)))
   }
 
-  const total = Math.round(scores.reduce((sum, s) => sum + (Number(s.value) || 0), 0) * 100) / 100
+  const rawTotal = Math.round(scores.reduce((sum, s) => sum + (Number(s.value) || 0), 0) * 100) / 100
+  const finalGrade = Math.round(rawTotal * 4 * 100) / 100
 
   async function handleSave() {
     setError('')
@@ -161,7 +162,7 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
           )}
         </div>
       ))}
-      <div style={{ fontWeight: 800, color: '#0f2342' }}>Nota total: {total}</div>
+      <div style={{ fontWeight: 800, color: '#0f2342' }}>Nota bruta: {rawTotal}/10 · Nota final (peso 4): {finalGrade}/40</div>
       <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} style={{ width: '100%', padding: 8, border: '1px solid #e0dcf0', borderRadius: 6, boxSizing: 'border-box', fontFamily: 'inherit' }} />
       <button onClick={handleSave} disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
@@ -231,7 +232,7 @@ function RedacoesAdminPage() {
         </div>
 
         {submission.status === 'corrigida' && (
-          <div style={{ marginTop: 10, color: '#15803d', fontSize: 13, fontWeight: 700 }}>Nota: {submission.grade}</div>
+          <div style={{ marginTop: 10, color: '#15803d', fontSize: 13, fontWeight: 700 }}>Nota: {submission.grade}/40</div>
         )}
 
         <button

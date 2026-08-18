@@ -3,7 +3,7 @@ import { Download, FileText } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import {
   CONTENT_SECTIONS, getContentItemFile, isContentSection,
   listContentItems, type ContentItem, type ContentSection,
@@ -20,7 +20,7 @@ export const Route = createFileRoute('/conteudo/$secao')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: ConteudoPage,

@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
-import { userHasRole } from './roles'
+import { isStaff } from './roles'
 
 export type CompetencyLevel = {
   range: string
@@ -91,7 +91,7 @@ export const updateCompetencyScheme = createServerFn({ method: 'POST' })
   .inputValidator((data: { scheme: Competency[] }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
-    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
 
     if (!Array.isArray(data.scheme) || data.scheme.length === 0) {
       throw new Error('O esquema precisa ter pelo menos uma competência.')

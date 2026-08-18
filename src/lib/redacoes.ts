@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
-import { userHasRole } from './roles'
+import { userHasRole, isStaff } from './roles'
 import type { Competency } from './competencies'
 
 export type CompetencyScore = Competency & { value: number }
@@ -92,7 +92,7 @@ export const listMyRedacoes = createServerFn({ method: 'GET' }).handler(async ()
 
 export const listAllRedacoes = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
-  if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+  if (!user || !isStaff(user)) throw new Error('Acesso negado.')
 
   const store = redacoesStore()
   const { blobs } = await store.list()
@@ -119,7 +119,7 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
     if (!submission) throw new Error('Redação não encontrada.')
 
     const isOwner = submission.studentEmail === user.email
-    if (!isOwner && !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+    if (!isOwner && !isStaff(user)) throw new Error('Acesso negado.')
 
     return { fileName: submission.fileName, fileDataUrl: submission.fileDataUrl }
   })
@@ -128,7 +128,7 @@ export const correctRedacao = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: string; scores: CompetencyScore[]; feedback: string }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
-    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
 
     if (!Array.isArray(data.scores) || data.scores.length === 0) {
       throw new Error('Preencha a pontuação de cada competência.')
@@ -143,7 +143,11 @@ export const correctRedacao = createServerFn({ method: 'POST' })
     const submission = await store.get(data.id, { type: 'json' }) as RedacaoSubmission | null
     if (!submission) throw new Error('Redação não encontrada.')
 
-    const grade = Math.round(data.scores.reduce((sum, s) => sum + s.value, 0) * 100) / 100
+    // A banca Econ Rio usa nota bruta de 0 a 10 (soma das competências) e aplica peso 4,
+    // resultando na nota final de até 40 pontos.
+    const GRADE_WEIGHT = 4
+    const rawGrade = data.scores.reduce((sum, s) => sum + s.value, 0)
+    const grade = Math.round(rawGrade * GRADE_WEIGHT * 100) / 100
     // Guarda só o essencial no histórico (sem a lista de níveis, que é só texto de apoio pra correção).
     const cleanScores = data.scores.map(({ id, label, maxValue, value }) => ({ id, label, maxValue, value }))
 

@@ -18,6 +18,12 @@ export function userHasRole(user: unknown, role: string): boolean {
   )
 }
 
+// "admin" tem acesso total. "professor" tem acesso restrito (correção de redações,
+// lembretes e dicas). Essa função identifica quem faz parte da equipe, dos dois tipos.
+export function isStaff(user: unknown): boolean {
+  return userHasRole(user, 'admin') || userHasRole(user, 'professor')
+}
+
 // Extrai nome completo e CPF do usuário, procurando nos formatos possíveis
 // (snake_case ou camelCase) que o @netlify/identity pode devolver.
 export function getStudentIdentity(user: unknown): { name: string; cpf: string } {

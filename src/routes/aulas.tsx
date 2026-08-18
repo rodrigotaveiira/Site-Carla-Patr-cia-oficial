@@ -1,10 +1,11 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { CirclePlay } from 'lucide-react'
+import { CheckCircle2, CirclePlay } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
+import { userHasRole, isStaff } from '@/lib/roles'
 import { listLessons, type Lesson } from '@/lib/aulas'
+import { getMyWatchedLessons, markLessonWatched } from '@/lib/lesson-progress'
 
 export const Route = createFileRoute('/aulas')({
   beforeLoad: async () => {
@@ -15,7 +16,7 @@ export const Route = createFileRoute('/aulas')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: AulasPage,
@@ -44,15 +45,25 @@ function AulasPage() {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Lesson | null>(null)
+  const [watchedIds, setWatchedIds] = useState<string[]>([])
 
   useEffect(() => {
     listLessons()
       .then((data) => {
         setLessons(data)
-        if (data.length > 0) setSelected(data[0])
+        if (data.length > 0) selectLesson(data[0])
       })
       .finally(() => setLoading(false))
+    getMyWatchedLessons().then(setWatchedIds).catch(() => { /* mantém lista vazia */ })
   }, [])
+
+  function selectLesson(lesson: Lesson) {
+    setSelected(lesson)
+    if (!watchedIds.includes(lesson.id)) {
+      setWatchedIds((prev) => [...prev, lesson.id])
+      markLessonWatched({ data: { lessonId: lesson.id } }).catch(() => { /* tenta de novo na próxima aula */ })
+    }
+  }
 
   const grouped = lessons.reduce<Record<string, Lesson[]>>((acc, lesson) => {
     acc[lesson.module] = acc[lesson.module] || []
@@ -99,14 +110,15 @@ function AulasPage() {
                 {moduleLessons.map((lesson) => (
                   <button
                     key={lesson.id}
-                    onClick={() => setSelected(lesson)}
+                    onClick={() => selectLesson(lesson)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '12px 14px',
                       background: selected?.id === lesson.id ? '#f2eafd' : '#fff', border: '1px solid #e0dcf0',
                       borderRadius: 8, cursor: 'pointer', color: '#0f2342', fontWeight: 600,
                     }}
                   >
-                    <CirclePlay size={18} color="#6d28d9" /> {lesson.title}
+                    <CirclePlay size={18} color="#6d28d9" /> <span style={{ flex: 1 }}>{lesson.title}</span>
+                    {watchedIds.includes(lesson.id) && <CheckCircle2 size={16} color="#15803d" />}
                   </button>
                 ))}
               </div>

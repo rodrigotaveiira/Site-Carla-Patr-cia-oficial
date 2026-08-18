@@ -3,8 +3,8 @@ import { BookMarked, CircleHelp, CirclePlay, Files, Library, Target, Zap } from 
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole } from '@/lib/roles'
-import { getContentCounts, type ContentCounts } from '@/lib/progress'
+import { userHasRole, isStaff } from '@/lib/roles'
+import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
 
 export const Route = createFileRoute('/progresso')({
   beforeLoad: async () => {
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/progresso')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw redirect({ to: '/aguardando-aprovacao' })
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
     return { user }
   },
   component: ProgressoPage,
@@ -24,11 +24,13 @@ export const Route = createFileRoute('/progresso')({
 function ProgressoPage() {
   const [counts, setCounts] = useState<ContentCounts | null>(null)
   const [loading, setLoading] = useState(true)
+  const [progress, setProgress] = useState<StudentProgress | null>(null)
 
   useEffect(() => {
     getContentCounts()
       .then(setCounts)
       .finally(() => setLoading(false))
+    getStudentProgress().then(setProgress).catch(() => { /* seção de evolução some se der erro */ })
   }, [])
 
   const rows = counts
@@ -49,7 +51,36 @@ function ProgressoPage() {
     <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
       <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16, marginBottom: 4 }}>Meu progresso</h1>
-      <p style={{ color: '#6b7280' }}>Quantidade de conteúdo disponível na plataforma hoje, por seção.</p>
+      <p style={{ color: '#6b7280' }}>Sua evolução na plataforma, com base nas aulas assistidas e nas redações entregues.</p>
+
+      {progress && (
+        <div style={{ marginTop: 20, padding: '20px', background: 'linear-gradient(135deg, #6d28d9, #9333ea)', borderRadius: 12, color: '#fff' }}>
+          <div style={{ fontSize: 32, fontWeight: 800 }}>{progress.overallPercent}%</div>
+          <div style={{ opacity: 0.9, fontSize: 14, marginBottom: 14 }}>progresso geral</div>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span>Aulas assistidas</span>
+                <span>{progress.aulasAssistidas} de {progress.aulasDisponiveis}</span>
+              </div>
+              <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${progress.aulasPercent}%`, height: '100%', background: '#fff' }} />
+              </div>
+            </div>
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                <span>Redações entregues</span>
+                <span>{progress.redacoesEntregues}</span>
+              </div>
+              <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${progress.redacoesPercent}%`, height: '100%', background: '#fff' }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <p style={{ color: '#6b7280', marginTop: 24 }}>Quantidade de conteúdo disponível na plataforma hoje, por seção.</p>
 
       {loading && <p style={{ color: '#6b7280', marginTop: 20 }}>Carregando...</p>}
 

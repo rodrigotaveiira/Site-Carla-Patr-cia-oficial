@@ -378,9 +378,9 @@ footer .brand b { color: white; }
 .hero-ring span { color: #92a4b9; font-size: 12px; text-transform: uppercase; }
 .dashboard-decoration { position: absolute; right: -20px; bottom: -73px; color: transparent; font-family: var(--serif); font-size: 220px; -webkit-text-stroke: 1px #ffffff0e; }
 .dashboard-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 17px; margin-top: 18px; }
-.dashboard-card { padding: 22px; background: white; border: 1px solid #e8eaf0; border-radius: 8px; }
-.card-title { display: flex; align-items: center; justify-content: space-between; }
-.card-title > div { display: flex; flex-direction: column; }
+.dashboard-card { min-width: 0; padding: 22px; background: white; border: 1px solid #e8eaf0; border-radius: 8px; }
+.card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.card-title > div { display: flex; flex-direction: column; min-width: 0; }
 .card-title span { color: #929ba8; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
 .card-title h3 { margin: 4px 0 0; color: var(--navy); font-family: var(--serif); font-size: 17px; font-weight: 400; }
 .card-title button { color: #9ca3af; background: none; border: 0; }
@@ -397,7 +397,7 @@ footer .brand b { color: white; }
 .progress-card > a, .recent-content .card-title a { display: flex; align-items: center; gap: 4px; margin-top: 22px; color: var(--purple); font-size: 13px; font-weight: 800; }
 .progress-card > a svg { width: 12px; }
 .next-class { grid-row: span 2; }
-.live-dot { display: flex; align-items: center; gap: 4px; padding: 5px 8px; color: #dc2626 !important; background: #fee2e2; border-radius: 20px; }
+.live-dot { display: flex; align-items: center; gap: 4px; padding: 5px 8px; color: #dc2626 !important; background: #fee2e2; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
 .class-thumb { position: relative; height: 120px; margin: 18px 0; overflow: hidden; border-radius: 6px; }
 .class-thumb img { width: 100%; height: 100%; object-fit: cover; filter: brightness(.7) saturate(.7); }
 .class-thumb span { position: absolute; inset: 0; display: grid; place-items: center; }
