@@ -12,6 +12,7 @@ import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type Material } from '@/lib/materials'
 import { getContentCounts, type ContentCounts } from '@/lib/progress'
+import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -115,6 +116,16 @@ function DashboardPage() {
   const [contentCounts, setContentCounts] = useState<ContentCounts | null>(null)
   useEffect(() => {
     getContentCounts().then(setContentCounts).catch(() => { /* mantém null, card mostra "Carregando..." */ })
+  }, [])
+
+  const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl'> | null | undefined>(undefined)
+  useEffect(() => {
+    listMyRedacoes()
+      .then((list) => {
+        const corrected = list.filter((s) => s.status === 'corrigida').sort((a, b) => (b.correctedAt ?? '').localeCompare(a.correctedAt ?? ''))
+        setLatestCorrection(corrected[0] ?? null)
+      })
+      .catch(() => setLatestCorrection(null))
   }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -338,7 +349,13 @@ function DashboardPage() {
               </div>
             </section>
 
-            <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Inteligência artificial e sociedade</h3></div><span className="grade">920</span></div><p>Seu texto demonstrou excelente domínio da proposta. Há uma nova correção pronta para você.</p><div className="competencies">{[180,200,160,180,200].map((score, index) => <span key={index}><i style={{ height: `${score / 2.2}%` }} /><small>C{index + 1}</small><b>{score}</b></span>)}</div><Link to="/redacoes">Ver correção detalhada <ChevronRight /></Link></section>
+            {latestCorrection === undefined ? (
+              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Carregando...</h3></div></div></section>
+            ) : latestCorrection === null ? (
+              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Nenhuma correção ainda</h3></div></div><p>Envie sua primeira redação para receber uma correção detalhada da professora.</p><Link to="/redacoes">Enviar redação <ChevronRight /></Link></section>
+            ) : (
+              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>{latestCorrection.title}</h3></div><span className="grade">{latestCorrection.grade}</span></div><p>{latestCorrection.feedback || 'Sua correção está pronta.'}</p><div className="competencies">{(latestCorrection.competencyScores ?? []).map((score) => <span key={score.id}><i style={{ height: `${(score.value / score.maxValue) * 100}%` }} /><small>{score.label.split(' ')[0]}</small><b>{score.value}</b></span>)}</div><Link to="/redacoes">Ver correção detalhada <ChevronRight /></Link></section>
+            )}
           </div>
         </div>
       </section>

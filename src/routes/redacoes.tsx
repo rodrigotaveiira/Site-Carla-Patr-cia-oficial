@@ -120,6 +120,28 @@ function RedacoesPage() {
         {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
       </form>
 
+      {(() => {
+        const corrected = submissions.filter((s) => s.status === 'corrigida' && s.grade !== null)
+        if (corrected.length < 2) return null
+        const chronological = [...corrected].sort((a, b) => (a.correctedAt ?? '').localeCompare(b.correctedAt ?? ''))
+        const maxGrade = Math.max(...chronological.map((s) => s.grade ?? 0), 1)
+        return (
+          <section style={{ marginTop: 32 }}>
+            <h2 style={{ fontSize: 18, color: '#0f2342' }}>Evolução das suas notas</h2>
+            <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>Suas últimas correções, na ordem em que foram feitas.</p>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 16, height: 140, padding: '0 4px', overflowX: 'auto' }}>
+              {chronological.map((submission) => (
+                <div key={submission.id} title={submission.title} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 44 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: '#0f2342' }}>{submission.grade}</span>
+                  <div style={{ width: 24, height: `${Math.max(6, ((submission.grade ?? 0) / maxGrade) * 90)}px`, background: 'linear-gradient(180deg, #a855f7, #6d28d9)', borderRadius: 4 }} />
+                  <span style={{ fontSize: 10, color: '#9ca3af' }}>{new Date(submission.correctedAt ?? submission.submittedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )
+      })()}
+
       <section style={{ marginTop: 32 }}>
         <h2 style={{ fontSize: 18, color: '#0f2342' }}>Suas redações enviadas</h2>
         {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
@@ -145,7 +167,22 @@ function RedacoesPage() {
               {submission.status === 'corrigida' && (
                 <div style={{ marginTop: 12, background: '#f4f2fb', borderRadius: 8, padding: 12 }}>
                   <div style={{ fontWeight: 800, color: '#6d28d9', fontSize: 20 }}>{submission.grade}</div>
-                  {submission.feedback && <p style={{ color: '#4b5563', fontSize: 14, margin: '6px 0 0' }}>{submission.feedback}</p>}
+                  {submission.competencyScores && submission.competencyScores.length > 0 && (
+                    <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+                      {submission.competencyScores.map((score) => (
+                        <div key={score.id}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#4b5563' }}>
+                            <span>{score.label}</span>
+                            <span>{score.value} / {score.maxValue}</span>
+                          </div>
+                          <div style={{ height: 5, background: '#e5e0f5', borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
+                            <div style={{ width: `${(score.value / score.maxValue) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #a855f7, #6d28d9)' }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {submission.feedback && <p style={{ color: '#4b5563', fontSize: 14, margin: '10px 0 0' }}>{submission.feedback}</p>}
                 </div>
               )}
 

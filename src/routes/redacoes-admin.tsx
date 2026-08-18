@@ -1,10 +1,11 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Download } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { correctRedacao, getRedacaoFile, listAllRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
+import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
+import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
 
 export const Route = createFileRoute('/redacoes-admin')({
   beforeLoad: async () => {
@@ -23,20 +24,98 @@ export const Route = createFileRoute('/redacoes-admin')({
 
 type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl'>
 
-function CorrectionForm({ submission, onSaved }: { submission: SubmissionMeta; onSaved: () => void }) {
-  const [grade, setGrade] = useState(submission.grade?.toString() ?? '')
-  const [feedback, setFeedback] = useState(submission.feedback ?? '')
+function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (scheme: Competency[]) => void }) {
+  const [rows, setRows] = useState<Competency[]>(scheme)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  function updateRow(index: number, patch: Partial<Competency>) {
+    setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)))
+  }
+
+  function addRow() {
+    setRows((prev) => [...prev, { id: `c${Date.now()}`, label: '', maxValue: 1 }])
+  }
+
+  function removeRow(index: number) {
+    setRows((prev) => prev.filter((_, i) => i !== index))
+  }
+
   async function handleSave() {
     setError('')
-    const numericGrade = Number(grade)
-    if (Number.isNaN(numericGrade)) { setError('Digite uma nota válida.'); return }
-
     setSaving(true)
     try {
-      await correctRedacao({ data: { id: submission.id, grade: numericGrade, feedback } })
+      const saved = await updateCompetencyScheme({ data: { scheme: rows } })
+      onSaved(saved)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar o esquema.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const total = rows.reduce((sum, r) => sum + (Number(r.maxValue) || 0), 0)
+
+  return (
+    <div style={{ marginTop: 16, background: '#f9f8fd', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
+      <p style={{ color: '#6b7280', fontSize: 13, marginTop: 0 }}>
+        Edite o nome e o valor máximo de cada competência. A nota final da redação é a soma de todas.
+      </p>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {rows.map((row, index) => (
+          <div key={row.id} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              value={row.label}
+              onChange={(e) => updateRow(index, { label: e.target.value })}
+              placeholder="Nome da competência"
+              style={{ flex: 1, minWidth: 200, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+            />
+            <input
+              type="number"
+              min={0.25}
+              step={0.25}
+              value={row.maxValue}
+              onChange={(e) => updateRow(index, { maxValue: Number(e.target.value) })}
+              style={{ width: 80, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+            />
+            <button onClick={() => removeRow(index)} style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 6, padding: '7px 10px', cursor: 'pointer' }}>Remover</button>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
+        <button onClick={addRow} style={{ color: '#6d28d9', background: 'none', border: '1px dashed #c9befd', borderRadius: 6, padding: '7px 12px', cursor: 'pointer', fontWeight: 600 }}>+ Adicionar competência</button>
+        <span style={{ fontSize: 13, color: '#6b7280' }}>Nota máxima total: <b style={{ color: '#0f2342' }}>{total}</b></span>
+      </div>
+      <button onClick={handleSave} disabled={saving} style={{ marginTop: 12, background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 700, cursor: 'pointer' }}>
+        {saving ? 'Salvando...' : 'Salvar esquema de competências'}
+      </button>
+      {error && <p style={{ color: '#dc2626', fontSize: 13 }}>{error}</p>}
+    </div>
+  )
+}
+
+function CorrectionForm({ submission, scheme, onSaved }: { submission: SubmissionMeta; scheme: Competency[]; onSaved: () => void }) {
+  const initialScores = scheme.map((competency) => {
+    const existing = submission.competencyScores?.find((s) => s.id === competency.id)
+    return { ...competency, value: existing?.value ?? 0 }
+  })
+  const [scores, setScores] = useState<CompetencyScore[]>(initialScores)
+  const [feedback, setFeedback] = useState(submission.feedback ?? '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [openLevelsId, setOpenLevelsId] = useState<string | null>(null)
+
+  function updateScore(id: string, value: number) {
+    setScores((prev) => prev.map((s) => (s.id === id ? { ...s, value } : s)))
+  }
+
+  const total = Math.round(scores.reduce((sum, s) => sum + (Number(s.value) || 0), 0) * 100) / 100
+
+  async function handleSave() {
+    setError('')
+    setSaving(true)
+    try {
+      await correctRedacao({ data: { id: submission.id, scores, feedback } })
       onSaved()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar a correção.')
@@ -46,11 +125,43 @@ function CorrectionForm({ submission, onSaved }: { submission: SubmissionMeta; o
   }
 
   return (
-    <div style={{ display: 'grid', gap: 8, marginTop: 12, background: '#f9f8fd', borderRadius: 8, padding: 12 }}>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#0f2342' }}>Nota (0–1000)</label>
-        <input type="number" min={0} max={1000} value={grade} onChange={(e) => setGrade(e.target.value)} style={{ width: 90, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }} />
-      </div>
+    <div style={{ display: 'grid', gap: 10, marginTop: 12, background: '#f9f8fd', borderRadius: 8, padding: 12 }}>
+      {scores.map((score) => (
+        <div key={score.id}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <label style={{ fontSize: 13, fontWeight: 600, color: '#0f2342', flex: 1, minWidth: 180 }}>{score.label} <span style={{ color: '#9ca3af', fontWeight: 400 }}>(0–{score.maxValue})</span></label>
+            <input
+              type="number"
+              min={0}
+              max={score.maxValue}
+              step={0.25}
+              value={score.value}
+              onChange={(e) => updateScore(score.id, Number(e.target.value))}
+              style={{ width: 90, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+            />
+            {score.levels && score.levels.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setOpenLevelsId(openLevelsId === score.id ? null : score.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6d28d9', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0 }}
+              >
+                Ver níveis {openLevelsId === score.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+            )}
+          </div>
+          {openLevelsId === score.id && score.levels && (
+            <div style={{ marginTop: 6, marginLeft: 4, borderLeft: '2px solid #e0dcf0', paddingLeft: 10 }}>
+              {score.levels.map((level, index) => (
+                <div key={index} style={{ display: 'flex', gap: 8, fontSize: 12, color: '#4b5563', padding: '3px 0' }}>
+                  <b style={{ color: '#6d28d9', minWidth: 62 }}>{level.range}</b>
+                  <span>{level.description}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+      <div style={{ fontWeight: 800, color: '#0f2342' }}>Nota total: {total}</div>
       <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} style={{ width: '100%', padding: 8, border: '1px solid #e0dcf0', borderRadius: 6, boxSizing: 'border-box', fontFamily: 'inherit' }} />
       <button onClick={handleSave} disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
@@ -62,14 +173,18 @@ function CorrectionForm({ submission, onSaved }: { submission: SubmissionMeta; o
 
 function RedacoesAdminPage() {
   const [submissions, setSubmissions] = useState<SubmissionMeta[]>([])
+  const [scheme, setScheme] = useState<Competency[]>([])
   const [loading, setLoading] = useState(true)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
+  const [showSchemeEditor, setShowSchemeEditor] = useState(false)
 
   async function load() {
     setLoading(true)
     try {
-      setSubmissions(await listAllRedacoes())
+      const [subs, currentScheme] = await Promise.all([listAllRedacoes(), getCompetencyScheme()])
+      setSubmissions(subs)
+      setScheme(currentScheme)
     } finally {
       setLoading(false)
     }
@@ -127,7 +242,7 @@ function RedacoesAdminPage() {
         </button>
 
         {openId === submission.id && (
-          <CorrectionForm submission={submission} onSaved={() => { setOpenId(null); void load() }} />
+          <CorrectionForm submission={submission} scheme={scheme} onSaved={() => { setOpenId(null); void load() }} />
         )}
       </div>
     )
@@ -137,7 +252,18 @@ function RedacoesAdminPage() {
     <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
       <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Correção de redações</h1>
-      <p style={{ color: '#6b7280' }}>Veja as redações enviadas pelos alunos e envie a nota e o comentário.</p>
+      <p style={{ color: '#6b7280' }}>Veja as redações enviadas pelos alunos e envie a nota (critérios da banca Econ Rio) e o comentário.</p>
+
+      <button
+        onClick={() => setShowSchemeEditor((v) => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
+      >
+        <Settings size={15} /> {showSchemeEditor ? 'Fechar edição de competências' : 'Editar valores das competências'}
+      </button>
+
+      {showSchemeEditor && !loading && (
+        <SchemeEditor scheme={scheme} onSaved={(saved) => { setScheme(saved); setShowSchemeEditor(false) }} />
+      )}
 
       {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
 

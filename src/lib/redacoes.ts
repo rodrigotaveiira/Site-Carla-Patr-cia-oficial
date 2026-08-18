@@ -2,6 +2,9 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import type { Competency } from './competencies'
+
+export type CompetencyScore = Competency & { value: number }
 
 export type RedacaoSubmission = {
   id: string
@@ -13,6 +16,7 @@ export type RedacaoSubmission = {
   submittedAt: string
   status: 'pendente' | 'corrigida'
   grade: number | null
+  competencyScores: CompetencyScore[] | null
   feedback: string | null
   correctedAt: string | null
 }
@@ -58,6 +62,7 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       submittedAt: new Date().toISOString(),
       status: 'pendente',
       grade: null,
+      competencyScores: null,
       feedback: null,
       correctedAt: null,
     }
@@ -120,20 +125,33 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
   })
 
 export const correctRedacao = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; grade: number; feedback: string }) => data)
+  .inputValidator((data: { id: string; scores: CompetencyScore[]; feedback: string }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
-    if (data.grade < 0 || data.grade > 1000) throw new Error('A nota deve estar entre 0 e 1000.')
+
+    if (!Array.isArray(data.scores) || data.scores.length === 0) {
+      throw new Error('Preencha a pontuação de cada competência.')
+    }
+    for (const score of data.scores) {
+      if (score.value < 0 || score.value > score.maxValue) {
+        throw new Error(`A nota de "${score.label}" deve estar entre 0 e ${score.maxValue}.`)
+      }
+    }
 
     const store = redacoesStore()
     const submission = await store.get(data.id, { type: 'json' }) as RedacaoSubmission | null
     if (!submission) throw new Error('Redação não encontrada.')
 
+    const grade = Math.round(data.scores.reduce((sum, s) => sum + s.value, 0) * 100) / 100
+    // Guarda só o essencial no histórico (sem a lista de níveis, que é só texto de apoio pra correção).
+    const cleanScores = data.scores.map(({ id, label, maxValue, value }) => ({ id, label, maxValue, value }))
+
     const updated: RedacaoSubmission = {
       ...submission,
       status: 'corrigida',
-      grade: data.grade,
+      grade,
+      competencyScores: cleanScores,
       feedback: data.feedback.trim(),
       correctedAt: new Date().toISOString(),
     }
