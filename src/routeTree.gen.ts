@@ -13,6 +13,7 @@ import { Route as TermosRouteImport } from './routes/termos'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
+import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -39,6 +40,11 @@ const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
 const MentoriasRoute = MentoriasRouteImport.update({
   id: '/mentorias',
   path: '/mentorias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MateriaisAdminRoute = MateriaisAdminRouteImport.update({
+  id: '/materiais-admin',
+  path: '/materiais-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -97,6 +104,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -111,6 +119,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -126,6 +135,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/lgpd'
     | '/login'
+    | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
@@ -166,6 +178,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
+  MateriaisAdminRoute: typeof MateriaisAdminRoute
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/mentorias'
       fullPath: '/mentorias'
       preLoaderRoute: typeof MentoriasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/materiais-admin': {
+      id: '/materiais-admin'
+      path: '/materiais-admin'
+      fullPath: '/materiais-admin'
+      preLoaderRoute: typeof MateriaisAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -262,6 +282,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
+  MateriaisAdminRoute: MateriaisAdminRoute,
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,

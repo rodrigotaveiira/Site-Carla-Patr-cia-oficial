@@ -335,6 +335,10 @@ footer .brand b { color: white; }
 .topbar-actions > button { position: relative; color: #667085; background: none; border: 0; }
 .topbar-actions > button svg { width: 19px; }
 .topbar-actions > button i { position: absolute; top: 1px; right: 3px; width: 6px; height: 6px; background: #ef4444; border: 1px solid white; border-radius: 50%; }
+.notifications-panel { position: absolute; top: 34px; right: -10px; width: 260px; padding: 14px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 30px rgba(15, 35, 66, 0.12); z-index: 20; }
+.notifications-panel b { display: block; margin-bottom: 8px; color: var(--navy); font-size: 10px; }
+.notifications-panel p { margin: 0 0 8px; color: #4b5563; font-size: 9px; line-height: 1.5; }
+.notifications-panel p:last-child { margin-bottom: 0; }
 .user-chip { display: flex; align-items: center; gap: 9px; padding-left: 20px; border-left: 1px solid #e5e7eb; }
 .user-chip img { width: 34px; height: 34px; object-fit: cover; border-radius: 50%; }
 .avatar-edit-button { position: relative; width: 34px; height: 34px; padding: 0; border: none; background: none; border-radius: 50%; cursor: pointer; display: block; }
@@ -365,8 +369,8 @@ footer .brand b { color: white; }
 .dashboard-hero-card h2 { margin: 16px 0 7px; font-family: var(--serif); font-size: 29px; font-weight: 400; }
 .dashboard-hero-card h2 em { color: #e4c86e; }
 .dashboard-hero-card p { color: #9eafc3; font-size: 9px; }
-.dashboard-hero-card button { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 9px; font-weight: 800; }
-.dashboard-hero-card button svg { width: 14px; color: var(--purple); }
+.dashboard-hero-card button, .dashboard-hero-card a { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 9px; font-weight: 800; text-decoration: none; cursor: pointer; width: fit-content; }
+.dashboard-hero-card button svg, .dashboard-hero-card a svg { width: 14px; color: var(--purple); }
 .hero-ring { position: absolute; z-index: 2; right: 12%; width: 128px; height: 128px; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(#d7b95e 0 76%, #ffffff18 76% 100%); }
 .hero-ring:before { content: ''; position: absolute; inset: 9px; background: #183c67; border-radius: 50%; }
 .hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; }
@@ -402,8 +406,8 @@ footer .brand b { color: white; }
 .next-class h4 { margin: 7px 0; color: var(--navy); font-family: var(--serif); font-size: 16px; font-weight: 400; }
 .next-class > p { display: flex; align-items: center; gap: 5px; color: #8e98a5; font-size: 7px; }
 .next-class > p svg { width: 12px; }
-.next-class > button, .correction-card > button { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 12px; color: white; background: var(--purple); border: 0; border-radius: 4px; font-size: 8px; font-weight: 800; }
-.next-class > button svg, .correction-card > button svg { width: 12px; }
+.next-class > button, .correction-card > button, .next-class > a, .correction-card > a { width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 12px; color: white; background: var(--purple); border: 0; border-radius: 4px; font-size: 8px; font-weight: 800; text-decoration: none; cursor: pointer; }
+.next-class > button svg, .correction-card > button svg, .next-class > a svg, .correction-card > a svg { width: 12px; }
 .weekly-goal .card-title > svg { color: var(--gold); }
 .week-days { display: flex; justify-content: space-between; margin-top: 24px; }
 .week-days span { display: flex; flex-direction: column; align-items: center; gap: 5px; }
@@ -423,8 +427,8 @@ footer .brand b { color: white; }
 .recent-item small { color: #99a1ac; font-size: 7px; }
 .recent-item > span:not(.recent-icon) { display: flex; align-items: center; gap: 3px; color: #969eaa; font-size: 7px; }
 .recent-item > span svg { width: 11px; }
-.recent-item button { display: grid; place-items: center; width: 27px; height: 27px; color: var(--purple); background: #f3eff9; border: 0; border-radius: 50%; }
-.recent-item button svg { width: 12px; }
+.recent-item button, .recent-item a { display: grid; place-items: center; width: 27px; height: 27px; color: var(--purple); background: #f3eff9; border: 0; border-radius: 50%; text-decoration: none; cursor: pointer; }
+.recent-item button svg, .recent-item a svg { width: 12px; }
 .grade { color: #15803d !important; font-family: var(--serif); font-size: 24px !important; }
 .material-card { grid-column: span 3; }
 .material-intro { margin: 14px 0 0; color: #687588; font-size: 8px; line-height: 1.7; }
@@ -597,6 +601,9 @@ footer .brand b { color: white; }
   .login-support { font-size: 13px; }
   .student-sidebar nav a { font-size: 14px; }
   .student-sidebar nav a i { font-size: 13px; }
+  .notifications-panel { width: 240px; right: -60px; }
+  .notifications-panel b { font-size: 14px; }
+  .notifications-panel p { font-size: 13px; }
   .sidebar-help b { font-size: 14px; }
   .sidebar-help p { font-size: 13px; }
   .sidebar-help a { font-size: 13px; }
