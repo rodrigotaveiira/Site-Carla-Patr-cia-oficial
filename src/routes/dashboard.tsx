@@ -45,15 +45,15 @@ export const Route = createFileRoute('/dashboard')({
 
 const sidebarItems = [
   { icon: Home, label: 'Dashboard', href: '#top' },
-  { icon: CirclePlay, label: 'Aulas', href: '/em-breve/aulas' },
-  { icon: Library, label: 'Biblioteca', href: '/em-breve/biblioteca' },
+  { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
+  { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
   { icon: Files, label: 'Materiais', href: '#materiais' },
-  { icon: CircleHelp, label: 'Questões', href: '/em-breve/questoes' },
-  { icon: Target, label: 'Simulados', href: '/em-breve/simulados' },
-  { icon: FileCheck2, label: 'Redações', href: '/em-breve/redacoes' },
+  { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
+  { icon: Target, label: 'Simulados', href: '/conteudo/simulados' },
+  { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
   { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
-  { icon: BookMarked, label: 'Repertórios', href: '/em-breve/repertorios' },
-  { icon: Zap, label: 'Dicas', href: '/em-breve/dicas' },
+  { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
+  { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
   { icon: TrendingUp, label: 'Meu progresso', href: '/em-breve/progresso' },
   { icon: User, label: 'Perfil', href: '/em-breve/perfil' },
 ] as const
@@ -244,8 +244,7 @@ function DashboardPage() {
       <aside className={sidebarOpen ? 'student-sidebar open' : 'student-sidebar'}>
         <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark"><img src="/logo-icone.png" alt="CPM" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
         <nav>{sidebarItems.map(({ icon: Icon, label, href }, index) => <a className={index === 0 ? 'active' : ''} href={href} key={label}><Icon />{label}{label === 'Redações' && <i>2</i>}</a>)}
-          {isAdmin && <Link to="/materiais-admin"><Settings />Painel admin · Materiais</Link>}
-          {isAdmin && <Link to="/mentorias-admin"><Settings />Painel admin · Mentorias</Link>}
+          {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
         </nav>
         <div className="sidebar-help"><MessageSquareText /><b>Precisa de ajuda?</b><p>Nossa equipe está por perto.</p><a href="mailto:contato@carlapatriciamedina.com.br">Falar com suporte</a></div>
         <button className="logout" onClick={() => void logout()}><LogOut /> Sair da conta</button>
@@ -274,7 +273,7 @@ function DashboardPage() {
         <div className="dashboard-content">
           <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/mentorias"><CalendarDays /> Ver calendário</Link></div>
 
-          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/em-breve/$secao" params={{ secao: 'aulas' }}>Continuar estudando <CirclePlay /></Link></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring"><div><b>76%</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => alert('Em breve: mais opções de personalização do progresso.')}><MoreHorizontal /></button></div><div className="progress-list">
@@ -295,8 +294,8 @@ function DashboardPage() {
               )
             })}</div><p>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? 'Você completou sua meta semanal! 🎉' : weeklyGoal ? `Você está a ${weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!` : 'Carregando sua meta semanal...'}</p></section>
 
-            <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/em-breve/$secao" params={{ secao: 'aulas' }}>Ver todas</Link></div>
-              {filteredRecent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/em-breve/$secao" params={{ secao: 'aulas' }}><CirclePlay /></Link></div>)}
+            <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
+              {filteredRecent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}
               {query && filteredRecent.length === 0 && <p className="material-intro">Nenhuma aula encontrada para "{searchQuery}".</p>}
             </section>
 
@@ -325,7 +324,7 @@ function DashboardPage() {
               </div>
             </section>
 
-            <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Inteligência artificial e sociedade</h3></div><span className="grade">920</span></div><p>Seu texto demonstrou excelente domínio da proposta. Há uma nova correção pronta para você.</p><div className="competencies">{[180,200,160,180,200].map((score, index) => <span key={index}><i style={{ height: `${score / 2.2}%` }} /><small>C{index + 1}</small><b>{score}</b></span>)}</div><Link to="/em-breve/$secao" params={{ secao: 'redacoes' }}>Ver correção detalhada <ChevronRight /></Link></section>
+            <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Inteligência artificial e sociedade</h3></div><span className="grade">920</span></div><p>Seu texto demonstrou excelente domínio da proposta. Há uma nova correção pronta para você.</p><div className="competencies">{[180,200,160,180,200].map((score, index) => <span key={index}><i style={{ height: `${score / 2.2}%` }} /><small>C{index + 1}</small><b>{score}</b></span>)}</div><Link to="/redacoes">Ver correção detalhada <ChevronRight /></Link></section>
           </div>
         </div>
       </section>

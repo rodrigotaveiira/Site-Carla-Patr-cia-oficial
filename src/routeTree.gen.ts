@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
+import { Route as RedacoesRouteImport } from './routes/redacoes'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
@@ -18,13 +20,28 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
+import { Route as AulasRouteImport } from './routes/aulas'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmBreveSecaoRouteImport } from './routes/em-breve.$secao'
+import { Route as ConteudoSecaoRouteImport } from './routes/conteudo.$secao'
+import { Route as ConteudoAdminSecaoRouteImport } from './routes/conteudo-admin.$secao'
 
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
+  id: '/redacoes-admin',
+  path: '/redacoes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedacoesRoute = RedacoesRouteImport.update({
+  id: '/redacoes',
+  path: '/redacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
@@ -67,9 +84,24 @@ const CalendarioRoute = CalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AulasAdminRoute = AulasAdminRouteImport.update({
+  id: '/aulas-admin',
+  path: '/aulas-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AulasRoute = AulasRouteImport.update({
+  id: '/aulas',
+  path: '/aulas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
   id: '/aguardando-aprovacao',
   path: '/aguardando-aprovacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -82,10 +114,23 @@ const EmBreveSecaoRoute = EmBreveSecaoRouteImport.update({
   path: '/em-breve/$secao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConteudoSecaoRoute = ConteudoSecaoRouteImport.update({
+  id: '/conteudo/$secao',
+  path: '/conteudo/$secao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConteudoAdminSecaoRoute = ConteudoAdminSecaoRouteImport.update({
+  id: '/conteudo-admin/$secao',
+  path: '/conteudo-admin/$secao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aulas': typeof AulasRoute
+  '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
@@ -94,12 +139,19 @@ export interface FileRoutesByFullPath {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/redacoes': typeof RedacoesRoute
+  '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
+  '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
+  '/conteudo/$secao': typeof ConteudoSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aulas': typeof AulasRoute
+  '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
@@ -108,13 +160,20 @@ export interface FileRoutesByTo {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/redacoes': typeof RedacoesRoute
+  '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
+  '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
+  '/conteudo/$secao': typeof ConteudoSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aulas': typeof AulasRoute
+  '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
   '/dashboard': typeof DashboardRoute
   '/lgpd': typeof LgpdRoute
@@ -123,14 +182,21 @@ export interface FileRoutesById {
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/redacoes': typeof RedacoesRoute
+  '/redacoes-admin': typeof RedacoesAdminRoute
   '/termos': typeof TermosRoute
+  '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
+  '/conteudo/$secao': typeof ConteudoSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/aguardando-aprovacao'
+    | '/aulas'
+    | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
     | '/lgpd'
@@ -139,12 +205,19 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/redacoes'
+    | '/redacoes-admin'
     | '/termos'
+    | '/conteudo-admin/$secao'
+    | '/conteudo/$secao'
     | '/em-breve/$secao'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
     | '/aguardando-aprovacao'
+    | '/aulas'
+    | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
     | '/lgpd'
@@ -153,12 +226,19 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/redacoes'
+    | '/redacoes-admin'
     | '/termos'
+    | '/conteudo-admin/$secao'
+    | '/conteudo/$secao'
     | '/em-breve/$secao'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/aguardando-aprovacao'
+    | '/aulas'
+    | '/aulas-admin'
     | '/calendario'
     | '/dashboard'
     | '/lgpd'
@@ -167,13 +247,20 @@ export interface FileRouteTypes {
     | '/mentorias'
     | '/mentorias-admin'
     | '/privacidade'
+    | '/redacoes'
+    | '/redacoes-admin'
     | '/termos'
+    | '/conteudo-admin/$secao'
+    | '/conteudo/$secao'
     | '/em-breve/$secao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AulasRoute: typeof AulasRoute
+  AulasAdminRoute: typeof AulasAdminRoute
   CalendarioRoute: typeof CalendarioRoute
   DashboardRoute: typeof DashboardRoute
   LgpdRoute: typeof LgpdRoute
@@ -182,7 +269,11 @@ export interface RootRouteChildren {
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  RedacoesRoute: typeof RedacoesRoute
+  RedacoesAdminRoute: typeof RedacoesAdminRoute
   TermosRoute: typeof TermosRoute
+  ConteudoAdminSecaoRoute: typeof ConteudoAdminSecaoRoute
+  ConteudoSecaoRoute: typeof ConteudoSecaoRoute
   EmBreveSecaoRoute: typeof EmBreveSecaoRoute
 }
 
@@ -193,6 +284,20 @@ declare module '@tanstack/react-router' {
       path: '/termos'
       fullPath: '/termos'
       preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redacoes-admin': {
+      id: '/redacoes-admin'
+      path: '/redacoes-admin'
+      fullPath: '/redacoes-admin'
+      preLoaderRoute: typeof RedacoesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redacoes': {
+      id: '/redacoes'
+      path: '/redacoes'
+      fullPath: '/redacoes'
+      preLoaderRoute: typeof RedacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade': {
@@ -251,11 +356,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/aulas-admin': {
+      id: '/aulas-admin'
+      path: '/aulas-admin'
+      fullPath: '/aulas-admin'
+      preLoaderRoute: typeof AulasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aulas': {
+      id: '/aulas'
+      path: '/aulas'
+      fullPath: '/aulas'
+      preLoaderRoute: typeof AulasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/aguardando-aprovacao': {
       id: '/aguardando-aprovacao'
       path: '/aguardando-aprovacao'
       fullPath: '/aguardando-aprovacao'
       preLoaderRoute: typeof AguardandoAprovacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -272,12 +398,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmBreveSecaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conteudo/$secao': {
+      id: '/conteudo/$secao'
+      path: '/conteudo/$secao'
+      fullPath: '/conteudo/$secao'
+      preLoaderRoute: typeof ConteudoSecaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conteudo-admin/$secao': {
+      id: '/conteudo-admin/$secao'
+      path: '/conteudo-admin/$secao'
+      fullPath: '/conteudo-admin/$secao'
+      preLoaderRoute: typeof ConteudoAdminSecaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AulasRoute: AulasRoute,
+  AulasAdminRoute: AulasAdminRoute,
   CalendarioRoute: CalendarioRoute,
   DashboardRoute: DashboardRoute,
   LgpdRoute: LgpdRoute,
@@ -286,7 +429,11 @@ const rootRouteChildren: RootRouteChildren = {
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  RedacoesRoute: RedacoesRoute,
+  RedacoesAdminRoute: RedacoesAdminRoute,
   TermosRoute: TermosRoute,
+  ConteudoAdminSecaoRoute: ConteudoAdminSecaoRoute,
+  ConteudoSecaoRoute: ConteudoSecaoRoute,
   EmBreveSecaoRoute: EmBreveSecaoRoute,
 }
 export const routeTree = rootRouteImport
