@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { Download, Upload } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
@@ -37,6 +37,7 @@ function RedacoesPage() {
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
@@ -63,8 +64,7 @@ function RedacoesPage() {
       await submitRedacao({ data: { title, fileName: file.name, fileDataUrl } })
       setTitle('')
       setFile(null)
-      const input = document.getElementById('redacao-file-input') as HTMLInputElement | null
-      if (input) input.value = ''
+      if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar sua redação.')
@@ -99,7 +99,20 @@ function RedacoesPage() {
         </div>
         <div>
           <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Foto ou arquivo da redação</label>
-          <input id="redacao-file-input" type="file" accept="image/*,.pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,.pdf,.doc,.docx"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#fff', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+          >
+            <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher a foto ou arquivo'}
+          </button>
         </div>
         <button type="submit" disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
           <Upload size={16} /> {saving ? 'Enviando...' : 'Enviar redação'}
@@ -113,8 +126,8 @@ function RedacoesPage() {
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {submissions.map((submission) => (
             <div key={submission.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+                <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                   <b style={{ color: '#0f2342' }}>{submission.title}</b>
                   <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
                     Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}

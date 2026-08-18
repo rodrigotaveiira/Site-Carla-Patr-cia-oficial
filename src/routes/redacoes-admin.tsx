@@ -96,8 +96,8 @@ function RedacoesAdminPage() {
   function renderCard(submission: SubmissionMeta) {
     return (
       <div key={submission.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
             <b style={{ color: '#0f2342' }}>{submission.title}</b>
             <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
               {submission.studentName} · {submission.studentEmail}

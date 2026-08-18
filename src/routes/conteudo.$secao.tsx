@@ -73,10 +73,10 @@ function ConteudoPage() {
 
       <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
         {items.map((item) => (
-          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 16 }}>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-              <FileText color="#6d28d9" style={{ marginTop: 2 }} />
-              <div>
+          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 16 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
+              <FileText color="#6d28d9" style={{ marginTop: 2, flexShrink: 0 }} />
+              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b style={{ color: '#0f2342' }}>{item.title}</b>
                 {item.description && <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{item.description}</div>}
               </div>

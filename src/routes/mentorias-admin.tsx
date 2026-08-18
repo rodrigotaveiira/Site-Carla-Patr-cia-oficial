@@ -111,7 +111,7 @@ function MentoriasAdminPage() {
           {sorted.map((slot) => (
             <div
               key={slot.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
             >
               <div>
                 <b>{slot.date}</b> às <b>{slot.time}</b> · {slot.duration} min

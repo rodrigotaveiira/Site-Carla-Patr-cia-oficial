@@ -104,7 +104,7 @@ function MentoriasPage() {
             {mySlots.map((slot) => (
               <div
                 key={slot.id}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}
               >
                 <div>
                   <div style={{ fontWeight: 700, textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>

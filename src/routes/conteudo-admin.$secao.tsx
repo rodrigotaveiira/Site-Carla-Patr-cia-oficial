@@ -1,5 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { useEffect, useState, type FormEvent } from 'react'
+import { Upload } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
@@ -46,6 +47,7 @@ function ConteudoAdminPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -77,8 +79,7 @@ function ConteudoAdminPage() {
       setTitle('')
       setDescription('')
       setFile(null)
-      const input = document.getElementById('content-file-input') as HTMLInputElement | null
-      if (input) input.value = ''
+      if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
@@ -110,7 +111,20 @@ function ConteudoAdminPage() {
         </div>
         <div>
           <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Arquivo (PDF)</label>
-          <input id="content-file-input" type="file" accept=".pdf,application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            style={{ display: 'none' }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#f4f2fb', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+          >
+            <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
+          </button>
         </div>
         <button type="submit" disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Adicionar arquivo'}
@@ -123,8 +137,8 @@ function ConteudoAdminPage() {
         {loading && <p>Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {items.map((item) => (
-            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
-              <div>
+            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
+              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b>{item.title}</b>
                 <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{item.fileName}</div>
               </div>

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { useEffect, useState, type FormEvent } from 'react'
+import { Upload } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
@@ -45,6 +46,7 @@ function MateriaisAdminPage() {
   const [tag, setTag] = useState('Material')
   const [accent, setAccent] = useState(ACCENT_OPTIONS[0].value)
   const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -85,8 +87,7 @@ function MateriaisAdminPage() {
       setDescription('')
       setTag('Material')
       setFile(null)
-      const input = document.getElementById('material-file-input') as HTMLInputElement | null
-      if (input) input.value = ''
+      if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
@@ -156,11 +157,19 @@ function MateriaisAdminPage() {
         <div>
           <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Arquivo (Word ou PDF)</label>
           <input
-            id="material-file-input"
+            ref={fileInputRef}
             type="file"
             accept=".doc,.docx,.pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
             onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            style={{ display: 'none' }}
           />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#f4f2fb', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+          >
+            <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
+          </button>
         </div>
         <button
           type="submit"
@@ -179,9 +188,9 @@ function MateriaisAdminPage() {
           {materials.map((material) => (
             <div
               key={material.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
             >
-              <div>
+              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b>{material.title}</b>
                 <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>
               </div>

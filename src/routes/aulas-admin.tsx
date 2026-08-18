@@ -103,8 +103,8 @@ function AulasAdminPage() {
         {loading && <p>Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {lessons.map((lesson) => (
-            <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
-              <div>
+            <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
+              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <div style={{ color: '#6d28d9', fontSize: 12, fontWeight: 700 }}>{lesson.module}</div>
                 <b>{lesson.title}</b>
               </div>
