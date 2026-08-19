@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { addMaterial, deleteMaterial, listMaterials, type Material } from '@/lib/materials'
+import { addMaterial, deleteMaterial, listMaterials, type MaterialListItem } from '@/lib/materials'
 
 export const Route = createFileRoute('/materiais-admin')({
   beforeLoad: async () => {
@@ -27,7 +27,7 @@ const ACCENT_OPTIONS = [
   { label: 'Dourado', value: '#c8a24d' },
 ]
 
-type MaterialMeta = Omit<Material, 'fileDataUrl'>
+type MaterialMeta = MaterialListItem
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -45,6 +45,7 @@ function MateriaisAdminPage() {
   const [description, setDescription] = useState('')
   const [tag, setTag] = useState('Material')
   const [accent, setAccent] = useState(ACCENT_OPTIONS[0].value)
+  const [classDate, setClassDate] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -81,11 +82,12 @@ function MateriaisAdminPage() {
     try {
       const fileDataUrl = await readFileAsDataUrl(file)
       await addMaterial({
-        data: { title, description, tag, accent, fileName: file.name, fileDataUrl },
+        data: { title, description, tag, accent, fileName: file.name, fileDataUrl, classDate: classDate || undefined },
       })
       setTitle('')
       setDescription('')
       setTag('Material')
+      setClassDate('')
       setFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
@@ -130,6 +132,19 @@ function MateriaisAdminPage() {
             rows={3}
             style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'inherit' }}
           />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Data da aula (opcional)</label>
+          <input
+            type="date"
+            value={classDate}
+            onChange={(event) => setClassDate(event.target.value)}
+            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
+          />
+          <p style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
+            Se preenchida, o material só fica disponível para download 1 dia antes dessa data. Depois disso, fica
+            liberado para sempre. Deixe em branco pra liberar o material imediatamente.
+          </p>
         </div>
         <div style={{ display: 'flex', gap: 12 }}>
           <div style={{ flex: 1 }}>
@@ -193,6 +208,13 @@ function MateriaisAdminPage() {
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b>{material.title}</b>
                 <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>
+                {material.classDate && (
+                  <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: material.released ? '#15803d' : '#a16207' }}>
+                    {material.released
+                      ? `Liberado (aula em ${new Date(`${material.classDate}T00:00:00`).toLocaleDateString('pt-BR')})`
+                      : `Libera em ${material.releaseDate ? new Date(`${material.releaseDate}T00:00:00`).toLocaleDateString('pt-BR') : ''} (1 dia antes da aula de ${new Date(`${material.classDate}T00:00:00`).toLocaleDateString('pt-BR')})`}
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => handleDelete(material.id)}

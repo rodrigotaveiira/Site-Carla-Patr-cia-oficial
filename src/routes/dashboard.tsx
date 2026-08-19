@@ -10,7 +10,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
-import { getMaterialFile, listMaterials, type Material } from '@/lib/materials'
+import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
 import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 import { getCompetencyScheme, type Competency } from '@/lib/competencies'
@@ -18,7 +18,7 @@ import { listLembretes, type Lembrete } from '@/lib/lembretes'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
-type MaterialMeta = Omit<Material, 'fileDataUrl'>
+type MaterialMeta = MaterialListItem
 
 // Tempo mínimo que o aluno precisa ficar na plataforma para o dia contar na meta semanal.
 const MINUTES_TO_COUNT_ACCESS = 10

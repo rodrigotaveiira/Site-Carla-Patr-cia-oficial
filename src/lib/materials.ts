@@ -13,6 +13,13 @@ export type Material = {
   fileName: string
   fileDataUrl: string // base64 (data:application/...;base64,....)
   createdAt: string
+  classDate: string | null // data da aula (YYYY-MM-DD); material libera 1 dia antes. null = sem restrição.
+}
+
+// Formato devolvido pela listagem: sem o arquivo (pesado), com o status de liberação calculado.
+export type MaterialListItem = Omit<Material, 'fileDataUrl'> & {
+  released: boolean
+  releaseDate: string | null
 }
 
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
@@ -30,12 +37,34 @@ async function requireAdmin() {
   return user
 }
 
+// Data (YYYY-MM-DD) em que o material libera: um dia antes da data da aula.
+// Sem data da aula definida, o material já nasce liberado.
+function releaseDateFor(classDate: string | null): string | null {
+  if (!classDate) return null
+  const date = new Date(`${classDate}T00:00:00`)
+  date.setDate(date.getDate() - 1)
+  return date.toISOString().slice(0, 10)
+}
+
+function todayDateString(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function isReleased(material: Material): boolean {
+  const releaseDate = releaseDateFor(material.classDate)
+  if (!releaseDate) return true
+  return todayDateString() >= releaseDate
+}
+
 // Lista visível para qualquer aluno logado (aprovado ou admin) — usada no dashboard.
+// Admin vê todos os materiais (mesmo os que ainda não liberaram, pra gerenciar).
+// Aluno só vê os materiais sem data de aula, ou os que já liberaram (1 dia antes da aula).
 export const listMaterials = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
     throw new Error('Acesso negado.')
   }
+  const isAdmin = userHasRole(user, 'admin')
 
   const store = materialsStore()
   const { blobs } = await store.list()
@@ -47,8 +76,16 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
   }
 
   materials.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  // Não manda o arquivo inteiro na listagem (pesado) — só os metadados.
-  return materials.map(({ fileDataUrl: _omit, ...meta }) => meta)
+
+  const visible = isAdmin ? materials : materials.filter(isReleased)
+
+  // Não manda o arquivo inteiro na listagem (pesado) — só os metadados,
+  // com o status de liberação calculado pra exibir na tela.
+  return visible.map(({ fileDataUrl: _omit, ...meta }) => ({
+    ...meta,
+    released: isReleased(meta as Material),
+    releaseDate: releaseDateFor(meta.classDate),
+  }))
 })
 
 // Busca o arquivo de um material específico (só quando o aluno clica em baixar).
@@ -63,7 +100,13 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     const store = materialsStore()
     const material = await store.get(data.id, { type: 'json' })
     if (!material) throw new Error('Material não encontrado.')
-    const { fileName, fileDataUrl } = material as Material
+    const materialData = material as Material
+
+    if (!userHasRole(user, 'admin') && !isReleased(materialData)) {
+      throw new Error('Este material ainda não foi liberado.')
+    }
+
+    const { fileName, fileDataUrl } = materialData
     const { name, cpf } = getStudentIdentity(user)
     const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
     return { fileName, fileDataUrl: watermarked }
@@ -77,6 +120,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
     accent: string
     fileName: string
     fileDataUrl: string
+    classDate?: string
   }) => data)
   .handler(async ({ data }) => {
     await requireAdmin()
@@ -104,6 +148,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       fileName: data.fileName,
       fileDataUrl: data.fileDataUrl,
       createdAt: new Date().toISOString(),
+      classDate: data.classDate?.trim() || null,
     }
 
     await store.setJSON(id, material)
