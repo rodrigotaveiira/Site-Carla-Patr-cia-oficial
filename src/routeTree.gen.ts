@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
 import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
 import { Route as RedacoesRouteImport } from './routes/redacoes'
 import { Route as ProgressoRouteImport } from './routes/progresso'
@@ -35,6 +36,11 @@ import { Route as ConteudoAdminSecaoRouteImport } from './routes/conteudo-admin.
 const TermosRoute = TermosRouteImport.update({
   id: '/termos',
   path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemasRedacaoAdminRoute = TemasRedacaoAdminRouteImport.update({
+  id: '/temas-redacao-admin',
+  path: '/temas-redacao-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/conteudo/$secao': typeof ConteudoSecaoRoute
@@ -186,6 +193,7 @@ export interface FileRoutesByTo {
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/conteudo/$secao': typeof ConteudoSecaoRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/conteudo/$secao': typeof ConteudoSecaoRoute
@@ -237,6 +246,7 @@ export interface FileRouteTypes {
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
     | '/conteudo/$secao'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
     | '/conteudo/$secao'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
     | '/conteudo/$secao'
@@ -310,6 +322,7 @@ export interface RootRouteChildren {
   ProgressoRoute: typeof ProgressoRoute
   RedacoesRoute: typeof RedacoesRoute
   RedacoesAdminRoute: typeof RedacoesAdminRoute
+  TemasRedacaoAdminRoute: typeof TemasRedacaoAdminRoute
   TermosRoute: typeof TermosRoute
   ConteudoAdminSecaoRoute: typeof ConteudoAdminSecaoRoute
   ConteudoSecaoRoute: typeof ConteudoSecaoRoute
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       path: '/termos'
       fullPath: '/termos'
       preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/temas-redacao-admin': {
+      id: '/temas-redacao-admin'
+      path: '/temas-redacao-admin'
+      fullPath: '/temas-redacao-admin'
+      preLoaderRoute: typeof TemasRedacaoAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redacoes-admin': {
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProgressoRoute: ProgressoRoute,
   RedacoesRoute: RedacoesRoute,
   RedacoesAdminRoute: RedacoesAdminRoute,
+  TemasRedacaoAdminRoute: TemasRedacaoAdminRoute,
   TermosRoute: TermosRoute,
   ConteudoAdminSecaoRoute: ConteudoAdminSecaoRoute,
   ConteudoSecaoRoute: ConteudoSecaoRoute,
