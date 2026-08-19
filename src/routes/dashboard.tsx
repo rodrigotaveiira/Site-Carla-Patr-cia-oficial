@@ -15,6 +15,7 @@ import { getContentCounts, getStudentProgress, type ContentCounts, type StudentP
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 import { getCompetencyScheme, type Competency } from '@/lib/competencies'
 import { listLembretes, type Lembrete } from '@/lib/lembretes'
+import { getLiveClass, type LiveClass } from '@/lib/live-class'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -81,6 +82,33 @@ function diasParaEnem() {
   return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)))
 }
 
+// Formata a data/hora da aula ao vivo de forma amigável: "Hoje, às 19h", "Amanhã, às 19h" ou "23/08, às 19h".
+function formatClassDateTime(dateTime: string): string {
+  const classDate = new Date(dateTime)
+  if (Number.isNaN(classDate.getTime())) return dateTime
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const classDayOnly = new Date(classDate)
+  classDayOnly.setHours(0, 0, 0, 0)
+
+  const time = classDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+
+  if (classDayOnly.getTime() === today.getTime()) return `Hoje, às ${time}`
+  if (classDayOnly.getTime() === tomorrow.getTime()) return `Amanhã, às ${time}`
+  return `${classDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}, às ${time}`
+}
+
+function formatDuration(minutes: number): string {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  if (hours === 0) return `${mins}min`
+  if (mins === 0) return `${hours}h`
+  return `${hours}h${mins}min`
+}
+
 function DashboardPage() {
   const { user, logout } = useIdentity()
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -124,6 +152,11 @@ function DashboardPage() {
   const [studentProgress, setStudentProgress] = useState<StudentProgress | null>(null)
   useEffect(() => {
     getStudentProgress().then(setStudentProgress).catch(() => { /* mantém null, anel mostra "..." */ })
+  }, [])
+
+  const [liveClass, setLiveClass] = useState<LiveClass | null | undefined>(undefined)
+  useEffect(() => {
+    getLiveClass().then(setLiveClass).catch(() => setLiveClass(null))
   }, [])
 
   const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl'> | null | undefined>(undefined)
@@ -327,7 +360,24 @@ function DashboardPage() {
               }) : <p className="material-intro">Carregando...</p>}
             </div><Link to="/progresso">Ver relatório completo <ChevronRight /></Link></section>
 
-            <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Hoje, às 19h</h3></div><span className="live-dot">Ao vivo</span></div><div className="class-thumb"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=85" alt="Caderno de estudos" /><span><CirclePlay /></span></div><small>MÓDULO 04 · REDAÇÃO</small><h4>Projeto de texto: da tese à conclusão</h4><p><Clock3 /> 1h30 de duração · Prof.ª Carla</p><a href={WHATSAPP_LINK} target="_blank" rel="noreferrer">Entrar na aula <ChevronRight /></a></section>
+            {liveClass === undefined ? (
+              <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Carregando...</h3></div></div></section>
+            ) : liveClass === null ? (
+              <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Nenhuma aula agendada</h3></div></div><p style={{ padding: '0 20px 20px' }}>Assim que a professora agendar a próxima aula ao vivo, ela aparece aqui.</p></section>
+            ) : (
+              <section className="dashboard-card next-class">
+                <div className="card-title"><div><span>Próxima aula</span><h3>{formatClassDateTime(liveClass.dateTime)}</h3></div><span className="live-dot">Ao vivo</span></div>
+                <div className="class-thumb"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=85" alt="Caderno de estudos" /><span><CirclePlay /></span></div>
+                <small>{liveClass.module.toUpperCase()}</small>
+                <h4>{liveClass.title}</h4>
+                <p><Clock3 /> {formatDuration(liveClass.durationMinutes)} de duração · Prof.ª Carla</p>
+                {liveClass.zoomLink ? (
+                  <a href={liveClass.zoomLink} target="_blank" rel="noreferrer">Entrar na aula <ChevronRight /></a>
+                ) : (
+                  <a href={WHATSAPP_LINK} target="_blank" rel="noreferrer">Entrar na aula <ChevronRight /></a>
+                )}
+              </section>
+            )}
 
             <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div><Trophy /></div><div className="week-days">{(weeklyGoal ? weeklyGoal.dates : []).map((date, index) => {
               const isDone = weeklyGoal?.completedDates.includes(date)

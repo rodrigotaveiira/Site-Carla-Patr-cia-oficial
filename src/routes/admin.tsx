@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  BookMarked, CalendarDays, CircleHelp, FileCheck2, Files, Library, PencilLine, PenLine, Target, Zap,
+  BookMarked, CalendarDays, CircleHelp, FileCheck2, Files, Library, PencilLine, PenLine, Target, Video, Zap,
 } from 'lucide-react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -23,7 +23,8 @@ export const Route = createFileRoute('/admin')({
 
 const links = [
   { icon: Files, label: 'Materiais (Word/PDF)', to: '/materiais-admin', description: 'Arquivos exclusivos do dashboard.' },
-  { icon: PencilLine, label: 'Aulas em vídeo', to: '/aulas-admin', description: 'Cadastre aulas com link de vídeo.' },
+  { icon: PencilLine, label: 'Aulas em vídeo', to: '/aulas-admin', description: 'Cadastre aulas com link de vídeo do YouTube.' },
+  { icon: Video, label: 'Próxima aula ao vivo', to: '/aula-ao-vivo-admin', description: 'Configure data, horário e link do Zoom.' },
   { icon: FileCheck2, label: 'Correção de redações', to: '/redacoes-admin', description: 'Veja e corrija as redações enviadas pelos alunos.' },
   { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.' },
   { icon: CalendarDays, label: 'Mentorias', to: '/mentorias-admin', description: 'Cadastre horários de mentoria individual.' },

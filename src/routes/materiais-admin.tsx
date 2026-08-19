@@ -146,8 +146,8 @@ function MateriaisAdminPage() {
             liberado para sempre. Deixe em branco pra liberar o material imediatamente.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 140 }}>
             <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Etiqueta</label>
             <input
               value={tag}
@@ -156,7 +156,7 @@ function MateriaisAdminPage() {
               style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
             />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 140 }}>
             <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Cor</label>
             <select
               value={accent}
