@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Bell, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
-  MoreHorizontal, Search, Settings, ShieldCheck, Target, TrendingUp, Trophy, User, X, Zap,
+  MoreHorizontal, Search, Settings, Target, TrendingUp, Trophy, User, X, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -53,7 +53,7 @@ const sidebarItems = [
   { icon: Home, label: 'Dashboard', href: '#top' },
   { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
   { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
-  { icon: Files, label: 'Materiais', href: '#materiais' },
+  { icon: Files, label: 'Materiais', href: '/materiais' },
   { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
   { icon: Target, label: 'Simulados', href: '/conteudo/simulados' },
   { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
@@ -403,7 +403,7 @@ function DashboardPage() {
             <section className="dashboard-card material-card" id="materiais">
               <div className="card-title">
                 <div><span>Arquivos exclusivos</span><h3>Material protegido</h3></div>
-                <ShieldCheck />
+                <Link to="/materiais">Ver todos</Link>
               </div>
               <p className="material-intro">Baixe os materiais do curso enviados pela professora, em Word ou PDF. Cada download é protegido com seu nome e CPF.</p>
               {materialsError && <p className="avatar-edit-error">{materialsError}</p>}

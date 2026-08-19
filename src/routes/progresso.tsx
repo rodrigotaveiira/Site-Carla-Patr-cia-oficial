@@ -36,7 +36,7 @@ function ProgressoPage() {
   const rows = counts
     ? [
         { icon: CirclePlay, label: 'Aulas', count: counts.aulas, to: '/aulas' },
-        { icon: Files, label: 'Materiais', count: counts.materiais, to: '/dashboard#materiais' },
+        { icon: Files, label: 'Materiais', count: counts.materiais, to: '/materiais' },
         { icon: Library, label: 'Biblioteca', count: counts.bibliotecas.biblioteca, to: '/conteudo/biblioteca' },
         { icon: CircleHelp, label: 'Questões', count: counts.bibliotecas.questoes, to: '/conteudo/questoes' },
         { icon: Target, label: 'Simulados', count: counts.bibliotecas.simulados, to: '/conteudo/simulados' },
