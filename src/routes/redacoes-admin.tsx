@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, Download, Settings } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, PenLine, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -255,12 +255,20 @@ function RedacoesAdminPage() {
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Correção de redações</h1>
       <p style={{ color: '#6b7280' }}>Veja as redações enviadas pelos alunos e envie a nota (critérios da banca Econ Rio) e o comentário.</p>
 
-      <button
-        onClick={() => setShowSchemeEditor((v) => !v)}
-        style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700, marginTop: 12 }}
-      >
-        <Settings size={15} /> {showSchemeEditor ? 'Fechar edição de competências' : 'Editar valores das competências'}
-      </button>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+        <Link
+          to="/temas-redacao-admin"
+          style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', fontWeight: 700, textDecoration: 'none' }}
+        >
+          <PenLine size={15} /> Temas de redação
+        </Link>
+        <button
+          onClick={() => setShowSchemeEditor((v) => !v)}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700 }}
+        >
+          <Settings size={15} /> {showSchemeEditor ? 'Fechar edição de competências' : 'Editar valores das competências'}
+        </button>
+      </div>
 
       {showSchemeEditor && !loading && (
         <SchemeEditor scheme={scheme} onSaved={(saved) => { setScheme(saved); setShowSchemeEditor(false) }} />

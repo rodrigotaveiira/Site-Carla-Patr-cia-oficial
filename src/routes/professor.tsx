@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Bell, FileCheck2, Zap } from 'lucide-react'
+import { Bell, FileCheck2, PenLine, Zap } from 'lucide-react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
@@ -21,6 +21,7 @@ export const Route = createFileRoute('/professor')({
 
 const links = [
   { icon: FileCheck2, label: 'Correção de redações', to: '/redacoes-admin', description: 'Veja e corrija as redações enviadas pelos alunos.' },
+  { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.' },
   { icon: Bell, label: 'Lembretes', to: '/lembretes-admin', description: 'Envie avisos para todos os alunos.' },
   { icon: Zap, label: 'Dicas', to: '/conteudo-admin/dicas', description: 'Envie PDFs para a seção Dicas.' },
 ] as const

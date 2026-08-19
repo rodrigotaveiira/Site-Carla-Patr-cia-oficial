@@ -1,10 +1,11 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Download, Upload } from 'lucide-react'
+import { CalendarDays, Download, PenLine, Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getRedacaoFile, listMyRedacoes, submitRedacao, type RedacaoSubmission } from '@/lib/redacoes'
+import { listTemas, type TemaRedacao } from '@/lib/temas-redacao'
 
 export const Route = createFileRoute('/redacoes')({
   beforeLoad: async () => {
@@ -41,6 +42,11 @@ function RedacoesPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [temas, setTemas] = useState<TemaRedacao[]>([])
+
+  useEffect(() => {
+    listTemas().then(setTemas).catch(() => { /* seção de temas some se der erro */ })
+  }, [])
 
   async function load() {
     setLoading(true)
@@ -91,6 +97,51 @@ function RedacoesPage() {
       <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
       <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Redações</h1>
       <p style={{ color: '#6b7280' }}>Envie uma foto ou arquivo da sua redação para correção da professora.</p>
+
+      {temas.length > 0 && (
+        <section style={{ marginTop: 24 }}>
+          <h2 style={{ fontSize: 16, color: '#0f2342', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <PenLine size={17} color="#6d28d9" /> Tema proposto
+          </h2>
+          <div style={{ marginTop: 10, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 20 }}>
+            <b style={{ color: '#0f2342', fontSize: 16 }}>{temas[0].title}</b>
+            {temas[0].proposta && <p style={{ color: '#4b5563', fontSize: 14, marginTop: 10, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{temas[0].proposta}</p>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, flexWrap: 'wrap', gap: 10 }}>
+              {temas[0].prazo ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#a16207', fontSize: 13, fontWeight: 600 }}>
+                  <CalendarDays size={14} /> Entrega até {new Date(`${temas[0].prazo}T00:00:00`).toLocaleDateString('pt-BR')}
+                </span>
+              ) : <span />}
+              <button
+                type="button"
+                onClick={() => setTitle(temas[0].title)}
+                style={{ color: '#6d28d9', background: 'none', border: '1px solid #c9befd', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
+              >
+                Usar este tema no envio
+              </button>
+            </div>
+          </div>
+          {temas.length > 1 && (
+            <details style={{ marginTop: 10 }}>
+              <summary style={{ color: '#6d28d9', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Ver temas anteriores</summary>
+              <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
+                {temas.slice(1).map((tema) => (
+                  <div key={tema.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 8, padding: 12 }}>
+                    <b style={{ color: '#0f2342', fontSize: 14 }}>{tema.title}</b>
+                    <button
+                      type="button"
+                      onClick={() => setTitle(tema.title)}
+                      style={{ display: 'block', marginTop: 6, color: '#6d28d9', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
+                    >
+                      Usar este tema no envio
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </section>
+      )}
 
       <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, marginTop: 24, maxWidth: 480, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 20 }}>
         <div>
