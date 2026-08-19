@@ -16,6 +16,7 @@ import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 import { getCompetencyScheme, type Competency } from '@/lib/competencies'
 import { listLembretes, type Lembrete } from '@/lib/lembretes'
 import { getLiveClass, type LiveClass } from '@/lib/live-class'
+import { getRecentContentNotifications, type ContentNotification } from '@/lib/notifications'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -255,15 +256,18 @@ function DashboardPage() {
     listLembretes().then(setLembretes).catch(() => { /* sem lembretes por enquanto */ })
   }, [])
 
+  const [contentNotifications, setContentNotifications] = useState<ContentNotification[]>([])
+  useEffect(() => {
+    getRecentContentNotifications().then(setContentNotifications).catch(() => { /* sem avisos de arquivo por enquanto */ })
+  }, [])
+
   const notifications = useMemo(() => {
     const items: { id: string; text: string }[] = []
     for (const lembrete of lembretes) {
       items.push({ id: `lembrete-${lembrete.id}`, text: lembrete.message })
     }
-    const recentMaterial = materials[0]
-    if (recentMaterial) {
-      const addedDaysAgo = (Date.now() - new Date(recentMaterial.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-      if (addedDaysAgo <= 7) items.push({ id: `material-${recentMaterial.id}`, text: `Novo material disponível: "${recentMaterial.title}"` })
+    for (const notification of contentNotifications) {
+      items.push({ id: notification.id, text: notification.text })
     }
     if (weeklyGoal) {
       const faltam = weeklyGoal.goal - weeklyGoal.completedDates.length
@@ -272,7 +276,7 @@ function DashboardPage() {
     }
     items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque uma mentoria individual.' })
     return items
-  }, [materials, weeklyGoal, lembretes])
+  }, [weeklyGoal, lembretes, contentNotifications])
 
   function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
