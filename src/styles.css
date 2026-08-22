@@ -4,7 +4,7 @@
   --navy: #0f2d52;
   --navy-dark: #091e39;
   --purple: #6d28d9;
-  --purple-dark: #2e1065;
+  --purple-dark: #5420ac;
   --lilac: #a855f7;
   --gold: #c8a24d;
   --cream: #f8f7fb;
@@ -315,7 +315,7 @@ footer .brand b { color: white; }
 .dashboard-brand { display: flex; align-items: center; gap: 10px; }
 .dashboard-brand b { color: white; }
 .student-sidebar nav { display: grid; gap: 3px; }
-.student-sidebar nav a { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 13px; color: #bfa8e0; border-radius: 6px; font-size: 15px; font-weight: 600; }
+.student-sidebar nav a { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 13px; color: rgba(226, 216, 245, 0.75); border-radius: 6px; font-size: 15px; font-weight: 600; }
 .student-sidebar nav a svg { width: 17px; }
 .student-sidebar nav a:hover, .student-sidebar nav a.active { color: white; background: #ffffff0e; }
 .student-sidebar nav a.active:before { content: ''; position: absolute; left: -17px; width: 3px; height: 22px; background: var(--gold); }
@@ -323,9 +323,9 @@ footer .brand b { color: white; }
 .sidebar-help { margin-top: auto; padding: 17px; color: white; background: linear-gradient(140deg, #ffffff0c, #ffffff05); border: 1px solid #ffffff0d; border-radius: 8px; }
 .sidebar-help > svg { width: 21px; color: var(--gold); }
 .sidebar-help b { display: block; margin-top: 6px; font-size: 15px; }
-.sidebar-help p { margin: 4px 0 10px; color: #b3a0d4; font-size: 13px; }
+.sidebar-help p { margin: 4px 0 10px; color: rgba(226, 216, 245, 0.7); font-size: 13px; }
 .sidebar-help a { color: #e3c76f; font-size: 13px; font-weight: 800; }
-.logout { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; color: #a68fc9; background: none; border: 0; font-size: 14px; cursor: pointer; }
+.logout { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; color: rgba(226, 216, 245, 0.65); background: none; border: 0; font-size: 14px; cursor: pointer; }
 .logout svg { width: 16px; }
 .student-main { min-width: 0; }
 .dashboard-topbar { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; background: white; border-bottom: 1px solid #e8eaf0; }
@@ -363,21 +363,21 @@ footer .brand b { color: white; }
 .welcome-row p { margin: 0; color: #7a8492; font-size: 15px; }
 .outline-button { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 13px; color: var(--navy); background: white; border: 1px solid #dfe3e9; border-radius: 5px; font-size: 14px; font-weight: 700; }
 .outline-button svg { width: 15px; color: var(--purple); }
-.dashboard-hero-card { position: relative; min-height: 218px; display: flex; align-items: center; padding: 34px 46px; color: white; background: linear-gradient(120deg, #5b21b6, var(--purple) 60%, #7c3aed); border-radius: 10px; overflow: hidden; }
+.dashboard-hero-card { position: relative; min-height: 218px; display: flex; align-items: center; padding: 34px 46px; color: white; background: linear-gradient(130deg, var(--purple-dark), var(--purple) 55%, #7837d5); border-radius: 10px; overflow: hidden; }
 .dashboard-hero-card:before { content: ''; position: absolute; width: 420px; height: 420px; right: 8%; border: 1px solid #ffffff10; border-radius: 50%; }
 .dashboard-hero-card > div:first-child { position: relative; z-index: 2; }
 .dashboard-hero-card .pill { color: #e7cc78; background: #ffffff12; font-size: 13px; }
 .dashboard-hero-card .pill svg { width: 12px; }
 .dashboard-hero-card h2 { margin: 16px 0 7px; font-family: var(--serif); font-size: 29px; font-weight: 400; }
 .dashboard-hero-card h2 em { color: #e4c86e; }
-.dashboard-hero-card p { color: #d9cdf3; font-size: 14px; }
+.dashboard-hero-card p { color: #e2d8f5; font-size: 14px; }
 .dashboard-hero-card button, .dashboard-hero-card a { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; width: fit-content; }
 .dashboard-hero-card button svg, .dashboard-hero-card a svg { width: 14px; color: var(--purple); }
 .hero-ring { position: absolute; z-index: 2; right: 12%; width: 128px; height: 128px; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(#d7b95e 0 76%, #ffffff18 76% 100%); }
-.hero-ring:before { content: ''; position: absolute; inset: 9px; background: #4c1d95; border-radius: 50%; }
+.hero-ring:before { content: ''; position: absolute; inset: 9px; background: var(--purple-dark); border-radius: 50%; }
 .hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; }
 .hero-ring b { font-family: var(--serif); font-size: 30px; font-weight: 400; }
-.hero-ring span { color: #c9b8e8; font-size: 12px; text-transform: uppercase; }
+.hero-ring span { color: #e2d8f5; font-size: 12px; text-transform: uppercase; }
 .dashboard-decoration { position: absolute; right: -20px; bottom: -73px; color: transparent; font-family: var(--serif); font-size: 220px; -webkit-text-stroke: 1px #ffffff0e; }
 .dashboard-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 17px; margin-top: 18px; }
 .dashboard-card { min-width: 0; padding: 22px; background: white; border: 1px solid #e8eaf0; border-radius: 8px; }
