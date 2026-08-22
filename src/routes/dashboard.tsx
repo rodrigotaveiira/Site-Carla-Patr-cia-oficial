@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  Bell, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
+  Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
   MoreHorizontal, Search, Settings, Target, TrendingUp, Trophy, User, X, Zap,
 } from 'lucide-react'
@@ -57,6 +57,7 @@ const sidebarItems = [
   { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
   { icon: Target, label: 'Simulados', href: '/conteudo/simulados' },
   { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
+  { icon: BookCheck, label: 'Gabaritos dos seminários', href: '/conteudo/gabaritos' },
   { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
   { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },

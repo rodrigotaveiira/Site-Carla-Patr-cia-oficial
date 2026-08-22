@@ -7,6 +7,7 @@
   --lilac: #a855f7;
   --gold: #c8a24d;
   --cream: #f8f7fb;
+  --lilac-tint: #f5f1fc;
   --ink: #15243a;
   --muted: #667085;
   --line: #e8e7ed;
@@ -306,7 +307,7 @@ footer .brand b { color: white; }
 .login-support a { color: var(--purple); font-weight: 800; }
 
 /* Student dashboard */
-.student-app { min-height: 100vh; display: grid; grid-template-columns: 235px 1fr; background: #f4f6fa; }
+.student-app { min-height: 100vh; display: grid; grid-template-columns: 235px 1fr; background: var(--lilac-tint); }
 .student-sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 22px 17px; background: var(--navy-dark); overflow-y: auto; }
 .sidebar-head { display: flex; align-items: center; justify-content: space-between; padding: 0 7px 20px; }
 .sidebar-head > button { display: none; }

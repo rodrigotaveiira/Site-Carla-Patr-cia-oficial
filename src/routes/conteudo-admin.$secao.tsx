@@ -13,9 +13,10 @@ export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
     if (!isContentSection(params.secao)) throw redirect({ to: '/admin' })
 
-    // "admin" acessa qualquer seção. "professor" só acessa a seção Dicas.
+    // "admin" acessa qualquer seção. "professor" só acessa Dicas e Gabaritos.
     const canManage = (user: unknown) =>
-      userHasRole(user, 'admin') || (params.secao === 'dicas' && userHasRole(user, 'professor'))
+      userHasRole(user, 'admin')
+      || ((params.secao === 'dicas' || params.secao === 'gabaritos') && userHasRole(user, 'professor'))
 
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()

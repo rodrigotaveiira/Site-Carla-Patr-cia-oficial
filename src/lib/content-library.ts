@@ -11,6 +11,7 @@ export const CONTENT_SECTIONS = {
   simulados: 'Simulados',
   repertorios: 'Repertórios',
   dicas: 'Dicas',
+  gabaritos: 'Gabaritos dos Seminários',
 } as const
 
 export type ContentSection = keyof typeof CONTENT_SECTIONS
@@ -37,8 +38,9 @@ function storeFor(section: ContentSection) {
 async function requireAdmin(section: ContentSection) {
   const user = await getServerUser()
   if (!user) throw new Error('Acesso negado.')
-  // "admin" pode gerenciar qualquer seção. "professor" só pode gerenciar Dicas.
-  const allowed = userHasRole(user, 'admin') || (section === 'dicas' && userHasRole(user, 'professor'))
+  // "admin" pode gerenciar qualquer seção. "professor" só pode gerenciar Dicas e Gabaritos.
+  const allowed = userHasRole(user, 'admin')
+    || ((section === 'dicas' || section === 'gabaritos') && userHasRole(user, 'professor'))
   if (!allowed) throw new Error('Acesso negado.')
   return user
 }

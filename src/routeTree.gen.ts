@@ -19,6 +19,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
 import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
+import { Route as MateriaisRouteImport } from './routes/materiais'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
@@ -26,6 +27,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as AulasRouteImport } from './routes/aulas'
+import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -83,6 +85,11 @@ const MateriaisAdminRoute = MateriaisAdminRouteImport.update({
   path: '/materiais-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MateriaisRoute = MateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -116,6 +123,11 @@ const AulasAdminRoute = AulasAdminRouteImport.update({
 const AulasRoute = AulasRouteImport.update({
   id: '/aulas',
   path: '/aulas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AulaAoVivoAdminRoute = AulaAoVivoAdminRouteImport.update({
+  id: '/aula-ao-vivo-admin',
+  path: '/aula-ao-vivo-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
@@ -153,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas': typeof AulasRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
@@ -160,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais': typeof MateriaisRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
@@ -178,6 +192,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas': typeof AulasRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
@@ -185,6 +200,7 @@ export interface FileRoutesByTo {
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais': typeof MateriaisRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
@@ -204,6 +220,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas': typeof AulasRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario': typeof CalendarioRoute
@@ -211,6 +228,7 @@ export interface FileRoutesById {
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
+  '/materiais': typeof MateriaisRoute
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
@@ -231,6 +249,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aula-ao-vivo-admin'
     | '/aulas'
     | '/aulas-admin'
     | '/calendario'
@@ -238,6 +257,7 @@ export interface FileRouteTypes {
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
+    | '/materiais'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
@@ -256,6 +276,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aula-ao-vivo-admin'
     | '/aulas'
     | '/aulas-admin'
     | '/calendario'
@@ -263,6 +284,7 @@ export interface FileRouteTypes {
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
+    | '/materiais'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
@@ -281,6 +303,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aula-ao-vivo-admin'
     | '/aulas'
     | '/aulas-admin'
     | '/calendario'
@@ -288,6 +311,7 @@ export interface FileRouteTypes {
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
+    | '/materiais'
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
@@ -307,6 +331,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasRoute: typeof AulasRoute
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioRoute: typeof CalendarioRoute
@@ -314,6 +339,7 @@ export interface RootRouteChildren {
   LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
+  MateriaisRoute: typeof MateriaisRoute
   MateriaisAdminRoute: typeof MateriaisAdminRoute
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
@@ -401,6 +427,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MateriaisAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/materiais': {
+      id: '/materiais'
+      path: '/materiais'
+      fullPath: '/materiais'
+      preLoaderRoute: typeof MateriaisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -448,6 +481,13 @@ declare module '@tanstack/react-router' {
       path: '/aulas'
       fullPath: '/aulas'
       preLoaderRoute: typeof AulasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aula-ao-vivo-admin': {
+      id: '/aula-ao-vivo-admin'
+      path: '/aula-ao-vivo-admin'
+      fullPath: '/aula-ao-vivo-admin'
+      preLoaderRoute: typeof AulaAoVivoAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aguardando-aprovacao': {
@@ -499,6 +539,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasRoute: AulasRoute,
   AulasAdminRoute: AulasAdminRoute,
   CalendarioRoute: CalendarioRoute,
@@ -506,6 +547,7 @@ const rootRouteChildren: RootRouteChildren = {
   LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
+  MateriaisRoute: MateriaisRoute,
   MateriaisAdminRoute: MateriaisAdminRoute,
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
