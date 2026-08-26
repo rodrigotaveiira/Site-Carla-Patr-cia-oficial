@@ -51,7 +51,7 @@ function MentoriasAdminPage() {
     }
     setSaving(true)
     try {
-      await createMentoriaSlot({ data: { date, time, duration: 45 } })
+      await createMentoriaSlot({ data: { date, time, duration: 40 } })
       setDate('')
       setTime('')
       await load()

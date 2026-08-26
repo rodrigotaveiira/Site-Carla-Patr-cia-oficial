@@ -11,11 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
+import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
+import { Route as SimuladosRouteImport } from './routes/simulados'
 import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
 import { Route as RedacoesRouteImport } from './routes/redacoes'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as ProfessorRouteImport } from './routes/professor'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as NotasAdminRouteImport } from './routes/notas-admin'
+import { Route as MentoriasGrupoAdminRouteImport } from './routes/mentorias-grupo-admin'
+import { Route as MentoriasGrupoRouteImport } from './routes/mentorias-grupo'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasRouteImport } from './routes/mentorias'
 import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
@@ -45,6 +50,16 @@ const TemasRedacaoAdminRoute = TemasRedacaoAdminRouteImport.update({
   path: '/temas-redacao-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SimuladosAdminRoute = SimuladosAdminRouteImport.update({
+  id: '/simulados-admin',
+  path: '/simulados-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimuladosRoute = SimuladosRouteImport.update({
+  id: '/simulados',
+  path: '/simulados',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
   id: '/redacoes-admin',
   path: '/redacoes-admin',
@@ -68,6 +83,21 @@ const ProfessorRoute = ProfessorRouteImport.update({
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotasAdminRoute = NotasAdminRouteImport.update({
+  id: '/notas-admin',
+  path: '/notas-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasGrupoAdminRoute = MentoriasGrupoAdminRouteImport.update({
+  id: '/mentorias-grupo-admin',
+  path: '/mentorias-grupo-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasGrupoRoute = MentoriasGrupoRouteImport.update({
+  id: '/mentorias-grupo',
+  path: '/mentorias-grupo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
@@ -177,11 +207,16 @@ export interface FileRoutesByFullPath {
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
+  '/mentorias-grupo': typeof MentoriasGrupoRoute
+  '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
+  '/notas-admin': typeof NotasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/simulados': typeof SimuladosRoute
+  '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
@@ -204,11 +239,16 @@ export interface FileRoutesByTo {
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
+  '/mentorias-grupo': typeof MentoriasGrupoRoute
+  '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
+  '/notas-admin': typeof NotasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/simulados': typeof SimuladosRoute
+  '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
@@ -232,11 +272,16 @@ export interface FileRoutesById {
   '/materiais-admin': typeof MateriaisAdminRoute
   '/mentorias': typeof MentoriasRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
+  '/mentorias-grupo': typeof MentoriasGrupoRoute
+  '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
+  '/notas-admin': typeof NotasAdminRoute
   '/privacidade': typeof PrivacidadeRoute
   '/professor': typeof ProfessorRoute
   '/progresso': typeof ProgressoRoute
   '/redacoes': typeof RedacoesRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/simulados': typeof SimuladosRoute
+  '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
@@ -261,11 +306,16 @@ export interface FileRouteTypes {
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
+    | '/mentorias-grupo'
+    | '/mentorias-grupo-admin'
+    | '/notas-admin'
     | '/privacidade'
     | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/simulados'
+    | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
@@ -288,11 +338,16 @@ export interface FileRouteTypes {
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
+    | '/mentorias-grupo'
+    | '/mentorias-grupo-admin'
+    | '/notas-admin'
     | '/privacidade'
     | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/simulados'
+    | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
@@ -315,11 +370,16 @@ export interface FileRouteTypes {
     | '/materiais-admin'
     | '/mentorias'
     | '/mentorias-admin'
+    | '/mentorias-grupo'
+    | '/mentorias-grupo-admin'
+    | '/notas-admin'
     | '/privacidade'
     | '/professor'
     | '/progresso'
     | '/redacoes'
     | '/redacoes-admin'
+    | '/simulados'
+    | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
     | '/conteudo-admin/$secao'
@@ -343,11 +403,16 @@ export interface RootRouteChildren {
   MateriaisAdminRoute: typeof MateriaisAdminRoute
   MentoriasRoute: typeof MentoriasRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
+  MentoriasGrupoRoute: typeof MentoriasGrupoRoute
+  MentoriasGrupoAdminRoute: typeof MentoriasGrupoAdminRoute
+  NotasAdminRoute: typeof NotasAdminRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
   ProfessorRoute: typeof ProfessorRoute
   ProgressoRoute: typeof ProgressoRoute
   RedacoesRoute: typeof RedacoesRoute
   RedacoesAdminRoute: typeof RedacoesAdminRoute
+  SimuladosRoute: typeof SimuladosRoute
+  SimuladosAdminRoute: typeof SimuladosAdminRoute
   TemasRedacaoAdminRoute: typeof TemasRedacaoAdminRoute
   TermosRoute: typeof TermosRoute
   ConteudoAdminSecaoRoute: typeof ConteudoAdminSecaoRoute
@@ -369,6 +434,20 @@ declare module '@tanstack/react-router' {
       path: '/temas-redacao-admin'
       fullPath: '/temas-redacao-admin'
       preLoaderRoute: typeof TemasRedacaoAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulados-admin': {
+      id: '/simulados-admin'
+      path: '/simulados-admin'
+      fullPath: '/simulados-admin'
+      preLoaderRoute: typeof SimuladosAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulados': {
+      id: '/simulados'
+      path: '/simulados'
+      fullPath: '/simulados'
+      preLoaderRoute: typeof SimuladosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redacoes-admin': {
@@ -404,6 +483,27 @@ declare module '@tanstack/react-router' {
       path: '/privacidade'
       fullPath: '/privacidade'
       preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notas-admin': {
+      id: '/notas-admin'
+      path: '/notas-admin'
+      fullPath: '/notas-admin'
+      preLoaderRoute: typeof NotasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorias-grupo-admin': {
+      id: '/mentorias-grupo-admin'
+      path: '/mentorias-grupo-admin'
+      fullPath: '/mentorias-grupo-admin'
+      preLoaderRoute: typeof MentoriasGrupoAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorias-grupo': {
+      id: '/mentorias-grupo'
+      path: '/mentorias-grupo'
+      fullPath: '/mentorias-grupo'
+      preLoaderRoute: typeof MentoriasGrupoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mentorias-admin': {
@@ -551,11 +651,16 @@ const rootRouteChildren: RootRouteChildren = {
   MateriaisAdminRoute: MateriaisAdminRoute,
   MentoriasRoute: MentoriasRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
+  MentoriasGrupoRoute: MentoriasGrupoRoute,
+  MentoriasGrupoAdminRoute: MentoriasGrupoAdminRoute,
+  NotasAdminRoute: NotasAdminRoute,
   PrivacidadeRoute: PrivacidadeRoute,
   ProfessorRoute: ProfessorRoute,
   ProgressoRoute: ProgressoRoute,
   RedacoesRoute: RedacoesRoute,
   RedacoesAdminRoute: RedacoesAdminRoute,
+  SimuladosRoute: SimuladosRoute,
+  SimuladosAdminRoute: SimuladosAdminRoute,
   TemasRedacaoAdminRoute: TemasRedacaoAdminRoute,
   TermosRoute: TermosRoute,
   ConteudoAdminSecaoRoute: ConteudoAdminSecaoRoute,

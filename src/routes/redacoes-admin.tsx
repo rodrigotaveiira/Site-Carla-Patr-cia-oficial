@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, Download, PenLine, Settings } from 'lucide-react'
+import { ChevronDown, ChevronUp, Download, HandHelping, PenLine, Settings } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -222,13 +222,19 @@ function RedacoesAdminPage() {
               Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
             </div>
           </div>
-          <button
-            onClick={() => handleDownload(submission.id)}
-            disabled={downloadingId === submission.id}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 600 }}
-          >
-            <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo'}
-          </button>
+          {submission.deliveryMethod === 'presencial' ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: '#6d28d9', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 12px', fontWeight: 700, fontSize: 13 }}>
+              <HandHelping size={14} /> Entregue presencialmente
+            </span>
+          ) : (
+            <button
+              onClick={() => handleDownload(submission.id)}
+              disabled={downloadingId === submission.id}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 600 }}
+            >
+              <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo'}
+            </button>
+          )}
         </div>
 
         {submission.status === 'corrigida' && (

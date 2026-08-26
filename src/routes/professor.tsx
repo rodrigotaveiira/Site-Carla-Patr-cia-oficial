@@ -24,7 +24,7 @@ const links = [
   { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.' },
   { icon: Bell, label: 'Lembretes', to: '/lembretes-admin', description: 'Envie avisos para todos os alunos.' },
   { icon: Zap, label: 'Dicas', to: '/conteudo-admin/dicas', description: 'Envie PDFs para a seção Dicas.' },
-  { icon: BookCheck, label: 'Gabaritos dos seminários', to: '/conteudo-admin/gabaritos', description: 'Envie os gabaritos em PDF dos seminários.' },
+  { icon: BookCheck, label: 'Gabaritos dos Simulados', to: '/conteudo-admin/gabaritos', description: 'Envie os gabaritos em PDF dos simulados.' },
 ] as const
 
 function ProfessorHubPage() {

@@ -11,7 +11,7 @@ export const CONTENT_SECTIONS = {
   simulados: 'Simulados',
   repertorios: 'Repertórios',
   dicas: 'Dicas',
-  gabaritos: 'Gabaritos dos Seminários',
+  gabaritos: 'Gabaritos dos Simulados',
 } as const
 
 export type ContentSection = keyof typeof CONTENT_SECTIONS

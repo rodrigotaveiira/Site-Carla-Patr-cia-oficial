@@ -319,7 +319,7 @@ function HomePage() {
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
           <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
-        <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="#"><div><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/lgpd">LGPD</a></div></a><a href="#">Termos de uso</a><a href="#">LGPD</a></div></div>
+        <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/lgpd">LGPD</a></div></div>
       </footer>
 
       <a className="whatsapp-float" href="https://wa.me/5522999325306" aria-label="Conversar no WhatsApp"><MessageCircle /></a>

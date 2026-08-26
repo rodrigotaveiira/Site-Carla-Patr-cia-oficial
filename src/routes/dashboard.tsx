@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
-  MoreHorizontal, Search, Settings, Target, TrendingUp, Trophy, User, X, Zap,
+  MoreHorizontal, Search, Settings, Target, TrendingUp, Trophy, User, Users, X, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -55,10 +55,11 @@ const sidebarItems = [
   { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
   { icon: Files, label: 'Materiais', href: '/materiais' },
   { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
-  { icon: Target, label: 'Simulados', href: '/conteudo/simulados' },
+  { icon: Target, label: 'Simulados', href: '/simulados' },
   { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
-  { icon: BookCheck, label: 'Gabaritos dos seminários', href: '/conteudo/gabaritos' },
+  { icon: BookCheck, label: 'Gabaritos dos Simulados', href: '/conteudo/gabaritos' },
   { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
+  { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
   { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
   { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },

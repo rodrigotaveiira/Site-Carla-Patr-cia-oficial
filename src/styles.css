@@ -130,8 +130,8 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .method-number { position: absolute; right: 28px; top: 25px; color: #ffffff18; font-family: var(--serif); font-size: 38px; }
 .method-card h3 { margin: 25px 0 10px; font-family: var(--serif); font-size: 21px; font-weight: 400; }
 .method-card p { margin: 0; color: #a8b5c9; font-size: 11px; line-height: 1.75; }
-.card-line { position: absolute; left: 34px; bottom: 26px; width: 25px; height: 2px; background: var(--gold); transition: width .3s; }
-.method-card:hover .card-line { width: 62px; }
+.card-line { position: absolute; left: 34px; bottom: 26px; width: 62px; height: 2px; background: var(--gold); transform: scaleX(0.4032); transform-origin: left; transition: transform .3s; }
+.method-card:hover .card-line { transform: scaleX(1); }
 
 .courses { background: #fbfafc; }
 .section-heading.split { display: grid; grid-template-columns: 1.2fr .8fr; align-items: end; gap: 80px; }
@@ -465,6 +465,7 @@ footer .brand b { color: white; }
   .progress-card { grid-column: span 1; }
   .next-class { grid-row: auto; }
   .recent-content { grid-column: span 1; }
+  .material-card { grid-column: span 2; }
 }
 
 @media (max-width: 820px) {
@@ -550,7 +551,7 @@ footer .brand b { color: white; }
   .dashboard-hero-card { min-height: 310px; align-items: flex-start; padding: 28px 25px; }
   .hero-ring { right: 25px; bottom: 22px; width: 100px; height: 100px; }
   .dashboard-grid { grid-template-columns: 1fr; }
-  .progress-card, .recent-content { grid-column: span 1; }
+  .progress-card, .recent-content, .material-card { grid-column: span 1; }
   .progress-list > div { grid-template-columns: 87px 1fr 30px; }
   /* Letras maiores no celular para melhor legibilidade */
   .announcement { font-size: 14px; }

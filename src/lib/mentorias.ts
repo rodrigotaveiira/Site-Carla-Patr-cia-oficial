@@ -51,7 +51,7 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
       id,
       date: data.date,
       time: data.time,
-      duration: data.duration || 45,
+      duration: data.duration || 40,
       status: 'available',
       student: null,
       createdAt: new Date().toISOString(),

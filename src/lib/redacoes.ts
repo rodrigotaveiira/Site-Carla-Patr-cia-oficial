@@ -11,6 +11,7 @@ export type RedacaoSubmission = {
   studentEmail: string
   studentName: string
   title: string
+  deliveryMethod: 'upload' | 'presencial'
   fileName: string
   fileDataUrl: string
   submittedAt: string
@@ -57,8 +58,41 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
       title: data.title.trim() || 'Redação sem título',
+      deliveryMethod: 'upload',
       fileName: data.fileName,
       fileDataUrl: data.fileDataUrl,
+      submittedAt: new Date().toISOString(),
+      status: 'pendente',
+      grade: null,
+      competencyScores: null,
+      feedback: null,
+      correctedAt: null,
+    }
+    await store.setJSON(id, submission)
+    const { fileDataUrl: _omit, ...meta } = submission
+    return meta
+  })
+
+// Aluno que escreveu a redação no papel, em sala, e não tem arquivo pra enviar —
+// só confirma a entrega presencial e a redação entra na fila de correção mesmo assim.
+export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
+  .inputValidator((data: { title: string }) => data)
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
+      throw new Error('Acesso negado.')
+    }
+
+    const store = redacoesStore()
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const submission: RedacaoSubmission = {
+      id,
+      studentEmail: user.email ?? '',
+      studentName: studentDisplayName(user),
+      title: data.title.trim() || 'Redação sem título',
+      deliveryMethod: 'presencial',
+      fileName: '',
+      fileDataUrl: '',
       submittedAt: new Date().toISOString(),
       status: 'pendente',
       grade: null,
@@ -120,6 +154,7 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
 
     const isOwner = submission.studentEmail === user.email
     if (!isOwner && !isStaff(user)) throw new Error('Acesso negado.')
+    if (submission.deliveryMethod === 'presencial') throw new Error('Essa redação foi entregue presencialmente, não há arquivo.')
 
     return { fileName: submission.fileName, fileDataUrl: submission.fileDataUrl }
   })
