@@ -776,11 +776,8 @@ footer .brand b { color: white; }
 .toast span { flex: 1; line-height: 1.4; }
 .toast button { flex-shrink: 0; display: flex; padding: 2px; background: none; border: 0; color: #9aa2ac; cursor: pointer; }
 .toast button:hover { color: var(--navy); }
-.toast-success { border-left: 4px solid #15803d; }
 .toast-success svg:first-child { color: #15803d; }
-.toast-error { border-left: 4px solid #dc2626; }
 .toast-error svg:first-child { color: #dc2626; }
-.toast-info { border-left: 4px solid var(--purple); }
 .toast-info svg:first-child { color: var(--purple); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 560px) {
