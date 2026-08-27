@@ -192,7 +192,7 @@ function HomePage() {
 
       <section className="section about" id="sobre">
         <motion.div className="about-collage" {...reveal}>
-          <div className="about-main-image"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Professora Carla Patrícia Medina" /></div>
+          <div className="about-main-image"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Professora Carla Patrícia Medina" loading="lazy" /></div>
           <div className="quote-card"><Quote size={28} /><p>Ensinar a escrever é ensinar a organizar ideias, defender sonhos e ocupar espaços.</p></div>
           <div className="gold-seal"><span>CP</span><small>Excelência<br />em educação</small></div>
         </motion.div>
@@ -232,7 +232,7 @@ function HomePage() {
         <div className="course-grid">
           {courses.map((course, index) => (
             <motion.article className={`course-card ${index === 0 ? 'featured' : ''}`} key={course.title} {...reveal} transition={{ delay: index * .08 }}>
-              <div className="course-image"><img src={course.image} alt="" /><span>{course.tag}</span></div>
+              <div className="course-image"><img src={course.image} alt="" loading="lazy" /><span>{course.tag}</span></div>
               <div className="course-body"><small>0{index + 1} · Formação</small><h3>{course.title}</h3><p>{course.text}</p>
                 <ul>{course.items.map(item => <li key={item}><Check size={15} /> {item}</li>)}</ul>
                 <a href="#contato">Saiba mais <ArrowRight size={17} /></a>
@@ -266,7 +266,7 @@ function HomePage() {
           <motion.article key={testimonial} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
             <Quote className="big-quote" /><div className="stars">{[1,2,3,4,5].map(n => <Star key={n} fill="currentColor" />)}</div>
             <blockquote>“{testimonials[testimonial].text}”</blockquote>
-            <div className="student"><img src={testimonials[testimonial].image} alt={testimonials[testimonial].name} /><span><b>{testimonials[testimonial].name}</b><small>{testimonials[testimonial].result}</small></span></div>
+            <div className="student"><img src={testimonials[testimonial].image} alt={testimonials[testimonial].name} loading="lazy" /><span><b>{testimonials[testimonial].name}</b><small>{testimonials[testimonial].result}</small></span></div>
           </motion.article>
           <button onClick={() => setTestimonial((testimonial + 1) % testimonials.length)} aria-label="Próximo depoimento">→</button>
         </div>
