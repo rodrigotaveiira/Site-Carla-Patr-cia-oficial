@@ -29,21 +29,17 @@ const links = [
 
 function ProfessorHubPage() {
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Painel do professor</h1>
-      <p style={{ color: '#6b7280' }}>Correção de redações, lembretes para os alunos e dicas.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Painel do professor</h1>
+      <p className="panel-subtitle">Correção de redações, lembretes para os alunos e dicas.</p>
 
-      <div style={{ display: 'grid', gap: 14, marginTop: 24 }}>
+      <div className="nav-grid">
         {links.map(({ icon: Icon, label, to, description }) => (
-          <Link
-            key={to}
-            to={to}
-            style={{ display: 'block', textDecoration: 'none', color: '#0f2342', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 18 }}
-          >
-            <Icon color="#6d28d9" />
-            <div style={{ fontWeight: 700, marginTop: 10 }}>{label}</div>
-            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{description}</div>
+          <Link key={to} to={to} className="nav-card">
+            <Icon size={20} />
+            <b>{label}</b>
+            <div className="nav-card-desc">{description}</div>
           </Link>
         ))}
       </div>

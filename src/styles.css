@@ -735,6 +735,14 @@ footer .brand b { color: white; }
 .badge-neutral { color: var(--muted); background: #f3f4f6; }
 .badge-brand { color: var(--purple-dark); background: #f1e9fd; }
 
+.nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 24px; }
+.nav-card { display: block; text-decoration: none; color: var(--navy); background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 18px; transition: border-color .15s, box-shadow .15s, transform .12s; }
+.nav-card:hover { border-color: var(--purple); box-shadow: 0 8px 20px rgba(109,40,217,.12); transform: translateY(-1px); }
+.nav-card:focus-visible { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,.14); }
+.nav-card svg { color: var(--purple); }
+.nav-card b { display: block; font-weight: 700; margin-top: 10px; font-size: 14px; }
+.nav-card-desc { color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.5; }
+
 .list-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
 .list-row + .list-row { margin-top: 10px; }
 .list-title { color: var(--navy); font-weight: 700; font-size: 14px; }

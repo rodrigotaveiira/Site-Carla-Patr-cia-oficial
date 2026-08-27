@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { Bell } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -62,46 +63,40 @@ function LembretesAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Lembretes para os alunos</h1>
-      <p style={{ color: '#6b7280' }}>Escreva um aviso curto. Ele aparece no sininho de notificações de todos os alunos, no dashboard.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1><Bell /> Lembretes para os alunos</h1>
+      <p className="panel-subtitle">Escreva um aviso curto. Ele aparece no sininho de notificações de todos os alunos, no dashboard.</p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 10, marginTop: 20 }}>
+      <form onSubmit={handleSubmit} className="panel-card">
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Ex.: Não esqueçam de entregar a redação até sexta-feira!"
           rows={3}
-          style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'inherit' }}
         />
-        <button type="submit" disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Enviar lembrete'}
         </button>
-        {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
+        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
       </form>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Lembretes recentes</h2>
-        {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Lembretes recentes</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {lembretes.map((lembrete) => (
-            <div key={lembrete.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
+            <div key={lembrete.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <p style={{ margin: 0, color: '#0f2342' }}>{lembrete.message}</p>
-                <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 6 }}>
+                <p style={{ margin: 0, color: 'var(--navy)' }}>{lembrete.message}</p>
+                <div className="list-meta" style={{ marginTop: 6 }}>
                   {lembrete.authorName} · {new Date(lembrete.createdAt).toLocaleDateString('pt-BR')}
                 </div>
               </div>
-              <button
-                onClick={() => handleDelete(lembrete.id)}
-                style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}
-              >
-                Excluir
-              </button>
+              <button onClick={() => handleDelete(lembrete.id)} className="btn btn-danger btn-sm">Excluir</button>
             </div>
           ))}
-          {!loading && lembretes.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum lembrete enviado ainda.</p>}
+          {!loading && lembretes.length === 0 && <p className="empty-state">Nenhum lembrete enviado ainda.</p>}
         </div>
       </section>
     </main>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { Video } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -66,52 +67,52 @@ function AulasAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Aulas em vídeo</h1>
-      <p style={{ color: '#6b7280' }}>
+    <main className="panel">
+      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <h1><Video /> Aulas em vídeo</h1>
+      <p className="panel-subtitle">
         Cadastre suas aulas aqui. Como os vídeos são arquivos grandes, o recomendado é subir o vídeo primeiro no
         YouTube (como "não listado", pra não aparecer em buscas) ou no Vimeo, e colar o link aqui — a plataforma
         mostra o vídeo embutido para o aluno, sem precisar sair do site.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, marginTop: 24, maxWidth: 480 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Título da aula</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
+        <div className="field">
+          <label>Título da aula</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Módulo</label>
-          <input value={moduleName} onChange={(e) => setModuleName(e.target.value)} placeholder="Ex.: Módulo 04 · Redação" style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+        <div className="field">
+          <label>Módulo</label>
+          <input value={moduleName} onChange={(e) => setModuleName(e.target.value)} placeholder="Ex.: Módulo 04 · Redação" />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Descrição</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'inherit' }} />
+        <div className="field">
+          <label>Descrição</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Link do vídeo (YouTube, Vimeo ou link direto)</label>
-          <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://..." style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+        <div className="field">
+          <label>Link do vídeo (YouTube, Vimeo ou link direto)</label>
+          <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://..." />
         </div>
-        <button type="submit" disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Salvando...' : 'Adicionar aula'}
         </button>
-        {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
+        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
       </form>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Aulas cadastradas</h2>
-        {loading && <p>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Aulas cadastradas</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {lessons.map((lesson) => (
-            <div key={lesson.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
+            <div key={lesson.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <div style={{ color: '#6d28d9', fontSize: 12, fontWeight: 700 }}>{lesson.module}</div>
-                <b>{lesson.title}</b>
+                <div style={{ color: 'var(--purple)', fontSize: 12, fontWeight: 700 }}>{lesson.module}</div>
+                <b style={{ color: 'var(--navy)' }}>{lesson.title}</b>
               </div>
-              <button onClick={() => handleDelete(lesson.id)} style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>Excluir</button>
+              <button onClick={() => handleDelete(lesson.id)} className="btn btn-danger btn-sm">Excluir</button>
             </div>
           ))}
-          {!loading && lessons.length === 0 && <p style={{ color: '#6b7280' }}>Nenhuma aula cadastrada ainda.</p>}
+          {!loading && lessons.length === 0 && <p className="empty-state">Nenhuma aula cadastrada ainda.</p>}
         </div>
       </section>
     </main>

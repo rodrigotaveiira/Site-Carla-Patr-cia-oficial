@@ -100,22 +100,22 @@ function ConteudoAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>{sectionLabel} · Arquivos em PDF</h1>
-      <p style={{ color: '#6b7280' }}>Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
+    <main className="panel">
+      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <h1>{sectionLabel} · Arquivos em PDF</h1>
+      <p className="panel-subtitle">Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, marginTop: 24, maxWidth: 480 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Título</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
+        <div className="field">
+          <label>Título</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Descrição</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'inherit' }} />
+        <div className="field">
+          <label>Descrição</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Arquivo (PDF)</label>
+        <div className="field">
+          <label>Arquivo (PDF)</label>
           <input
             ref={fileInputRef}
             type="file"
@@ -126,31 +126,31 @@ function ConteudoAdminPage() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#f4f2fb', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: 'var(--lilac-tint)', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, cursor: 'pointer' }}
           >
             <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
           </button>
         </div>
-        <button type="submit" disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Adicionar arquivo'}
         </button>
-        {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
+        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
       </form>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Arquivos enviados</h2>
-        {loading && <p>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Arquivos enviados</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {items.map((item) => (
-            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}>
+            <div key={item.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <b>{item.title}</b>
-                <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{item.fileName}</div>
+                <b style={{ color: 'var(--navy)' }}>{item.title}</b>
+                <div className="list-meta" style={{ marginTop: 4 }}>{item.fileName}</div>
               </div>
-              <button onClick={() => handleDelete(item.id)} style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}>Excluir</button>
+              <button onClick={() => handleDelete(item.id)} className="btn btn-danger btn-sm">Excluir</button>
             </div>
           ))}
-          {!loading && items.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum arquivo enviado ainda.</p>}
+          {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo enviado ainda.</p>}
         </div>
       </section>
     </main>

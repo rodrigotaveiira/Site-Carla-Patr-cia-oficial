@@ -42,24 +42,17 @@ const links = [
 
 function AdminHubPage() {
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Painel admin</h1>
-      <p style={{ color: '#6b7280' }}>Gerencie todo o conteúdo da área do aluno a partir daqui.</p>
+    <main className="panel panel-wide">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Painel admin</h1>
+      <p className="panel-subtitle">Gerencie todo o conteúdo da área do aluno a partir daqui.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginTop: 24 }}>
+      <div className="nav-grid">
         {links.map(({ icon: Icon, label, to, description }) => (
-          <Link
-            key={to}
-            to={to}
-            style={{
-              display: 'block', textDecoration: 'none', color: '#0f2342', background: '#fff',
-              border: '1px solid #e0dcf0', borderRadius: 10, padding: 18,
-            }}
-          >
-            <Icon color="#6d28d9" />
-            <div style={{ fontWeight: 700, marginTop: 10 }}>{label}</div>
-            <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{description}</div>
+          <Link key={to} to={to} className="nav-card">
+            <Icon size={20} />
+            <b>{label}</b>
+            <div className="nav-card-desc">{description}</div>
           </Link>
         ))}
       </div>
