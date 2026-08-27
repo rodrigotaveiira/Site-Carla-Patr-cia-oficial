@@ -58,6 +58,31 @@ export const getWeeklyGoal = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+// Quantos dias seguidos o aluno acessou a plataforma (tipo "sequência" do Duolingo).
+// Hoje ainda sem acesso não quebra a sequência — só conta como quebrada depois
+// que o dia passa inteiro sem nenhum acesso registrado.
+const MAX_STREAK_LOOKBACK = 365
+
+export const getStreak = createServerFn({ method: 'GET' }).handler(async (): Promise<number> => {
+  const user = await getServerUser()
+  if (!user) return 0
+
+  const store = activityStore()
+  const cursor = new Date()
+  const today = toISODate(cursor)
+  const todayMarked = !!(await store.get(`${user.id}:${today}`))
+  if (!todayMarked) cursor.setDate(cursor.getDate() - 1)
+
+  let streak = 0
+  for (let i = 0; i < MAX_STREAK_LOOKBACK; i++) {
+    const marked = await store.get(`${user.id}:${toISODate(cursor)}`)
+    if (!marked) break
+    streak++
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
+})
+
 // Marca "hoje" como um dia de acesso do aluno logado e devolve a semana inteira.
 // Chamado só depois que o aluno fica pelo menos 10 minutos com o dashboard aberto.
 export const registerAccessAndGetWeeklyGoal = createServerFn({ method: 'POST' }).handler(

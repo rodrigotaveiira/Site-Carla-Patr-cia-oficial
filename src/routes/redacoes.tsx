@@ -113,18 +113,18 @@ function RedacoesPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Redações</h1>
-      <p style={{ color: '#6b7280' }}>Envie uma foto ou arquivo da sua redação para correção da professora.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Redações</h1>
+      <p className="panel-subtitle">Envie uma foto ou arquivo da sua redação para correção da professora.</p>
 
       {temas.length > 0 && (
-        <section style={{ marginTop: 24 }}>
-          <h2 style={{ fontSize: 16, color: '#0f2342', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <PenLine size={17} color="#6d28d9" /> Tema proposto
+        <section>
+          <h2 className="panel-section-title" style={{ fontSize: 16 }}>
+            <PenLine size={17} color="var(--purple)" /> Tema proposto
           </h2>
-          <div style={{ marginTop: 10, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 20 }}>
-            <b style={{ color: '#0f2342', fontSize: 16 }}>{temas[0].title}</b>
+          <div className="panel-card plain">
+            <b style={{ color: 'var(--navy)', fontSize: 16 }}>{temas[0].title}</b>
             {temas[0].proposta && <p style={{ color: '#4b5563', fontSize: 14, marginTop: 10, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{temas[0].proposta}</p>}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, flexWrap: 'wrap', gap: 10 }}>
               {temas[0].prazo ? (
@@ -132,26 +132,22 @@ function RedacoesPage() {
                   <CalendarDays size={14} /> Entrega até {new Date(`${temas[0].prazo}T00:00:00`).toLocaleDateString('pt-BR')}
                 </span>
               ) : <span />}
-              <button
-                type="button"
-                onClick={() => setTitle(temas[0].title)}
-                style={{ color: '#6d28d9', background: 'none', border: '1px solid #c9befd', borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
-              >
+              <button type="button" onClick={() => setTitle(temas[0].title)} className="btn btn-ghost btn-sm">
                 Usar este tema no envio
               </button>
             </div>
           </div>
           {temas.length > 1 && (
             <details style={{ marginTop: 10 }}>
-              <summary style={{ color: '#6d28d9', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Ver temas anteriores</summary>
+              <summary style={{ color: 'var(--purple)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Ver temas anteriores</summary>
               <div style={{ display: 'grid', gap: 8, marginTop: 10 }}>
                 {temas.slice(1).map((tema) => (
-                  <div key={tema.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 8, padding: 12 }}>
-                    <b style={{ color: '#0f2342', fontSize: 14 }}>{tema.title}</b>
+                  <div key={tema.id} className="list-row" style={{ display: 'block' }}>
+                    <b style={{ color: 'var(--navy)', fontSize: 14 }}>{tema.title}</b>
                     <button
                       type="button"
                       onClick={() => setTitle(tema.title)}
-                      style={{ display: 'block', marginTop: 6, color: '#6d28d9', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
+                      style={{ display: 'block', marginTop: 6, color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 12, padding: 0 }}
                     >
                       Usar este tema no envio
                     </button>
@@ -170,8 +166,8 @@ function RedacoesPage() {
             onClick={() => setDeliveryMode('upload')}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 14px',
-              borderRadius: '8px 8px 0 0', border: '1px solid #ece8f7', borderBottom: deliveryMode === 'upload' ? '2px solid #6d28d9' : '1px solid #ece8f7',
-              background: deliveryMode === 'upload' ? '#f9f8fd' : '#fff', color: deliveryMode === 'upload' ? '#6d28d9' : '#6b7280',
+              borderRadius: '8px 8px 0 0', border: '1px solid #ece8f7', borderBottom: deliveryMode === 'upload' ? '2px solid var(--purple)' : '1px solid #ece8f7',
+              background: deliveryMode === 'upload' ? 'var(--lilac-tint)' : '#fff', color: deliveryMode === 'upload' ? 'var(--purple)' : 'var(--muted)',
               fontWeight: 700, fontSize: 13, cursor: 'pointer',
             }}
           >
@@ -182,8 +178,8 @@ function RedacoesPage() {
             onClick={() => setDeliveryMode('presencial')}
             style={{
               flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 14px',
-              borderRadius: '8px 8px 0 0', border: '1px solid #ece8f7', borderBottom: deliveryMode === 'presencial' ? '2px solid #6d28d9' : '1px solid #ece8f7',
-              background: deliveryMode === 'presencial' ? '#f9f8fd' : '#fff', color: deliveryMode === 'presencial' ? '#6d28d9' : '#6b7280',
+              borderRadius: '8px 8px 0 0', border: '1px solid #ece8f7', borderBottom: deliveryMode === 'presencial' ? '2px solid var(--purple)' : '1px solid #ece8f7',
+              background: deliveryMode === 'presencial' ? 'var(--lilac-tint)' : '#fff', color: deliveryMode === 'presencial' ? 'var(--purple)' : 'var(--muted)',
               fontWeight: 700, fontSize: 13, cursor: 'pointer',
             }}
           >
@@ -192,13 +188,13 @@ function RedacoesPage() {
         </div>
 
         {deliveryMode === 'upload' ? (
-          <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: '0 0 10px 10px', padding: 20 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Tema (opcional)</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+          <form onSubmit={handleSubmit} className="panel-card" style={{ display: 'grid', gap: 12, borderRadius: '0 0 10px 10px', marginTop: 0 }}>
+            <div className="field">
+              <label>Tema (opcional)</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" />
             </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Foto ou arquivo da redação</label>
+            <div className="field">
+              <label>Foto ou arquivo da redação</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -209,31 +205,31 @@ function RedacoesPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#fff', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#fff', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, cursor: 'pointer' }}
               >
                 <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher a foto ou arquivo'}
               </button>
             </div>
-            <button type="submit" disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
+            <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
               <Upload size={16} /> {saving ? 'Enviando...' : 'Enviar redação'}
             </button>
-            {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
+            {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
           </form>
         ) : (
-          <div style={{ display: 'grid', gap: 12, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: '0 0 10px 10px', padding: 20 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Tema (opcional)</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }} />
+          <div className="panel-card" style={{ display: 'grid', gap: 12, borderRadius: '0 0 10px 10px', marginTop: 0 }}>
+            <div className="field">
+              <label>Tema (opcional)</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" />
             </div>
-            <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>
+            <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
               Use esta opção só se você já entregou a folha da redação em mãos para a professora. Ela vai entrar na fila de correção normalmente, sem arquivo anexado.
             </p>
-            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: '#0f2342', cursor: 'pointer' }}>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 13, color: 'var(--navy)', cursor: 'pointer' }}>
               <input
                 type="checkbox"
                 checked={presencialConfirmed}
                 onChange={(e) => setPresencialConfirmed(e.target.checked)}
-                style={{ marginTop: 2 }}
+                style={{ marginTop: 2, width: 'auto' }}
               />
               Confirmo que entreguei minha redação impressa, em mãos, para a professora.
             </label>
@@ -241,15 +237,12 @@ function RedacoesPage() {
               type="button"
               onClick={handlePresencialConfirm}
               disabled={!presencialConfirmed || presencialSaving}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, width: 'fit-content', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700,
-                color: '#fff', background: presencialConfirmed ? '#6d28d9' : '#c9befd',
-                cursor: presencialConfirmed ? 'pointer' : 'not-allowed',
-              }}
+              className="btn btn-primary"
+              style={{ width: 'fit-content', background: presencialConfirmed ? undefined : '#c9befd' }}
             >
               <Check size={16} /> {presencialSaving ? 'Confirmando...' : 'Confirmar entrega presencial'}
             </button>
-            {presencialError && <p style={{ color: '#dc2626', margin: 0 }}>{presencialError}</p>}
+            {presencialError && <p className="form-error" style={{ margin: 0 }}>{presencialError}</p>}
           </div>
         )}
       </div>
@@ -260,13 +253,13 @@ function RedacoesPage() {
         const chronological = [...corrected].sort((a, b) => (a.correctedAt ?? '').localeCompare(b.correctedAt ?? ''))
         const maxGrade = Math.max(...chronological.map((s) => s.grade ?? 0), 1)
         return (
-          <section style={{ marginTop: 32 }}>
-            <h2 style={{ fontSize: 18, color: '#0f2342' }}>Evolução das suas notas</h2>
-            <p style={{ color: '#6b7280', fontSize: 14, marginTop: 4 }}>Suas últimas correções, na ordem em que foram feitas.</p>
+          <section>
+            <h2 className="panel-section-title">Evolução das suas notas</h2>
+            <p className="panel-section-hint">Suas últimas correções, na ordem em que foram feitas.</p>
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 16, height: 140, padding: '0 4px', overflowX: 'auto' }}>
               {chronological.map((submission) => (
                 <div key={submission.id} title={submission.title} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 44 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#0f2342' }}>{submission.grade}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{submission.grade}</span>
                   <div style={{ width: 24, height: `${Math.max(6, ((submission.grade ?? 0) / maxGrade) * 90)}px`, background: 'linear-gradient(180deg, #a855f7, #6d28d9)', borderRadius: 4 }} />
                   <span style={{ fontSize: 10, color: '#9ca3af' }}>{new Date(submission.correctedAt ?? submission.submittedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                 </div>
@@ -276,36 +269,32 @@ function RedacoesPage() {
         )
       })()}
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Suas redações enviadas</h2>
-        {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Suas redações enviadas</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {submissions.map((submission) => (
-            <div key={submission.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
+            <div key={submission.id} className="panel-card plain" style={{ marginTop: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                  <b style={{ color: '#0f2342' }}>{submission.title}</b>
+                  <b style={{ color: 'var(--navy)' }}>{submission.title}</b>
                   <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
                     Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
                     {submission.deliveryMethod === 'presencial' && (
-                      <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4, color: '#6d28d9', fontWeight: 700 }}>
+                      <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--purple)', fontWeight: 700 }}>
                         <HandHelping size={12} /> Entregue presencialmente
                       </span>
                     )}
                   </div>
                 </div>
-                <span style={{
-                  fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
-                  color: submission.status === 'corrigida' ? '#15803d' : '#a16207',
-                  background: submission.status === 'corrigida' ? '#dcfce7' : '#fef9c3',
-                }}>
+                <span className={submission.status === 'corrigida' ? 'badge badge-success' : 'badge badge-warning'}>
                   {submission.status === 'corrigida' ? 'Corrigida' : 'Aguardando correção'}
                 </span>
               </div>
 
               {submission.status === 'corrigida' && (
-                <div style={{ marginTop: 12, background: '#f4f2fb', borderRadius: 8, padding: 12 }}>
-                  <div style={{ fontWeight: 800, color: '#6d28d9', fontSize: 20 }}>{submission.grade}/40</div>
+                <div style={{ marginTop: 12, background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
+                  <div style={{ fontWeight: 800, color: 'var(--purple)', fontSize: 20 }}>{submission.grade}/40</div>
                   {submission.competencyScores && submission.competencyScores.length > 0 && (
                     <div style={{ display: 'grid', gap: 6, marginTop: 10 }}>
                       {submission.competencyScores.map((score) => (
@@ -326,17 +315,13 @@ function RedacoesPage() {
               )}
 
               {submission.deliveryMethod !== 'presencial' && (
-                <button
-                  onClick={() => handleDownload(submission.id)}
-                  disabled={downloadingId === submission.id}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 600 }}
-                >
+                <button onClick={() => handleDownload(submission.id)} disabled={downloadingId === submission.id} className="btn btn-ghost btn-sm" style={{ marginTop: 12 }}>
                   <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo enviado'}
                 </button>
               )}
             </div>
           ))}
-          {!loading && submissions.length === 0 && <p style={{ color: '#6b7280' }}>Você ainda não enviou nenhuma redação.</p>}
+          {!loading && submissions.length === 0 && <p className="empty-state">Você ainda não enviou nenhuma redação.</p>}
         </div>
       </section>
     </main>

@@ -53,11 +53,11 @@ function SimuladoCard({ simulado, onDeleted }: { simulado: Simulado; onDeleted: 
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
+    <div className="panel-card plain" style={{ marginTop: 0 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
-          <b style={{ color: '#0f2342' }}>{simulado.title}</b>
-          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
+          <b style={{ color: 'var(--navy)' }}>{simulado.title}</b>
+          <div className="list-meta">
             {new Date(simulado.createdAt).toLocaleDateString('pt-BR')} · {simulado.questions.length} questões
           </div>
           {semGabarito > 0 && (
@@ -67,28 +67,21 @@ function SimuladoCard({ simulado, onDeleted }: { simulado: Simulado; onDeleted: 
           )}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            onClick={() => setOpen((v) => !v)}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
-          >
+          <button onClick={() => setOpen((v) => !v)} className="btn btn-ghost btn-sm">
             {open ? 'Fechar' : 'Ver questões'} {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '7px 12px', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
-          >
+          <button onClick={handleDelete} disabled={deleting} className="btn btn-danger btn-sm">
             <Trash2 size={14} /> {deleting ? '...' : 'Excluir'}
           </button>
         </div>
       </div>
 
       {open && (
-        <div style={{ display: 'grid', gap: 10, marginTop: 14, paddingTop: 14, borderTop: '1px solid #ece8f7' }}>
+        <div style={{ display: 'grid', gap: 10, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
           {simulado.questions.map((question) => (
-            <div key={question.id} style={{ background: '#f9f8fd', borderRadius: 8, padding: 12 }}>
+            <div key={question.id} style={{ background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                <b style={{ color: '#0f2342', fontSize: 13 }}>{question.number}) {question.statement}</b>
+                <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {question.statement}</b>
                 {question.correctLetter ? (
                   <span style={{ color: '#15803d', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Gabarito: {question.correctLetter}</span>
                 ) : (
@@ -159,69 +152,54 @@ function SimuladosAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <ClipboardList color="#6d28d9" /> Simulados interativos
-      </h1>
-      <p style={{ color: '#6b7280' }}>
+    <main className="panel">
+      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <h1><ClipboardList /> Simulados interativos</h1>
+      <p className="panel-subtitle">
         Cole o texto das questões e do gabarito — o sistema separa tudo automaticamente em questões de múltipla escolha
         para o aluno responder no site, com correção e nota na hora.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 14, marginTop: 24, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 20 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Nome do simulado</label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex.: Simulado ENEM — 1º Bimestre"
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
-          />
+      <form onSubmit={handleSubmit} className="panel-card">
+        <div className="field">
+          <label>Nome do simulado</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Simulado ENEM — 1º Bimestre" />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>
-            Questões (cole o texto — cada questão começa com "1)", cada alternativa com "a)")
-          </label>
+        <div className="field">
+          <label>Questões (cole o texto — cada questão começa com "1)", cada alternativa com "a)")</label>
           <textarea
             value={questionsText}
             onChange={(e) => setQuestionsText(e.target.value)}
             placeholder={QUESTIONS_PLACEHOLDER}
             rows={10}
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'monospace', fontSize: 13 }}
+            style={{ fontFamily: 'monospace', fontSize: 13 }}
           />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>
-            Gabarito (cole o texto — "número + letra" em qualquer formato: "1) C", "1 - C", "1C"...)
-          </label>
+        <div className="field">
+          <label>Gabarito (cole o texto — "número + letra" em qualquer formato: "1) C", "1 - C", "1C"...)</label>
           <textarea
             value={gabaritoText}
             onChange={(e) => setGabaritoText(e.target.value)}
             placeholder={GABARITO_PLACEHOLDER}
             rows={5}
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'monospace', fontSize: 13 }}
+            style={{ fontFamily: 'monospace', fontSize: 13 }}
           />
         </div>
-        <button
-          type="submit"
-          disabled={saving}
-          style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}
-        >
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Processando...' : 'Publicar simulado'}
         </button>
-        {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
-        {notice && <p style={{ color: '#15803d', margin: 0 }}>{notice}</p>}
+        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {notice && <p className="form-success" style={{ margin: 0 }}>{notice}</p>}
       </form>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Simulados publicados</h2>
-        {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Simulados publicados</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {simulados.map((simulado) => (
             <SimuladoCard key={simulado.id} simulado={simulado} onDeleted={load} />
           ))}
-          {!loading && simulados.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum simulado publicado ainda.</p>}
+          {!loading && simulados.length === 0 && <p className="empty-state">Nenhum simulado publicado ainda.</p>}
         </div>
       </section>
     </main>

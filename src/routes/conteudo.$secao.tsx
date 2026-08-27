@@ -63,34 +63,30 @@ function ConteudoPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>{sectionLabel}</h1>
-      <p style={{ color: '#6b7280' }}>Materiais em PDF enviados pela professora Carla. Cada download é protegido com seu nome e CPF.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>{sectionLabel}</h1>
+      <p className="panel-subtitle">Materiais em PDF enviados pela professora Carla. Cada download é protegido com seu nome e CPF.</p>
 
-      {error && <p style={{ color: '#dc2626' }}>{error}</p>}
-      {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      {error && <p className="form-error">{error}</p>}
+      {loading && <p className="panel-subtitle">Carregando...</p>}
 
       <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
         {items.map((item) => (
-          <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16, background: '#f9f8fd', border: '1px solid #ece8f7', borderRadius: 10, padding: 16 }}>
+          <div key={item.id} className="list-row">
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
-              <FileText color="#6d28d9" style={{ marginTop: 2, flexShrink: 0 }} />
+              <FileText color="var(--purple)" style={{ marginTop: 2, flexShrink: 0 }} />
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <b style={{ color: '#0f2342' }}>{item.title}</b>
-                {item.description && <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{item.description}</div>}
+                <b style={{ color: 'var(--navy)' }}>{item.title}</b>
+                {item.description && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{item.description}</div>}
               </div>
             </div>
-            <button
-              onClick={() => handleDownload(item.id)}
-              disabled={downloadingId === item.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: 'white', background: '#6d28d9', border: 0, borderRadius: 6, padding: '9px 14px', fontWeight: 700, cursor: 'pointer' }}
-            >
+            <button onClick={() => handleDownload(item.id)} disabled={downloadingId === item.id} className="btn btn-primary btn-sm">
               <Download size={15} /> {downloadingId === item.id ? 'Baixando...' : 'Baixar'}
             </button>
           </div>
         ))}
-        {!loading && items.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum arquivo disponível ainda nesta seção.</p>}
+        {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo disponível ainda nesta seção.</p>}
       </div>
     </main>
   )

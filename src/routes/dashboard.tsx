@@ -1,15 +1,15 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
+  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
-  MoreHorizontal, Search, Settings, Target, TrendingUp, Trophy, User, Users, X, Zap,
+  MoreHorizontal, PenLine, Search, Settings, Target, TrendingUp, Trophy, User, Users, X, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
-import { getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
+import { getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
 import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
@@ -27,6 +27,11 @@ const MINUTES_TO_COUNT_ACCESS = 10
 
 // Tempo de inatividade (sem tocar na tela/teclado/mouse) até deslogar o aluno automaticamente.
 const INACTIVITY_LIMIT_MINUTES = 15
+
+// Selo de "excelência sustentada": todas as redações corrigidas nos últimos
+// EXCELLENCE_WINDOW_DAYS dias precisam ter nota acima de EXCELLENCE_GRADE_THRESHOLD.
+const EXCELLENCE_GRADE_THRESHOLD = 35
+const EXCELLENCE_WINDOW_DAYS = 30
 
 export const Route = createFileRoute('/dashboard')({
   beforeLoad: async () => {
@@ -63,7 +68,7 @@ const sidebarItems = [
   { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
   { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
-  { icon: User, label: 'Perfil', href: '/em-breve/perfil' },
+  { icon: User, label: 'Perfil', href: '/perfil' },
 ] as const
 async function downloadMaterial(id: string) {
   const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
@@ -163,11 +168,16 @@ function DashboardPage() {
   }, [])
 
   const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl'> | null | undefined>(undefined)
+  const [excellenceBadge, setExcellenceBadge] = useState(false)
   useEffect(() => {
     listMyRedacoes()
       .then((list) => {
         const corrected = list.filter((s) => s.status === 'corrigida').sort((a, b) => (b.correctedAt ?? '').localeCompare(a.correctedAt ?? ''))
         setLatestCorrection(corrected[0] ?? null)
+
+        const cutoff = Date.now() - EXCELLENCE_WINDOW_DAYS * 24 * 60 * 60 * 1000
+        const recent = corrected.filter((s) => s.correctedAt && new Date(s.correctedAt).getTime() >= cutoff)
+        setExcellenceBadge(recent.length > 0 && recent.every((s) => (s.grade ?? 0) > EXCELLENCE_GRADE_THRESHOLD))
       })
       .catch(() => setLatestCorrection(null))
   }, [])
@@ -233,12 +243,16 @@ function DashboardPage() {
   }, [logout])
 
   const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
+  const [streak, setStreak] = useState<number | null>(null)
 
   // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
   useEffect(() => {
     getWeeklyGoal()
       .then((result) => { if (result) setWeeklyGoal(result) })
       .catch(() => { /* sem conexão com o servidor, o card usa o estado padrão */ })
+    getStreak()
+      .then(setStreak)
+      .catch(() => { /* sem conexão com o servidor, o badge de sequência some */ })
   }, [])
 
   // Só depois que o aluno fica MINUTES_TO_COUNT_ACCESS minutos com a aba aberta,
@@ -248,6 +262,7 @@ function DashboardPage() {
       registerAccessAndGetWeeklyGoal()
         .then((result) => { if (result) setWeeklyGoal(result) })
         .catch(() => { /* sem conexão com o servidor, tenta de novo na próxima visita */ })
+      getStreak().then(setStreak).catch(() => { /* mantém o valor anterior */ })
     }, MINUTES_TO_COUNT_ACCESS * 60 * 1000)
 
     return () => clearTimeout(timer)
@@ -351,7 +366,17 @@ function DashboardPage() {
         <div className="dashboard-content">
           <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/mentorias"><CalendarDays /> Ver calendário</Link></div>
 
-          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring"><div><b>{studentProgress ? `${studentProgress.overallPercent}%` : '...'}</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+          <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring" style={{ background: `conic-gradient(#d7b95e 0 ${studentProgress?.overallPercent ?? 0}%, #ffffff18 ${studentProgress?.overallPercent ?? 0}% 100%)` }}><div><b>{studentProgress ? `${studentProgress.overallPercent}%` : '...'}</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+
+          {excellenceBadge && (
+            <section className="achievement-banner">
+              <span className="achievement-icon"><Award /></span>
+              <div>
+                <b>Excelência sustentada</b>
+                <p>Todas as suas redações corrigidas nos últimos {EXCELLENCE_WINDOW_DAYS} dias tiveram nota acima de {EXCELLENCE_GRADE_THRESHOLD}. Continue assim! 🎉</p>
+              </div>
+            </section>
+          )}
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => alert('Em breve: mais opções de personalização do progresso.')}><MoreHorizontal /></button></div><div className="progress-list">
@@ -385,17 +410,21 @@ function DashboardPage() {
               </section>
             )}
 
-            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div><Trophy /></div><div className="week-days">{(weeklyGoal ? weeklyGoal.dates : []).map((date, index) => {
+            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? <span className="streak-badge">✒️ {streak}</span> : <Trophy />}</div><div className="week-days">{(weeklyGoal ? weeklyGoal.dates : []).map((date, index) => {
               const isDone = weeklyGoal?.completedDates.includes(date)
               const isToday = date === new Date().toISOString().slice(0, 10)
               const dayNumber = Number(date.slice(8, 10))
               return (
                 <span className={isDone ? 'done' : isToday ? 'today' : ''} key={date}>
-                  <i>{isDone ? '✓' : dayNumber}</i>
+                  <i>{isDone ? <PenLine size={15} /> : dayNumber}</i>
                   <small>{WEEKDAY_LETTERS[index]}</small>
                 </span>
               )
-            })}</div><p>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? 'Você completou sua meta semanal! 🎉' : weeklyGoal ? `Você está a ${weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!` : 'Carregando sua meta semanal...'}</p></section>
+            })}</div>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? (
+              <p className="weekly-goal-success">🎉 Você completou sua meta semanal!</p>
+            ) : (
+              <p>{weeklyGoal ? `Você está a ${weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!` : 'Carregando sua meta semanal...'}</p>
+            )}</section>
 
             <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
               {filteredRecent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}

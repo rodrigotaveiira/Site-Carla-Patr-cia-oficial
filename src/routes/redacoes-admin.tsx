@@ -57,8 +57,8 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
   const total = rows.reduce((sum, r) => sum + (Number(r.maxValue) || 0), 0)
 
   return (
-    <div style={{ marginTop: 16, background: '#f9f8fd', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
-      <p style={{ color: '#6b7280', fontSize: 13, marginTop: 0 }}>
+    <div className="panel-card plain">
+      <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 0 }}>
         Edite o nome e o valor máximo de cada competência. A nota final da redação é a soma de todas.
       </p>
       <div style={{ display: 'grid', gap: 8 }}>
@@ -68,7 +68,7 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
               value={row.label}
               onChange={(e) => updateRow(index, { label: e.target.value })}
               placeholder="Nome da competência"
-              style={{ flex: 1, minWidth: 200, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+              style={{ flex: 1, minWidth: 200 }}
             />
             <input
               type="number"
@@ -76,20 +76,20 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
               step={0.25}
               value={row.maxValue}
               onChange={(e) => updateRow(index, { maxValue: Number(e.target.value) })}
-              style={{ width: 80, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+              style={{ width: 80 }}
             />
-            <button onClick={() => removeRow(index)} style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 6, padding: '7px 10px', cursor: 'pointer' }}>Remover</button>
+            <button onClick={() => removeRow(index)} className="btn btn-danger btn-sm">Remover</button>
           </div>
         ))}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, flexWrap: 'wrap', gap: 8 }}>
-        <button onClick={addRow} style={{ color: '#6d28d9', background: 'none', border: '1px dashed #c9befd', borderRadius: 6, padding: '7px 12px', cursor: 'pointer', fontWeight: 600 }}>+ Adicionar competência</button>
-        <span style={{ fontSize: 13, color: '#6b7280' }}>Nota bruta máxima: <b style={{ color: '#0f2342' }}>{total}</b> · Nota final máxima (peso 4): <b style={{ color: '#0f2342' }}>{total * 4}</b></span>
+        <button onClick={addRow} className="btn btn-ghost btn-sm" style={{ borderStyle: 'dashed' }}>+ Adicionar competência</button>
+        <span style={{ fontSize: 13, color: 'var(--muted)' }}>Nota bruta máxima: <b style={{ color: 'var(--navy)' }}>{total}</b> · Nota final máxima (peso 4): <b style={{ color: 'var(--navy)' }}>{total * 4}</b></span>
       </div>
-      <button onClick={handleSave} disabled={saving} style={{ marginTop: 12, background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontWeight: 700, cursor: 'pointer' }}>
+      <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ marginTop: 12 }}>
         {saving ? 'Salvando...' : 'Salvar esquema de competências'}
       </button>
-      {error && <p style={{ color: '#dc2626', fontSize: 13 }}>{error}</p>}
+      {error && <p className="form-error" style={{ fontSize: 13 }}>{error}</p>}
     </div>
   )
 }
@@ -126,11 +126,11 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
   }
 
   return (
-    <div style={{ display: 'grid', gap: 10, marginTop: 12, background: '#f9f8fd', borderRadius: 8, padding: 12 }}>
+    <div className="panel-card plain" style={{ marginTop: 12, display: 'grid', gap: 10 }}>
       {scores.map((score) => (
         <div key={score.id}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <label style={{ fontSize: 13, fontWeight: 600, color: '#0f2342', flex: 1, minWidth: 180 }}>{score.label} <span style={{ color: '#9ca3af', fontWeight: 400 }}>(0–{score.maxValue})</span></label>
+            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--navy)', flex: 1, minWidth: 180, textTransform: 'none' }}>{score.label} <span style={{ color: '#9ca3af', fontWeight: 400 }}>(0–{score.maxValue})</span></label>
             <input
               type="number"
               min={0}
@@ -138,23 +138,23 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
               step={0.25}
               value={score.value}
               onChange={(e) => updateScore(score.id, Number(e.target.value))}
-              style={{ width: 90, padding: 8, border: '1px solid #e0dcf0', borderRadius: 6 }}
+              style={{ width: 90 }}
             />
             {score.levels && score.levels.length > 0 && (
               <button
                 type="button"
                 onClick={() => setOpenLevelsId(openLevelsId === score.id ? null : score.id)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#6d28d9', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, padding: 0 }}
               >
                 Ver níveis {openLevelsId === score.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             )}
           </div>
           {openLevelsId === score.id && score.levels && (
-            <div style={{ marginTop: 6, marginLeft: 4, borderLeft: '2px solid #e0dcf0', paddingLeft: 10 }}>
+            <div style={{ marginTop: 6, marginLeft: 4, borderLeft: '2px solid var(--line)', paddingLeft: 10 }}>
               {score.levels.map((level, index) => (
                 <div key={index} style={{ display: 'flex', gap: 8, fontSize: 12, color: '#4b5563', padding: '3px 0' }}>
-                  <b style={{ color: '#6d28d9', minWidth: 62 }}>{level.range}</b>
+                  <b style={{ color: 'var(--purple)', minWidth: 62 }}>{level.range}</b>
                   <span>{level.description}</span>
                 </div>
               ))}
@@ -162,12 +162,12 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
           )}
         </div>
       ))}
-      <div style={{ fontWeight: 800, color: '#0f2342' }}>Nota bruta: {rawTotal}/10 · Nota final (peso 4): {finalGrade}/40</div>
-      <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} style={{ width: '100%', padding: 8, border: '1px solid #e0dcf0', borderRadius: 6, boxSizing: 'border-box', fontFamily: 'inherit' }} />
-      <button onClick={handleSave} disabled={saving} style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '9px 16px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}>
+      <div style={{ fontWeight: 800, color: 'var(--navy)' }}>Nota bruta: {rawTotal}/10 · Nota final (peso 4): {finalGrade}/40</div>
+      <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} />
+      <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
       </button>
-      {error && <p style={{ color: '#dc2626', margin: 0, fontSize: 13 }}>{error}</p>}
+      {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
     </div>
   )
 }
@@ -211,27 +211,23 @@ function RedacoesAdminPage() {
 
   function renderCard(submission: SubmissionMeta) {
     return (
-      <div key={submission.id} style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
+      <div key={submission.id} className="panel-card plain" style={{ marginTop: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
           <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-            <b style={{ color: '#0f2342' }}>{submission.title}</b>
+            <b style={{ color: 'var(--navy)' }}>{submission.title}</b>
             <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>
               {submission.studentName} · {submission.studentEmail}
             </div>
-            <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 2 }}>
+            <div className="list-meta">
               Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
             </div>
           </div>
           {submission.deliveryMethod === 'presencial' ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: '#6d28d9', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 12px', fontWeight: 700, fontSize: 13 }}>
+            <span className="badge badge-brand" style={{ padding: '8px 12px' }}>
               <HandHelping size={14} /> Entregue presencialmente
             </span>
           ) : (
-            <button
-              onClick={() => handleDownload(submission.id)}
-              disabled={downloadingId === submission.id}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap', color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 12px', cursor: 'pointer', fontWeight: 600 }}
-            >
+            <button onClick={() => handleDownload(submission.id)} disabled={downloadingId === submission.id} className="btn btn-ghost btn-sm">
               <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo'}
             </button>
           )}
@@ -243,7 +239,7 @@ function RedacoesAdminPage() {
 
         <button
           onClick={() => setOpenId(openId === submission.id ? null : submission.id)}
-          style={{ marginTop: 10, color: '#6d28d9', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, padding: 0 }}
+          style={{ marginTop: 10, color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, padding: 0 }}
         >
           {openId === submission.id ? 'Fechar' : submission.status === 'corrigida' ? 'Editar correção' : 'Corrigir'}
         </button>
@@ -256,22 +252,16 @@ function RedacoesAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Correção de redações</h1>
-      <p style={{ color: '#6b7280' }}>Veja as redações enviadas pelos alunos e envie a nota (critérios da banca Econ Rio) e o comentário.</p>
+    <main className="panel">
+      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <h1>Correção de redações</h1>
+      <p className="panel-subtitle">Veja as redações enviadas pelos alunos e envie a nota (critérios da banca Econ Rio) e o comentário.</p>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-        <Link
-          to="/temas-redacao-admin"
-          style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', fontWeight: 700, textDecoration: 'none' }}
-        >
+        <Link to="/temas-redacao-admin" className="btn btn-ghost btn-sm" style={{ background: 'var(--lilac-tint)' }}>
           <PenLine size={15} /> Temas de redação
         </Link>
-        <button
-          onClick={() => setShowSchemeEditor((v) => !v)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#6d28d9', background: 'none', border: '1px solid #e0dcf0', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', fontWeight: 700 }}
-        >
+        <button onClick={() => setShowSchemeEditor((v) => !v)} className="btn btn-ghost btn-sm">
           <Settings size={15} /> {showSchemeEditor ? 'Fechar edição de competências' : 'Editar valores das competências'}
         </button>
       </div>
@@ -280,21 +270,21 @@ function RedacoesAdminPage() {
         <SchemeEditor scheme={scheme} onSaved={(saved) => { setScheme(saved); setShowSchemeEditor(false) }} />
       )}
 
-      {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      {loading && <p className="panel-subtitle">Carregando...</p>}
 
       <section style={{ marginTop: 24 }}>
-        <h2 style={{ fontSize: 16, color: '#a16207' }}>Aguardando correção ({pendentes.length})</h2>
+        <h2 className="panel-section-title" style={{ color: '#a16207' }}>Aguardando correção ({pendentes.length})</h2>
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {pendentes.map(renderCard)}
-          {!loading && pendentes.length === 0 && <p style={{ color: '#6b7280' }}>Nenhuma redação pendente.</p>}
+          {!loading && pendentes.length === 0 && <p className="empty-state">Nenhuma redação pendente.</p>}
         </div>
       </section>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 16, color: '#15803d' }}>Já corrigidas ({corrigidas.length})</h2>
+      <section>
+        <h2 className="panel-section-title" style={{ color: '#15803d' }}>Já corrigidas ({corrigidas.length})</h2>
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {corrigidas.map(renderCard)}
-          {!loading && corrigidas.length === 0 && <p style={{ color: '#6b7280' }}>Nenhuma redação corrigida ainda.</p>}
+          {!loading && corrigidas.length === 0 && <p className="empty-state">Nenhuma redação corrigida ainda.</p>}
         </div>
       </section>
     </main>

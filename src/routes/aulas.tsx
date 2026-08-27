@@ -72,12 +72,12 @@ function AulasPage() {
   }, {})
 
   return (
-    <main style={{ maxWidth: 960, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Aulas</h1>
+    <main className="panel panel-wide">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Aulas</h1>
 
-      {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
-      {!loading && lessons.length === 0 && <p style={{ color: '#6b7280' }}>Nenhuma aula publicada ainda. Volte em breve!</p>}
+      {loading && <p className="panel-subtitle">Carregando...</p>}
+      {!loading && lessons.length === 0 && <p className="empty-state">Nenhuma aula publicada ainda. Volte em breve!</p>}
 
       {selected && (
         <div style={{ marginTop: 20 }}>
@@ -95,9 +95,9 @@ function AulasPage() {
               <video key={selected.id} src={toEmbedUrl(selected.videoUrl).src} controls style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
             )}
           </div>
-          <div style={{ color: '#6d28d9', fontSize: 12, fontWeight: 700, marginTop: 14 }}>{selected.module}</div>
-          <h2 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', margin: '4px 0' }}>{selected.title}</h2>
-          {selected.description && <p style={{ color: '#6b7280' }}>{selected.description}</p>}
+          <div style={{ color: 'var(--purple)', fontSize: 12, fontWeight: 700, marginTop: 14 }}>{selected.module}</div>
+          <h2 style={{ fontFamily: 'var(--serif)', fontWeight: 400, color: 'var(--navy)', margin: '4px 0' }}>{selected.title}</h2>
+          {selected.description && <p style={{ color: 'var(--muted)' }}>{selected.description}</p>}
         </div>
       )}
 
@@ -105,7 +105,7 @@ function AulasPage() {
         <div style={{ display: 'grid', gap: 24, marginTop: 32 }}>
           {Object.entries(grouped).map(([moduleName, moduleLessons]) => (
             <div key={moduleName}>
-              <h3 style={{ fontSize: 15, color: '#0f2342' }}>{moduleName}</h3>
+              <h3 style={{ fontSize: 15, color: 'var(--navy)' }}>{moduleName}</h3>
               <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
                 {moduleLessons.map((lesson) => (
                   <button
@@ -113,11 +113,11 @@ function AulasPage() {
                     onClick={() => selectLesson(lesson)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: '12px 14px',
-                      background: selected?.id === lesson.id ? '#f2eafd' : '#fff', border: '1px solid #e0dcf0',
-                      borderRadius: 8, cursor: 'pointer', color: '#0f2342', fontWeight: 600,
+                      background: selected?.id === lesson.id ? 'var(--lilac-tint)' : '#fff', border: '1px solid var(--line)',
+                      borderRadius: 8, cursor: 'pointer', color: 'var(--navy)', fontWeight: 600,
                     }}
                   >
-                    <CirclePlay size={18} color="#6d28d9" /> <span style={{ flex: 1 }}>{lesson.title}</span>
+                    <CirclePlay size={18} color="var(--purple)" /> <span style={{ flex: 1 }}>{lesson.title}</span>
                     {watchedIds.includes(lesson.id) && <CheckCircle2 size={16} color="#15803d" />}
                   </button>
                 ))}

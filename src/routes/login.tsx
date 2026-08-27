@@ -11,7 +11,11 @@ function LoginPage() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(() =>
+    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('reason') === 'other-device')
+      ? 'Sua conta foi acessada em outro aparelho, então você foi desconectado(a) aqui. Só é possível usar a conta em um aparelho por vez.'
+      : '',
+  )
   const [notice, setNotice] = useState('')
 
   const isLocalDemoMode = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
@@ -51,6 +55,9 @@ function LoginPage() {
           setError('E-mail ou senha inválidos no ambiente local. Crie a conta primeiro.')
           return
         }
+
+        await navigate({ to: '/dashboard' })
+        return
       }
 
       if (mode === 'signup') {

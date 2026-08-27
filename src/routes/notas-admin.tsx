@@ -63,14 +63,14 @@ function StudentCard({ group }: { group: StudentGroup }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}>
+    <div className="panel-card plain" style={{ marginTop: 0 }}>
       <button
         onClick={() => setOpen((v) => !v)}
         style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 12, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}
       >
         <div style={{ minWidth: 0 }}>
-          <b style={{ color: '#0f2342', fontSize: 15 }}>{group.name}</b>
-          <div style={{ color: '#9ca3af', fontSize: 12, marginTop: 2 }}>{group.email}</div>
+          <b style={{ color: 'var(--navy)', fontSize: 15 }}>{group.name}</b>
+          <div className="list-meta">{group.email}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
           <div style={{ textAlign: 'right' }}>
@@ -81,16 +81,16 @@ function StudentCard({ group }: { group: StudentGroup }) {
               média · {group.corrected.length}/{group.submissions.length} corrigida{group.corrected.length === 1 ? '' : 's'}
             </div>
           </div>
-          {open ? <ChevronUp size={18} color="#6d28d9" /> : <ChevronDown size={18} color="#6d28d9" />}
+          {open ? <ChevronUp size={18} color="var(--purple)" /> : <ChevronDown size={18} color="var(--purple)" />}
         </div>
       </button>
 
       {open && (
-        <div style={{ display: 'grid', gap: 8, marginTop: 14, paddingTop: 14, borderTop: '1px solid #ece8f7' }}>
+        <div style={{ display: 'grid', gap: 8, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
           {group.submissions.map((submission) => (
-            <div key={submission.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#f9f8fd', borderRadius: 8, padding: '10px 12px' }}>
+            <div key={submission.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: 'var(--lilac-tint)', borderRadius: 8, padding: '10px 12px' }}>
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <div style={{ color: '#0f2342', fontSize: 13, fontWeight: 600 }}>{submission.title}</div>
+                <div style={{ color: 'var(--navy)', fontSize: 13, fontWeight: 600 }}>{submission.title}</div>
                 <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 2 }}>
                   Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
                   {submission.deliveryMethod === 'presencial' && ' · presencial'}
@@ -99,7 +99,7 @@ function StudentCard({ group }: { group: StudentGroup }) {
               {submission.status === 'corrigida' && submission.grade !== null ? (
                 <span style={{ fontWeight: 700, fontSize: 13, color: gradeColor(submission.grade) }}>{submission.grade}/40</span>
               ) : (
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#a16207', background: '#fef9c3', borderRadius: 20, padding: '3px 10px' }}>Aguardando</span>
+                <span className="badge badge-warning">Aguardando</span>
               )}
             </div>
           ))}
@@ -135,38 +135,36 @@ function NotasAdminPage() {
   }, [groups])
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/admin" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao painel admin</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <GraduationCap color="#6d28d9" /> Notas dos alunos
-      </h1>
-      <p style={{ color: '#6b7280' }}>Todas as notas de redação, organizadas por aluno. Toque em um aluno para ver o histórico completo.</p>
+    <main className="panel">
+      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <h1><GraduationCap /> Notas dos alunos</h1>
+      <p className="panel-subtitle">Todas as notas de redação, organizadas por aluno. Toque em um aluno para ver o histórico completo.</p>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 220, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 8, padding: '10px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 220, background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: '10px 12px' }}>
           <Search size={16} color="#9ca3af" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar aluno por nome ou e-mail..."
-            style={{ border: 'none', outline: 'none', flex: 1, fontSize: 14 }}
+            style={{ border: 'none', outline: 'none', flex: 1, fontSize: 14, padding: 0 }}
           />
         </div>
         {classAverage !== null && (
-          <div style={{ background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 8, padding: '10px 16px', whiteSpace: 'nowrap' }}>
-            <span style={{ color: '#6b7280', fontSize: 12 }}>Média da turma: </span>
-            <b style={{ color: '#0f2342' }}>{classAverage}/40</b>
+          <div style={{ background: 'var(--lilac-tint)', border: '1px solid var(--line)', borderRadius: 8, padding: '10px 16px', whiteSpace: 'nowrap' }}>
+            <span style={{ color: 'var(--muted)', fontSize: 12 }}>Média da turma: </span>
+            <b style={{ color: 'var(--navy)' }}>{classAverage}/40</b>
           </div>
         )}
       </div>
 
-      {loading && <p style={{ color: '#6b7280', marginTop: 20 }}>Carregando...</p>}
-      {error && <p style={{ color: '#dc2626', marginTop: 20 }}>{error}</p>}
+      {loading && <p className="panel-subtitle" style={{ marginTop: 20 }}>Carregando...</p>}
+      {error && <p className="form-error" style={{ marginTop: 20 }}>{error}</p>}
 
       <div style={{ display: 'grid', gap: 10, marginTop: 20 }}>
         {filtered.map((group) => <StudentCard key={group.email} group={group} />)}
         {!loading && !error && filtered.length === 0 && (
-          <p style={{ color: '#6b7280' }}>
+          <p className="empty-state">
             {query ? 'Nenhum aluno encontrado para essa busca.' : 'Nenhuma redação enviada ainda.'}
           </p>
         )}

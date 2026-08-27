@@ -70,67 +70,47 @@ function MentoriasAdminPage() {
   const sorted = [...slots].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Gerenciar horários de mentoria</h1>
-      <p style={{ color: '#6b7280' }}>Cadastre os horários em que você está disponível. Assim que um aluno marcar, o horário some da lista automaticamente pros outros.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Gerenciar horários de mentoria</h1>
+      <p className="panel-subtitle">Cadastre os horários em que você está disponível. Assim que um aluno marcar, o horário some da lista automaticamente pros outros.</p>
 
       <form onSubmit={handleAdd} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 24, flexWrap: 'wrap' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Data</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(event) => setDate(event.target.value)}
-            style={{ padding: 10, border: '1px solid #e0dcf0', borderRadius: 8 }}
-          />
+        <div className="field">
+          <label>Data</label>
+          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} style={{ width: 'auto' }} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Horário</label>
-          <input
-            type="time"
-            value={time}
-            onChange={(event) => setTime(event.target.value)}
-            style={{ padding: 10, border: '1px solid #e0dcf0', borderRadius: 8 }}
-          />
+        <div className="field">
+          <label>Horário</label>
+          <input type="time" value={time} onChange={(event) => setTime(event.target.value)} style={{ width: 'auto' }} />
         </div>
-        <button
-          type="submit"
-          disabled={saving}
-          style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer' }}
-        >
+        <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? 'Adicionando...' : 'Adicionar horário'}
         </button>
       </form>
-      {error && <p style={{ color: '#dc2626', marginTop: 8 }}>{error}</p>}
+      {error && <p className="form-error">{error}</p>}
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Horários cadastrados</h2>
-        {loading && <p>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Horários cadastrados</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {sorted.map((slot) => (
-            <div
-              key={slot.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
-            >
+            <div key={slot.id} className="list-row">
               <div>
-                <b>{slot.date}</b> às <b>{slot.time}</b> · {slot.duration} min
+                <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{slot.time}</b> · {slot.duration} min
                 {slot.status === 'booked' && slot.student && (
-                  <div style={{ color: '#6d28d9', fontSize: 13, marginTop: 4 }}>
+                  <div style={{ color: 'var(--purple)', fontSize: 13, marginTop: 4 }}>
                     Reservado por {slot.student.name} ({slot.student.email})
                   </div>
                 )}
-                {slot.status === 'available' && <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>Disponível</div>}
+                {slot.status === 'available' && <div className="list-meta">Disponível</div>}
               </div>
-              <button
-                onClick={() => handleDelete(slot.id)}
-                style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}
-              >
+              <button onClick={() => handleDelete(slot.id)} className="btn btn-danger btn-sm">
                 Excluir
               </button>
             </div>
           ))}
-          {!loading && sorted.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum horário cadastrado ainda.</p>}
+          {!loading && sorted.length === 0 && <p className="empty-state">Nenhum horário cadastrado ainda.</p>}
         </div>
       </section>
     </main>

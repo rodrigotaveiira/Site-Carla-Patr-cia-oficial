@@ -105,72 +105,47 @@ function MateriaisAdminPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16 }}>Materiais dos alunos</h1>
-      <p style={{ color: '#6b7280' }}>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1>Materiais dos alunos</h1>
+      <p className="panel-subtitle">
         Envie arquivos em Word (.docx) ou PDF. Eles aparecem na área do aluno, em "Arquivos exclusivos", já
         protegidos com o nome e o CPF de quem baixa.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 12, marginTop: 24, maxWidth: 480 }}>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Título</label>
-          <input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Ex.: Mapa mental da redação"
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
-          />
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
+        <div className="field">
+          <label>Título</label>
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex.: Mapa mental da redação" />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Descrição</label>
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Breve descrição do conteúdo do material"
-            rows={3}
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box', fontFamily: 'inherit' }}
-          />
+        <div className="field">
+          <label>Descrição</label>
+          <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Breve descrição do conteúdo do material" rows={3} />
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Data da aula (opcional)</label>
-          <input
-            type="date"
-            value={classDate}
-            onChange={(event) => setClassDate(event.target.value)}
-            style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
-          />
-          <p style={{ color: '#9ca3af', fontSize: 12, marginTop: 4 }}>
+        <div className="field">
+          <label>Data da aula (opcional)</label>
+          <input type="date" value={classDate} onChange={(event) => setClassDate(event.target.value)} />
+          <p className="panel-card-hint" style={{ margin: 0 }}>
             Se preenchida, o material só fica disponível para download 1 dia antes dessa data. Depois disso, fica
             liberado para sempre. Deixe em branco pra liberar o material imediatamente.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: 140 }}>
-            <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Etiqueta</label>
-            <input
-              value={tag}
-              onChange={(event) => setTag(event.target.value)}
-              placeholder="Ex.: Estratégia, Exclusivo..."
-              style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
-            />
+          <div className="field" style={{ flex: 1, minWidth: 140 }}>
+            <label>Etiqueta</label>
+            <input value={tag} onChange={(event) => setTag(event.target.value)} placeholder="Ex.: Estratégia, Exclusivo..." />
           </div>
-          <div style={{ flex: 1, minWidth: 140 }}>
-            <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Cor</label>
-            <select
-              value={accent}
-              onChange={(event) => setAccent(event.target.value)}
-              style={{ width: '100%', padding: 10, border: '1px solid #e0dcf0', borderRadius: 8, boxSizing: 'border-box' }}
-            >
+          <div className="field" style={{ flex: 1, minWidth: 140 }}>
+            <label>Cor</label>
+            <select value={accent} onChange={(event) => setAccent(event.target.value)}>
               {ACCENT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}
             </select>
           </div>
         </div>
-        <div>
-          <label style={{ display: 'block', fontSize: 13, marginBottom: 4, color: '#0f2342', fontWeight: 600 }}>Arquivo (Word ou PDF)</label>
+        <div className="field">
+          <label>Arquivo (Word ou PDF)</label>
           <input
             ref={fileInputRef}
             type="file"
@@ -181,33 +156,26 @@ function MateriaisAdminPage() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: '#f4f2fb', border: '2px dashed #c9befd', borderRadius: 8, color: '#6d28d9', fontWeight: 700, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: 'var(--lilac-tint)', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, cursor: 'pointer' }}
           >
             <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
           </button>
         </div>
-        <button
-          type="submit"
-          disabled={saving}
-          style={{ background: '#6d28d9', color: '#fff', border: 'none', borderRadius: 8, padding: '11px 20px', fontWeight: 700, cursor: 'pointer', width: 'fit-content' }}
-        >
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Adicionar material'}
         </button>
-        {error && <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>}
+        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
       </form>
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Materiais enviados</h2>
-        {loading && <p>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Materiais enviados</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {materials.map((material) => (
-            <div
-              key={material.id}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: 14 }}
-            >
+            <div key={material.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <b>{material.title}</b>
-                <div style={{ color: '#6b7280', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>
+                <b style={{ color: 'var(--navy)' }}>{material.title}</b>
+                <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>
                 {material.classDate && (
                   <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: material.released ? '#15803d' : '#a16207' }}>
                     {material.released
@@ -216,15 +184,10 @@ function MateriaisAdminPage() {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => handleDelete(material.id)}
-                style={{ color: '#dc2626', background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}
-              >
-                Excluir
-              </button>
+              <button onClick={() => handleDelete(material.id)} className="btn btn-danger btn-sm">Excluir</button>
             </div>
           ))}
-          {!loading && materials.length === 0 && <p style={{ color: '#6b7280' }}>Nenhum material enviado ainda.</p>}
+          {!loading && materials.length === 0 && <p className="empty-state">Nenhum material enviado ainda.</p>}
         </div>
       </section>
     </main>

@@ -48,13 +48,13 @@ function ProgressoPage() {
   const maxCount = Math.max(1, ...rows.map((r) => r.count))
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16, marginBottom: 4 }}>Meu progresso</h1>
-      <p style={{ color: '#6b7280' }}>Sua evolução na plataforma, com base nas aulas assistidas e nas redações entregues.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1 style={{ marginBottom: 4 }}>Meu progresso</h1>
+      <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas e nas redações entregues.</p>
 
       {progress && (
-        <div style={{ marginTop: 20, padding: '20px', background: 'linear-gradient(135deg, #6d28d9, #9333ea)', borderRadius: 12, color: '#fff' }}>
+        <div style={{ marginTop: 20, padding: '20px', background: 'linear-gradient(135deg, var(--purple), #9333ea)', borderRadius: 12, color: '#fff' }}>
           <div style={{ fontSize: 32, fontWeight: 800 }}>{progress.overallPercent}%</div>
           <div style={{ opacity: 0.9, fontSize: 14, marginBottom: 14 }}>progresso geral</div>
           <div style={{ display: 'grid', gap: 10 }}>
@@ -80,26 +80,22 @@ function ProgressoPage() {
         </div>
       )}
 
-      <p style={{ color: '#6b7280', marginTop: 24 }}>Quantidade de conteúdo disponível na plataforma hoje, por seção.</p>
+      <p className="panel-subtitle" style={{ marginTop: 24 }}>Quantidade de conteúdo disponível na plataforma hoje, por seção.</p>
 
-      {loading && <p style={{ color: '#6b7280', marginTop: 20 }}>Carregando...</p>}
+      {loading && <p className="panel-subtitle" style={{ marginTop: 20 }}>Carregando...</p>}
 
       {counts && (
         <>
-          <div style={{ marginTop: 24, padding: '18px 20px', background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 10, fontWeight: 700, color: '#0f2342' }}>
+          <div className="panel-card" style={{ fontWeight: 700, color: 'var(--navy)' }}>
             {counts.totalArquivos + counts.aulas} conteúdo(s) disponíveis no total ({counts.aulas} aula{counts.aulas === 1 ? '' : 's'} em vídeo e {counts.totalArquivos} arquivo{counts.totalArquivos === 1 ? '' : 's'} em PDF/Word)
           </div>
 
           <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
             {rows.map((row) => (
-              <a
-                key={row.label}
-                href={row.to}
-                style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #e0dcf0', borderRadius: 10, padding: '14px 18px' }}
-              >
-                <row.icon color="#6d28d9" size={20} />
+              <a key={row.label} href={row.to} className="list-row" style={{ textDecoration: 'none', color: 'inherit' }}>
+                <row.icon color="var(--purple)" size={20} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0f2342', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--navy)', fontWeight: 700 }}>
                     <span>{row.label}</span>
                     <span>{row.count}</span>
                   </div>

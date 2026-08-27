@@ -88,40 +88,33 @@ function MentoriasGrupoPage() {
   }
 
   return (
-    <main style={{ maxWidth: 760, margin: '0 auto', padding: '48px 24px', fontFamily: 'sans-serif' }}>
-      <Link to="/dashboard" style={{ color: '#6d28d9', fontWeight: 700, textDecoration: 'none' }}>← Voltar ao dashboard</Link>
-      <h1 style={{ fontFamily: 'var(--serif, serif)', color: '#0f2342', marginTop: 16, marginBottom: 4 }}>Mentorias em grupo</h1>
-      <p style={{ color: '#6b7280' }}>Entre em um grupo com horário e número de vagas definidos pela professora.</p>
+    <main className="panel">
+      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <h1 style={{ marginBottom: 4 }}>Mentorias em grupo</h1>
+      <p className="panel-subtitle">Entre em um grupo com horário e número de vagas definidos pela professora.</p>
 
       {actionError && (
-        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: 8, padding: 12, margin: '16px 0' }}>
+        <div className="form-error" style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: 12, margin: '16px 0' }}>
           {actionError}
         </div>
       )}
 
       {mySlots.length > 0 && (
-        <section style={{ marginTop: 32 }}>
-          <h2 style={{ fontSize: 18, color: '#0f2342' }}>Seus grupos</h2>
-          <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+        <section>
+          <h2 className="panel-section-title">Seus grupos</h2>
+          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
             {mySlots.map((slot) => (
-              <div
-                key={slot.id}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, background: '#f4f2fb', border: '1px solid #e0dcf0', borderRadius: 10, padding: 16 }}
-              >
+              <div key={slot.id} className="list-row" style={{ background: 'var(--lilac-tint)', borderColor: '#e0dcf0' }}>
                 <div>
-                  <div style={{ fontWeight: 700, textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>
-                  <div style={{ color: '#6b7280', display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
+                  <div className="list-title" style={{ textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>
+                  <div className="list-meta" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                     <Clock3 size={14} /> {slot.time} · {slot.duration} min
                     <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Users size={14} /> {slot.students.length}/{slot.capacity}
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleLeave(slot.id)}
-                  disabled={actionLoadingId === slot.id}
-                  style={{ color: '#dc2626', fontWeight: 700, background: 'none', border: '1px solid #fecaca', borderRadius: 8, padding: '8px 14px', cursor: 'pointer' }}
-                >
+                <button onClick={() => handleLeave(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-danger btn-sm">
                   {actionLoadingId === slot.id ? 'Saindo...' : 'Sair do grupo'}
                 </button>
               </div>
@@ -130,26 +123,21 @@ function MentoriasGrupoPage() {
         </section>
       )}
 
-      <section style={{ marginTop: 32 }}>
-        <h2 style={{ fontSize: 18, color: '#0f2342' }}>Grupos com vaga</h2>
-        {loading && <p style={{ color: '#6b7280' }}>Carregando...</p>}
+      <section>
+        <h2 className="panel-section-title">Grupos com vaga</h2>
+        {loading && <p className="panel-subtitle">Carregando...</p>}
         {!loading && Object.keys(grouped).length === 0 && (
-          <p style={{ color: '#6b7280' }}>Nenhum grupo com vaga disponível no momento. Volte em breve!</p>
+          <p className="empty-state">Nenhum grupo com vaga disponível no momento. Volte em breve!</p>
         )}
         <div style={{ display: 'grid', gap: 20, marginTop: 12 }}>
           {Object.entries(grouped).map(([date, dateSlots]) => (
             <div key={date}>
-              <div style={{ fontWeight: 700, textTransform: 'capitalize', color: '#0f2342', marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
+              <div style={{ fontWeight: 700, textTransform: 'capitalize', color: 'var(--navy)', marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
                 <CalendarDays size={16} /> {formatDate(date)}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {dateSlots.map((slot) => (
-                  <button
-                    key={slot.id}
-                    onClick={() => handleJoin(slot.id)}
-                    disabled={actionLoadingId === slot.id}
-                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #e0dcf0', borderRadius: 8, padding: '10px 16px', fontWeight: 700, color: '#6d28d9', cursor: 'pointer' }}
-                  >
+                  <button key={slot.id} onClick={() => handleJoin(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-ghost">
                     <Clock3 size={14} /> {slot.time}
                     <span style={{ color: '#8e98a5', fontWeight: 600 }}>
                       ({slot.students.length}/{slot.capacity})
