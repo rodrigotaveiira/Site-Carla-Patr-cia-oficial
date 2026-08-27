@@ -4,6 +4,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { createMentoriaSlot, deleteMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/mentorias-admin')({
   beforeLoad: async () => {
@@ -21,6 +22,7 @@ export const Route = createFileRoute('/mentorias-admin')({
 })
 
 function MentoriasAdminPage() {
+  const showToast = useToast()
   const [slots, setSlots] = useState<MentoriaSlot[]>([])
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState('')
@@ -55,6 +57,7 @@ function MentoriasAdminPage() {
       setDate('')
       setTime('')
       await load()
+      showToast('Horário adicionado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar o horário.')
     } finally {
@@ -63,8 +66,13 @@ function MentoriasAdminPage() {
   }
 
   async function handleDelete(id: string) {
-    await deleteMentoriaSlot({ data: { id } })
-    await load()
+    try {
+      await deleteMentoriaSlot({ data: { id } })
+      await load()
+      showToast('Horário excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o horário.', 'error')
+    }
   }
 
   const sorted = [...slots].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))

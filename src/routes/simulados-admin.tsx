@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { createSimulado, deleteSimulado, listAllSimulados, type Simulado } from '@/lib/simulados'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/simulados-admin')({
   beforeLoad: async () => {
@@ -38,6 +39,7 @@ const GABARITO_PLACEHOLDER = `1) C
 ...`
 
 function SimuladoCard({ simulado, onDeleted }: { simulado: Simulado; onDeleted: () => void }) {
+  const showToast = useToast()
   const [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const semGabarito = simulado.questions.filter((q) => !q.correctLetter).length
@@ -47,6 +49,9 @@ function SimuladoCard({ simulado, onDeleted }: { simulado: Simulado; onDeleted: 
     try {
       await deleteSimulado({ data: { id: simulado.id } })
       onDeleted()
+      showToast('Simulado excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o simulado.', 'error')
     } finally {
       setDeleting(false)
     }

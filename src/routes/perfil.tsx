@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { listMyRecados, sendRecado, type Recado } from '@/lib/recados'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/perfil')({
   beforeLoad: async () => {
@@ -26,6 +27,7 @@ const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b2
 
 function PerfilPage() {
   const { user, updateName } = useIdentity()
+  const showToast = useToast()
 
   // --- foto ---
   const [photoUrl, setPhotoUrl] = useState<string | null>(null)
@@ -117,6 +119,7 @@ function PerfilPage() {
       await sendRecado({ data: { message } })
       setMessage('')
       await loadRecados()
+      showToast('Recado enviado. A Carlinha vai receber sua mensagem!')
     } catch (err) {
       setSendError(err instanceof Error ? err.message : 'Não foi possível enviar o recado.')
     } finally {

@@ -8,6 +8,7 @@ import {
   addContentItem, CONTENT_SECTIONS, deleteContentItem, isContentSection,
   listContentItems, type ContentItem, type ContentSection,
 } from '@/lib/content-library'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
@@ -43,6 +44,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 function ConteudoAdminPage() {
+  const showToast = useToast()
   const { secao } = Route.useParams()
   const section = secao as ContentSection
   const sectionLabel = CONTENT_SECTIONS[section]
@@ -86,6 +88,7 @@ function ConteudoAdminPage() {
       setFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
+      showToast('Arquivo adicionado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
     } finally {
@@ -95,8 +98,13 @@ function ConteudoAdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir este arquivo?')) return
-    await deleteContentItem({ data: { section, id } })
-    await load()
+    try {
+      await deleteContentItem({ data: { section, id } })
+      await load()
+      showToast('Arquivo excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o arquivo.', 'error')
+    }
   }
 
   return (

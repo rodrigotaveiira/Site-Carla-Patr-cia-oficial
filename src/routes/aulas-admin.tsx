@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { addLesson, deleteLesson, listLessons, type Lesson } from '@/lib/aulas'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/aulas-admin')({
   beforeLoad: async () => {
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/aulas-admin')({
 })
 
 function AulasAdminPage() {
+  const showToast = useToast()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
@@ -53,6 +55,7 @@ function AulasAdminPage() {
       setDescription('')
       setVideoUrl('')
       await load()
+      showToast('Aula adicionada.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar a aula.')
     } finally {
@@ -62,8 +65,13 @@ function AulasAdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir esta aula?')) return
-    await deleteLesson({ data: { id } })
-    await load()
+    try {
+      await deleteLesson({ data: { id } })
+      await load()
+      showToast('Aula excluída.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir a aula.', 'error')
+    }
   }
 
   return (

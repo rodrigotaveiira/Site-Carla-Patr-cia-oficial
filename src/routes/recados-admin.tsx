@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { listAllRecados, markRecadoRead, type Recado } from '@/lib/recados'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/recados-admin')({
   beforeLoad: async () => {
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/recados-admin')({
 })
 
 function RecadosAdminPage() {
+  const showToast = useToast()
   const [recados, setRecados] = useState<Recado[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -45,6 +47,9 @@ function RecadosAdminPage() {
     try {
       await markRecadoRead({ data: { id } })
       setRecados((prev) => prev.map((r) => (r.id === id ? { ...r, read: true } : r)))
+      showToast('Marcado como lido.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível marcar como lido.', 'error')
     } finally {
       setMarkingId(null)
     }

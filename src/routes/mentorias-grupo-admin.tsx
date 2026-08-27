@@ -7,6 +7,7 @@ import {
   createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, updateMentoriaGrupoSlot,
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/mentorias-grupo-admin')({
   beforeLoad: async () => {
@@ -24,6 +25,7 @@ export const Route = createFileRoute('/mentorias-grupo-admin')({
 })
 
 function MentoriasGrupoAdminPage() {
+  const showToast = useToast()
   const [slots, setSlots] = useState<MentoriaGrupoSlot[]>([])
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState('')
@@ -71,6 +73,7 @@ function MentoriasGrupoAdminPage() {
       setTime('')
       setCapacity('6')
       await load()
+      showToast('Grupo adicionado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível criar o grupo.')
     } finally {
@@ -79,8 +82,13 @@ function MentoriasGrupoAdminPage() {
   }
 
   async function handleDelete(id: string) {
-    await deleteMentoriaGrupoSlot({ data: { id } })
-    await load()
+    try {
+      await deleteMentoriaGrupoSlot({ data: { id } })
+      await load()
+      showToast('Grupo excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o grupo.', 'error')
+    }
   }
 
   function startEdit(slot: MentoriaGrupoSlot) {
@@ -111,6 +119,7 @@ function MentoriasGrupoAdminPage() {
       await updateMentoriaGrupoSlot({ data: { id, time: editTime, duration: 40, capacity: capacityNumber } })
       setEditingId(null)
       await load()
+      showToast('Alterações salvas.')
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Não foi possível salvar as alterações.')
     } finally {

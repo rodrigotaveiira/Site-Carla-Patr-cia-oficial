@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { addTema, deleteTema, listTemas, type TemaRedacao } from '@/lib/temas-redacao'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/temas-redacao-admin')({
   beforeLoad: async () => {
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/temas-redacao-admin')({
 })
 
 function TemasRedacaoAdminPage() {
+  const showToast = useToast()
   const [temas, setTemas] = useState<TemaRedacao[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
@@ -53,6 +55,7 @@ function TemasRedacaoAdminPage() {
       setProposta('')
       setPrazo('')
       await load()
+      showToast('Tema publicado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar o tema.')
     } finally {
@@ -62,8 +65,13 @@ function TemasRedacaoAdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir este tema de redação?')) return
-    await deleteTema({ data: { id } })
-    await load()
+    try {
+      await deleteTema({ data: { id } })
+      await load()
+      showToast('Tema excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o tema.', 'error')
+    }
   }
 
   return (

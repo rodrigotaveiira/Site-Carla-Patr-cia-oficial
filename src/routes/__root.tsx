@@ -1,6 +1,7 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { CallbackHandler } from '@/components/CallbackHandler'
 import { IdentityProvider } from '@/lib/identity-context'
+import { ToastProvider } from '@/lib/toast'
 import '../styles.css'
 
 export const Route = createRootRoute({
@@ -61,7 +62,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         <IdentityProvider>
-          <CallbackHandler>{children}</CallbackHandler>
+          <ToastProvider>
+            <CallbackHandler>{children}</CallbackHandler>
+          </ToastProvider>
         </IdentityProvider>
         <Scripts />
       </body>

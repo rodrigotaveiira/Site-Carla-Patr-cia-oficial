@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { addMaterial, deleteMaterial, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/materiais-admin')({
   beforeLoad: async () => {
@@ -39,6 +40,7 @@ function readFileAsDataUrl(file: File): Promise<string> {
 }
 
 function MateriaisAdminPage() {
+  const showToast = useToast()
   const [materials, setMaterials] = useState<MaterialMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
@@ -91,6 +93,7 @@ function MateriaisAdminPage() {
       setFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
+      showToast('Material adicionado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
     } finally {
@@ -100,8 +103,13 @@ function MateriaisAdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir este material? Os alunos não vão mais conseguir baixá-lo.')) return
-    await deleteMaterial({ data: { id } })
-    await load()
+    try {
+      await deleteMaterial({ data: { id } })
+      await load()
+      showToast('Material excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o material.', 'error')
+    }
   }
 
   return (

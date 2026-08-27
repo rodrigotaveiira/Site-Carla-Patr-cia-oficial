@@ -19,6 +19,7 @@ import { getLiveClass, type LiveClass } from '@/lib/live-class'
 import { getRecentContentNotifications, type ContentNotification } from '@/lib/notifications'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
+import { useToast } from '@/lib/toast'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -137,6 +138,7 @@ function formatDuration(minutes: number): string {
 
 function DashboardPage() {
   const { user, logout } = useIdentity()
+  const showToast = useToast()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const studentName = user?.name || ' '
   const isAdmin = userHasRole(user, 'admin')
@@ -460,7 +462,7 @@ function DashboardPage() {
           )}
 
           <div className="dashboard-grid">
-            <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => alert('Em breve: mais opções de personalização do progresso.')}><MoreHorizontal /></button></div><div className="progress-list">
+            <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => showToast('Em breve: mais opções de personalização do progresso.', 'info')}><MoreHorizontal /></button></div><div className="progress-list">
               {contentCounts ? [
                 ['Aulas em vídeo', `${contentCounts.aulas} aula${contentCounts.aulas === 1 ? '' : 's'} disponíveis`, contentCounts.aulas, '#6d28d9'],
                 ['Materiais', `${contentCounts.materiais} arquivo${contentCounts.materiais === 1 ? '' : 's'} disponíveis`, contentCounts.materiais, '#0f7890'],

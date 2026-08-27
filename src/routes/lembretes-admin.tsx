@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { createLembrete, deleteLembrete, listLembretes, type Lembrete } from '@/lib/lembretes'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/lembretes-admin')({
   beforeLoad: async () => {
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/lembretes-admin')({
 })
 
 function LembretesAdminPage() {
+  const showToast = useToast()
   const [lembretes, setLembretes] = useState<Lembrete[]>([])
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
@@ -49,6 +51,7 @@ function LembretesAdminPage() {
       await createLembrete({ data: { message } })
       setMessage('')
       await load()
+      showToast('Lembrete enviado.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar o lembrete.')
     } finally {
@@ -58,8 +61,13 @@ function LembretesAdminPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Excluir este lembrete?')) return
-    await deleteLembrete({ data: { id } })
-    await load()
+    try {
+      await deleteLembrete({ data: { id } })
+      await load()
+      showToast('Lembrete excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o lembrete.', 'error')
+    }
   }
 
   return (

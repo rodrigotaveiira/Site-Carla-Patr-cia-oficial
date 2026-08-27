@@ -3,9 +3,10 @@ import { ChevronDown, ChevronUp, Download, HandHelping, PenLine, Settings } from
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
-import { userHasRole, isStaff } from '@/lib/roles'
+import { isStaff } from '@/lib/roles'
 import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
 import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
+import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/redacoes-admin')({
   beforeLoad: async () => {
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/redacoes-admin')({
 type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl'>
 
 function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (scheme: Competency[]) => void }) {
+  const showToast = useToast()
   const [rows, setRows] = useState<Competency[]>(scheme)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -47,6 +49,7 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
     try {
       const saved = await updateCompetencyScheme({ data: { scheme: rows } })
       onSaved(saved)
+      showToast('Esquema de competências salvo.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar o esquema.')
     } finally {
@@ -95,6 +98,7 @@ function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (sch
 }
 
 function CorrectionForm({ submission, scheme, onSaved }: { submission: SubmissionMeta; scheme: Competency[]; onSaved: () => void }) {
+  const showToast = useToast()
   const initialScores = scheme.map((competency) => {
     const existing = submission.competencyScores?.find((s) => s.id === competency.id)
     return { ...competency, value: existing?.value ?? 0 }
@@ -118,6 +122,7 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
     try {
       await correctRedacao({ data: { id: submission.id, scores, feedback } })
       onSaved()
+      showToast('Correção salva.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar a correção.')
     } finally {
