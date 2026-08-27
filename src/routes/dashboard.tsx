@@ -18,6 +18,7 @@ import { listLembretes, type Lembrete } from '@/lib/lembretes'
 import { getLiveClass, type LiveClass } from '@/lib/live-class'
 import { getRecentContentNotifications, type ContentNotification } from '@/lib/notifications'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
+import { downloadAchievementImage } from '@/lib/achievement-image'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -198,6 +199,16 @@ function DashboardPage() {
       })
       .catch(() => setLatestCorrection(null))
   }, [])
+
+  const [generatingBadgeImage, setGeneratingBadgeImage] = useState(false)
+  async function handleDownloadBadge() {
+    setGeneratingBadgeImage(true)
+    try {
+      await downloadAchievementImage(studentName.trim() || 'Aluno(a)', EXCELLENCE_GRADE_THRESHOLD, EXCELLENCE_WINDOW_DAYS)
+    } finally {
+      setGeneratingBadgeImage(false)
+    }
+  }
 
   const [competencyScheme, setCompetencyScheme] = useState<Competency[]>([])
   useEffect(() => {
@@ -442,6 +453,9 @@ function DashboardPage() {
                 <b>Excelência sustentada</b>
                 <p>Todas as suas redações corrigidas nos últimos {EXCELLENCE_WINDOW_DAYS} dias tiveram nota acima de {EXCELLENCE_GRADE_THRESHOLD}. Continue assim! 🎉</p>
               </div>
+              <button type="button" className="achievement-share" onClick={handleDownloadBadge} disabled={generatingBadgeImage}>
+                <Download size={15} /> {generatingBadgeImage ? 'Gerando...' : 'Baixar imagem'}
+              </button>
             </section>
           )}
 

@@ -390,13 +390,18 @@ footer .brand b { color: white; }
 .hero-ring span { color: #e2d8f5; font-size: 12px; text-transform: uppercase; }
 .dashboard-decoration { position: absolute; right: -20px; bottom: -73px; color: transparent; font-family: var(--serif); font-size: 220px; -webkit-text-stroke: 1px #ffffff0e; }
 
-.achievement-banner { display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 18px 22px; background: linear-gradient(120deg, #fff8ea, #fdf1e0); border: 1px solid #f0dcae; border-radius: 10px; }
+.achievement-banner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; padding: 18px 22px; background: linear-gradient(120deg, #fff8ea, #fdf1e0); border: 1px solid #f0dcae; border-radius: 10px; }
 .achievement-icon { flex-shrink: 0; display: grid; place-items: center; width: 46px; height: 46px; color: white; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.35); }
+.achievement-banner > div { flex: 1; min-width: 200px; }
 .achievement-banner b { color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 17px; }
 .achievement-banner p { margin: 3px 0 0; color: #7a6636; font-size: 13px; line-height: 1.5; }
+.achievement-share { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; background: #fff; color: #96731f; border: 1px solid #e6c988; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s; }
+.achievement-share:hover:not(:disabled) { background: #fffbf0; border-color: var(--gold); }
+.achievement-share:disabled { opacity: .6; cursor: not-allowed; }
 @media (max-width: 560px) {
   .achievement-banner { padding: 14px 16px; gap: 12px; }
   .achievement-icon { width: 38px; height: 38px; }
+  .achievement-share { width: 100%; justify-content: center; }
 }
 .dashboard-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 17px; margin-top: 18px; }
 .dashboard-card { min-width: 0; padding: 22px; background: white; border: 1px solid #e8eaf0; border-radius: 8px; }
