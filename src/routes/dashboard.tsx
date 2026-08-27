@@ -20,6 +20,7 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
 import { useToast } from '@/lib/toast'
+import { OnboardingModal } from '@/components/OnboardingModal'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -143,6 +144,18 @@ function DashboardPage() {
   const studentName = user?.name || ' '
   const isAdmin = userHasRole(user, 'admin')
   const isProfessor = userHasRole(user, 'professor') && !isAdmin
+
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  useEffect(() => {
+    if (isAdmin || isProfessor || !user?.email) return
+    const key = `cpm:onboarding-seen:${user.email.toLowerCase()}`
+    if (!localStorage.getItem(key)) setShowOnboarding(true)
+  }, [isAdmin, isProfessor, user?.email])
+
+  function dismissOnboarding() {
+    if (user?.email) localStorage.setItem(`cpm:onboarding-seen:${user.email.toLowerCase()}`, '1')
+    setShowOnboarding(false)
+  }
 
   const [materials, setMaterials] = useState<MaterialMeta[]>([])
   const [materialsError, setMaterialsError] = useState('')
@@ -388,6 +401,7 @@ function DashboardPage() {
 
   return (
     <main className="student-app">
+      {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
       <aside className={sidebarOpen ? 'student-sidebar open' : 'student-sidebar'}>
         <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark"><img src="/logo-icone.png" alt="CPM" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
         <nav>{sidebarItems.map(({ icon: Icon, label, href }, index) => <a className={index === 0 ? 'active' : ''} href={href} key={label}><Icon />{label}</a>)}
