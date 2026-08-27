@@ -17,6 +17,7 @@ import { getCompetencyScheme, type Competency } from '@/lib/competencies'
 import { listLembretes, type Lembrete } from '@/lib/lembretes'
 import { getLiveClass, type LiveClass } from '@/lib/live-class'
 import { getRecentContentNotifications, type ContentNotification } from '@/lib/notifications'
+import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -79,6 +80,22 @@ async function downloadMaterial(id: string) {
 }
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'
+
+const SEARCH_TYPE_ICON: Record<SearchResultType, typeof BookOpen> = {
+  aula: BookOpen,
+  material: Files,
+  tema: PenLine,
+  simulado: Target,
+  biblioteca: Library,
+  questoes: CircleHelp,
+  simulados: FileCheck2,
+  repertorios: BookMarked,
+  dicas: Zap,
+  gabaritos: BookCheck,
+}
+
+// Tempo de espera depois que o aluno para de digitar até disparar a busca real no servidor.
+const SEARCH_DEBOUNCE_MS = 300
 
 const ENEM_DATE = new Date('2026-11-22T00:00:00')
 const WEEKDAY_LETTERS = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'] // segunda a domingo
@@ -188,15 +205,40 @@ function DashboardPage() {
   }, [])
 
   const [searchQuery, setSearchQuery] = useState('')
-  const query = searchQuery.trim().toLowerCase()
-  const filteredMaterials = useMemo(
-    () => (query ? materials.filter((m) => `${m.title} ${m.tag}`.toLowerCase().includes(query)) : materials),
-    [materials, query],
-  )
-  const filteredRecent = useMemo(
-    () => (query ? recentContent.filter(([title, info]) => `${title} ${info}`.toLowerCase().includes(query)) : recentContent),
-    [query],
-  )
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searching, setSearching] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchBoxRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const trimmed = searchQuery.trim()
+    if (trimmed.length < 2) {
+      setSearchResults([])
+      setSearching(false)
+      return
+    }
+
+    setSearching(true)
+    const timer = setTimeout(() => {
+      searchContent({ data: { query: trimmed } })
+        .then(setSearchResults)
+        .catch(() => setSearchResults([]))
+        .finally(() => setSearching(false))
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Fecha o dropdown de resultados ao clicar fora da caixa de busca.
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(event.target as Node)) {
+        setSearchOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const [notificationsOpen, setNotificationsOpen] = useState(false)
 
@@ -344,7 +386,32 @@ function DashboardPage() {
       </aside>
 
       <section className="student-main" id="top">
-        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search"><Search /><input placeholder="Buscar aulas, materiais, temas..." value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} /></div><div className="topbar-actions"><div style={{ position: 'relative' }}>
+        <header className="dashboard-topbar"><button className="dashboard-menu" onClick={() => setSidebarOpen(true)}><Menu /></button><div className="dashboard-search" ref={searchBoxRef}>
+          <Search />
+          <input
+            placeholder="Buscar aulas, materiais, temas..."
+            value={searchQuery}
+            onChange={(event) => { setSearchQuery(event.target.value); setSearchOpen(true) }}
+            onFocus={() => setSearchOpen(true)}
+          />
+          {searchOpen && searchQuery.trim().length >= 2 && (
+            <div className="search-results">
+              {searching && <p className="search-results-status">Buscando...</p>}
+              {!searching && searchResults.length === 0 && (
+                <p className="search-results-status">Nenhum resultado para "{searchQuery.trim()}".</p>
+              )}
+              {!searching && searchResults.map((result) => {
+                const Icon = SEARCH_TYPE_ICON[result.type]
+                return (
+                  <Link key={result.id} to={result.href} className="search-result" onClick={() => setSearchOpen(false)}>
+                    <Icon />
+                    <div><b>{result.title}</b><small>{result.subtitle}</small></div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div><div className="topbar-actions"><div style={{ position: 'relative' }}>
           <button type="button" onClick={() => setNotificationsOpen((open) => !open)}><Bell />{notifications.length > 0 && <i />}</button>
           {notificationsOpen && (
             <div className="notifications-panel">
@@ -427,8 +494,7 @@ function DashboardPage() {
             )}</section>
 
             <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
-              {filteredRecent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}
-              {query && filteredRecent.length === 0 && <p className="material-intro">Nenhuma aula encontrada para "{searchQuery}".</p>}
+              {recentContent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}
             </section>
 
             <section className="dashboard-card material-card" id="materiais">
@@ -439,7 +505,7 @@ function DashboardPage() {
               <p className="material-intro">Baixe os materiais do curso enviados pela professora, em Word ou PDF. Cada download é protegido com seu nome e CPF.</p>
               {materialsError && <p className="avatar-edit-error">{materialsError}</p>}
               <div className="material-list">
-                {filteredMaterials.map((material) => (
+                {materials.map((material) => (
                   <div className="material-item" key={material.id}>
                     <div className="material-badge" style={{ background: `${material.accent}1a`, color: material.accent }}>{material.tag}</div>
                     <div>
@@ -452,7 +518,6 @@ function DashboardPage() {
                   </div>
                 ))}
                 {materials.length === 0 && <p className="material-intro">Nenhum material disponível ainda. A professora vai adicionar em breve.</p>}
-                {query && materials.length > 0 && filteredMaterials.length === 0 && <p className="material-intro">Nenhum material encontrado para "{searchQuery}".</p>}
               </div>
             </section>
 
