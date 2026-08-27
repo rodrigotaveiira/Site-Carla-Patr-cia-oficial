@@ -771,6 +771,29 @@ footer .brand b { color: white; }
   .panel h1 { font-size: 23px; }
 }
 
+.skeleton { position: relative; overflow: hidden; background: #edeff3; border-radius: 6px; }
+.skeleton::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); transform: translateX(-100%); animation: skeleton-shimmer 1.5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .skeleton::after { animation: none; } }
+@keyframes skeleton-shimmer { 100% { transform: translateX(100%); } }
+.skeleton-line { height: 12px; border-radius: 20px; }
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-80 { width: 80%; }
+.skeleton-line.w-full { width: 100%; }
+.skeleton-line.lg { height: 18px; }
+.skeleton-line.sm { height: 9px; }
+.skeleton-circle { border-radius: 50%; flex-shrink: 0; }
+.skeleton-block { border-radius: 10px; }
+.skeleton-row { display: flex; align-items: center; gap: 12px; }
+.skeleton-row + .skeleton-row { margin-top: 14px; }
+.skeleton-stack { display: grid; gap: 8px; }
+
+.designed-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 36px 20px; color: var(--muted); }
+.designed-empty-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 6px; color: var(--purple); background: var(--lilac-tint); border-radius: 50%; }
+.designed-empty-icon svg { width: 21px; height: 21px; }
+.designed-empty b { color: var(--navy); font-size: 15px; font-weight: 700; }
+.designed-empty p { margin: 0; font-size: 13px; max-width: 320px; line-height: 1.55; }
+
 .toast-viewport { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; max-width: min(360px, calc(100vw - 40px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: #fff; border-radius: 10px; box-shadow: 0 12px 30px rgba(15,35,66,.16); font-size: 14px; color: var(--navy); animation: toast-in .25s ease; }
 .toast span { flex: 1; line-height: 1.4; }

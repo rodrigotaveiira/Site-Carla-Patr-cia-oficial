@@ -471,11 +471,23 @@ function DashboardPage() {
                 const maxValue = Math.max(1, contentCounts.aulas, contentCounts.materiais, Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0))
                 const percent = Math.round((Number(value) / maxValue) * 100)
                 return <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{value}</strong></div>
-              }) : <p className="material-intro">Carregando...</p>}
+              }) : Array.from({ length: 3 }).map((_, index) => (
+                <div key={index} style={{ display: 'grid', gridTemplateColumns: '105px 1fr 34px', alignItems: 'center', gap: 13 }}>
+                  <div className="skeleton skeleton-line sm" style={{ width: '75%' }} />
+                  <div className="skeleton" style={{ height: 5, borderRadius: 4 }} />
+                  <div className="skeleton skeleton-line sm" style={{ width: 24 }} />
+                </div>
+              ))}
             </div><Link to="/progresso">Ver relatório completo <ChevronRight /></Link></section>
 
             {liveClass === undefined ? (
-              <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Carregando...</h3></div></div></section>
+              <section className="dashboard-card next-class">
+                <div className="card-title"><div><span>Próxima aula</span></div></div>
+                <div className="skeleton skeleton-block" style={{ height: 120, margin: '18px 0' }} />
+                <div className="skeleton skeleton-line sm w-40" />
+                <div className="skeleton skeleton-line lg w-80" style={{ marginTop: 10 }} />
+                <div className="skeleton skeleton-block" style={{ height: 38, marginTop: 15 }} />
+              </section>
             ) : liveClass === null ? (
               <section className="dashboard-card next-class"><div className="card-title"><div><span>Próxima aula</span><h3>Nenhuma aula agendada</h3></div></div><p style={{ padding: '0 20px 20px' }}>Assim que a professora agendar a próxima aula ao vivo, ela aparece aqui.</p></section>
             ) : (
@@ -493,7 +505,7 @@ function DashboardPage() {
               </section>
             )}
 
-            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? <span className="streak-badge">✒️ {streak}</span> : <Trophy />}</div><div className="week-days">{(weeklyGoal ? weeklyGoal.dates : []).map((date, index) => {
+            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? <span className="streak-badge">✒️ {streak}</span> : <Trophy />}</div><div className="week-days">{weeklyGoal ? weeklyGoal.dates.map((date, index) => {
               const isDone = weeklyGoal?.completedDates.includes(date)
               const isToday = date === new Date().toISOString().slice(0, 10)
               const dayNumber = Number(date.slice(8, 10))
@@ -503,10 +515,17 @@ function DashboardPage() {
                   <small>{WEEKDAY_LETTERS[index]}</small>
                 </span>
               )
-            })}</div>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? (
+            }) : Array.from({ length: 7 }).map((_, index) => (
+              <span key={index}>
+                <span className="skeleton skeleton-circle" style={{ width: 28, height: 28, display: 'block' }} />
+                <span className="skeleton skeleton-line sm" style={{ width: 14, height: 8, display: 'block', marginTop: 5 }} />
+              </span>
+            ))}</div>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? (
               <p className="weekly-goal-success">🎉 Você completou sua meta semanal!</p>
+            ) : weeklyGoal ? (
+              <p>Você está a {weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!</p>
             ) : (
-              <p>{weeklyGoal ? `Você está a ${weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!` : 'Carregando sua meta semanal...'}</p>
+              <div className="skeleton skeleton-line sm w-60" style={{ marginTop: 4 }} />
             )}</section>
 
             <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
@@ -538,7 +557,12 @@ function DashboardPage() {
             </section>
 
             {latestCorrection === undefined ? (
-              <section className="dashboard-card correction-card"><div className="card-title"><div><span>Redação corrigida</span><h3>Carregando...</h3></div></div></section>
+              <section className="dashboard-card correction-card">
+                <div className="card-title"><div><span>Redação corrigida</span></div></div>
+                <div className="skeleton skeleton-line lg w-80" style={{ marginTop: 8 }} />
+                <div className="skeleton skeleton-line w-full" style={{ marginTop: 14 }} />
+                <div className="skeleton skeleton-line w-60" style={{ marginTop: 8 }} />
+              </section>
             ) : (
               <section className="dashboard-card correction-card">
                 <div className="card-title"><div><span>Redação corrigida</span><h3>{latestCorrection ? latestCorrection.title : 'Nenhuma correção ainda'}</h3></div>{latestCorrection && <span className="grade">{latestCorrection.grade}/40</span>}</div>

@@ -8,6 +8,8 @@ import {
   getSimuladoToTake, listMySimuladoAttempts, listSimulados, submitSimuladoAttempt,
   type SimuladoAttempt, type SimuladoForStudent,
 } from '@/lib/simulados'
+import { EmptyState } from '@/components/EmptyState'
+import { ListSkeleton } from '@/components/ListSkeleton'
 
 export const Route = createFileRoute('/simulados')({
   beforeLoad: async () => {
@@ -218,7 +220,7 @@ function SimuladosPage() {
 
       <section>
         <h2 className="panel-section-title">Disponíveis</h2>
-        {loading && <p className="panel-subtitle">Carregando...</p>}
+        {loading && <ListSkeleton rows={3} />}
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {summaries.map((summary) => (
             <div key={summary.id} className="list-row">
@@ -231,7 +233,9 @@ function SimuladosPage() {
               </button>
             </div>
           ))}
-          {!loading && summaries.length === 0 && <p className="empty-state">Nenhum simulado disponível ainda.</p>}
+          {!loading && summaries.length === 0 && (
+            <EmptyState icon={ClipboardList} title="Nenhum simulado disponível ainda" description="Assim que a professora publicar o primeiro simulado, ele aparece aqui pra você responder." />
+          )}
         </div>
       </section>
 

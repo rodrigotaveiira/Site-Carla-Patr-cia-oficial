@@ -5,6 +5,7 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import { EmptyState } from '@/components/EmptyState'
 
 export const Route = createFileRoute('/mentorias')({
   beforeLoad: async () => {
@@ -122,7 +123,7 @@ function MentoriasPage() {
         <h2 className="panel-section-title">Horários disponíveis</h2>
         {loading && <p className="panel-subtitle">Carregando...</p>}
         {!loading && Object.keys(grouped).length === 0 && (
-          <p className="empty-state">Nenhum horário disponível no momento. Volte em breve!</p>
+          <EmptyState icon={CalendarDays} title="Nenhum horário disponível no momento" description="A professora ainda não abriu novos horários de mentoria. Volte em breve!" />
         )}
         <div style={{ display: 'grid', gap: 20, marginTop: 12 }}>
           {Object.entries(grouped).map(([date, dateSlots]) => (

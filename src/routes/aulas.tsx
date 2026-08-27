@@ -6,6 +6,8 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { listLessons, type Lesson } from '@/lib/aulas'
 import { getMyWatchedLessons, markLessonWatched } from '@/lib/lesson-progress'
+import { EmptyState } from '@/components/EmptyState'
+import { ListSkeleton } from '@/components/ListSkeleton'
 
 export const Route = createFileRoute('/aulas')({
   beforeLoad: async () => {
@@ -76,8 +78,10 @@ function AulasPage() {
       <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
       <h1>Aulas</h1>
 
-      {loading && <p className="panel-subtitle">Carregando...</p>}
-      {!loading && lessons.length === 0 && <p className="empty-state">Nenhuma aula publicada ainda. Volte em breve!</p>}
+      {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
+      {!loading && lessons.length === 0 && (
+        <EmptyState icon={CirclePlay} title="Nenhuma aula publicada ainda" description="Assim que a professora publicar a primeira aula, ela aparece aqui. Volte em breve!" />
+      )}
 
       {selected && (
         <div style={{ marginTop: 20 }}>

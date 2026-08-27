@@ -6,6 +6,8 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getRedacaoFile, listMyRedacoes, submitRedacao, submitRedacaoPresencial, type RedacaoSubmission } from '@/lib/redacoes'
 import { listTemas, type TemaRedacao } from '@/lib/temas-redacao'
+import { EmptyState } from '@/components/EmptyState'
+import { ListSkeleton } from '@/components/ListSkeleton'
 
 export const Route = createFileRoute('/redacoes')({
   beforeLoad: async () => {
@@ -271,7 +273,7 @@ function RedacoesPage() {
 
       <section>
         <h2 className="panel-section-title">Suas redações enviadas</h2>
-        {loading && <p className="panel-subtitle">Carregando...</p>}
+        {loading && <ListSkeleton rows={3} />}
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
           {submissions.map((submission) => (
             <div key={submission.id} className="panel-card plain" style={{ marginTop: 0 }}>
@@ -321,7 +323,9 @@ function RedacoesPage() {
               )}
             </div>
           ))}
-          {!loading && submissions.length === 0 && <p className="empty-state">Você ainda não enviou nenhuma redação.</p>}
+          {!loading && submissions.length === 0 && (
+            <EmptyState icon={PenLine} title="Você ainda não enviou nenhuma redação" description="Escolha um tema acima e envie seu texto — assim que a professora corrigir, a nota e o comentário aparecem aqui." />
+          )}
         </div>
       </section>
     </main>

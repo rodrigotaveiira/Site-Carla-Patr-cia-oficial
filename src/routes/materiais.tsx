@@ -1,10 +1,12 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Download, ShieldCheck } from 'lucide-react'
+import { Download, Files, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { EmptyState } from '@/components/EmptyState'
+import { ListSkeleton } from '@/components/ListSkeleton'
 
 export const Route = createFileRoute('/materiais')({
   beforeLoad: async () => {
@@ -59,7 +61,7 @@ function MateriaisPage() {
       </p>
 
       {error && <p className="form-error">{error}</p>}
-      {loading && <p className="panel-subtitle">Carregando...</p>}
+      {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
 
       <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
         {materials.map((material) => (
@@ -78,7 +80,9 @@ function MateriaisPage() {
             </button>
           </div>
         ))}
-        {!loading && materials.length === 0 && <p className="empty-state">Nenhum material disponível ainda. A professora vai adicionar em breve.</p>}
+        {!loading && materials.length === 0 && (
+          <EmptyState icon={Files} title="Nenhum material disponível ainda" description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui." />
+        )}
       </div>
     </main>
   )
