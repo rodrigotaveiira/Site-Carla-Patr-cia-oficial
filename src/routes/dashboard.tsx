@@ -27,7 +27,7 @@ const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 type MaterialMeta = MaterialListItem
 
 // Tempo mínimo que o aluno precisa ficar na plataforma para o dia contar na meta semanal.
-const MINUTES_TO_COUNT_ACCESS = 10
+const MINUTES_TO_COUNT_ACCESS = 5
 
 // Tempo de inatividade (sem tocar na tela/teclado/mouse) até deslogar o aluno automaticamente.
 const INACTIVITY_LIMIT_MINUTES = 15
