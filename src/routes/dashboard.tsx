@@ -394,6 +394,9 @@ function DashboardPage() {
     reader.readAsDataURL(file)
   }
 
+  // Troféu da meta semanal: prata a partir de 3 dias, dourado só quando a meta (5 dias) é batida.
+  const weeklyDaysDone = weeklyGoal ? weeklyGoal.completedDates.length : 0
+
   return (
     <main className="student-app">
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
@@ -513,7 +516,13 @@ function DashboardPage() {
               </section>
             )}
 
-            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? <span className="streak-badge">✒️ {streak}</span> : <Trophy />}</div><div className="week-days">{weeklyGoal ? weeklyGoal.dates.map((date, index) => {
+            <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? (
+              <span className="streak-badge">✒️ {streak}</span>
+            ) : weeklyDaysDone >= 5 ? (
+              <Trophy className="trophy-gold" />
+            ) : weeklyDaysDone >= 3 ? (
+              <Trophy className="trophy-silver" />
+            ) : null}</div><div className="week-days">{weeklyGoal ? weeklyGoal.dates.map((date, index) => {
               const isDone = weeklyGoal?.completedDates.includes(date)
               const isToday = date === new Date().toISOString().slice(0, 10)
               const dayNumber = Number(date.slice(8, 10))

@@ -434,7 +434,8 @@ footer .brand b { color: white; }
 .next-class > p svg { width: 12px; }
 .next-class > button, .correction-card > button, .next-class > a, .correction-card > a { width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 10px 12px; color: white; background: var(--purple); border: 0; border-radius: 4px; font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; }
 .next-class > button svg, .correction-card > button svg, .next-class > a svg, .correction-card > a svg { width: 12px; }
-.weekly-goal .card-title > svg { color: var(--gold); }
+.weekly-goal .card-title > svg.trophy-gold { color: var(--gold); }
+.weekly-goal .card-title > svg.trophy-silver { color: #9ca3af; }
 .week-days { display: flex; justify-content: space-between; margin-top: 24px; }
 .week-days span { display: flex; flex-direction: column; align-items: center; gap: 5px; }
 .week-days i { width: 28px; height: 28px; display: grid; place-items: center; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 13px; font-style: normal; }
