@@ -53,6 +53,7 @@ function MentoriasPage() {
   const futureSlots = slots.filter((slot) => slot.date >= today)
   const mySlots = futureSlots.filter((slot) => slot.status === 'booked' && slot.student?.email === user?.email)
   const availableSlots = futureSlots.filter((slot) => slot.status === 'available')
+  const hasBooking = mySlots.length > 0
 
   const grouped = availableSlots.reduce<Record<string, MentoriaSlot[]>>((acc, slot) => {
     acc[slot.date] = acc[slot.date] || []
@@ -121,6 +122,9 @@ function MentoriasPage() {
 
       <section>
         <h2 className="panel-section-title">Horários disponíveis</h2>
+        {hasBooking && (
+          <p className="panel-section-hint">Você já tem um encontro marcado. Cancele-o acima pra poder escolher outro horário.</p>
+        )}
         {loading && <p className="panel-subtitle">Carregando...</p>}
         {!loading && Object.keys(grouped).length === 0 && (
           <EmptyState icon={CalendarDays} title="Nenhum horário disponível no momento" description="A professora ainda não abriu novos horários de mentoria. Volte em breve!" />
@@ -133,7 +137,13 @@ function MentoriasPage() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {dateSlots.map((slot) => (
-                  <button key={slot.id} onClick={() => handleBook(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-ghost">
+                  <button
+                    key={slot.id}
+                    onClick={() => handleBook(slot.id)}
+                    disabled={actionLoadingId === slot.id || hasBooking}
+                    title={hasBooking ? 'Cancele seu encontro marcado pra escolher outro horário.' : undefined}
+                    className="btn btn-ghost"
+                  >
                     <Clock3 size={14} /> {slot.time} {actionLoadingId === slot.id ? '...' : ''}
                   </button>
                 ))}

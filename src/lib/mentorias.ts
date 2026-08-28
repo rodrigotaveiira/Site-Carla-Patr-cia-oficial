@@ -81,6 +81,21 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
     if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw new Error('Sua conta ainda não foi aprovada.')
 
     const store = slotsStore()
+
+    // Cada aluno só pode ter um encontro individual futuro marcado por vez —
+    // evita que um aluno reserve vários horários e "trave" a agenda pros outros.
+    if (!userHasRole(user, 'admin')) {
+      const today = new Date().toISOString().slice(0, 10)
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        if (blob.key === data.id) continue
+        const existing = await store.get(blob.key, { type: 'json' }) as MentoriaSlot | null
+        if (existing?.status === 'booked' && existing.student?.email === user.email && existing.date >= today) {
+          throw new Error('Você já tem um encontro individual marcado. Cancele-o antes de marcar outro horário.')
+        }
+      }
+    }
+
     const entry = await store.getWithMetadata(data.id, { type: 'json' })
     if (!entry) throw new Error('Esse horário não existe mais. Atualize a página.')
 
