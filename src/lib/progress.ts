@@ -57,7 +57,7 @@ export type StudentProgress = {
 // Meta de engajamento usada só para calcular a fatia de "redações" do progresso geral:
 // entregar 5 redações conta como 100% nessa fatia. É um número de referência, não uma
 // quantidade mínima obrigatória — pode ser ajustado aqui se fizer sentido mudar.
-const REDACOES_META_PROGRESSO = 5
+export const REDACOES_META_PROGRESSO = 5
 
 // Calcula o "progresso geral" do aluno logado, combinando aulas assistidas e redações entregues.
 export const getStudentProgress = createServerFn({ method: 'GET' }).handler(async () => {

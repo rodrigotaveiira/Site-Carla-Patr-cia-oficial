@@ -11,7 +11,7 @@ import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
-import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
+import { getStudentProgress, REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 import { getCompetencyScheme, type Competency } from '@/lib/competencies'
 import { listLembretes, type Lembrete } from '@/lib/lembretes'
@@ -184,11 +184,6 @@ function DashboardPage() {
     ['Concordância verbal', 'Gramática · 45%', '28 min'],
     ['Repertório sociocultural', 'Repertório · 20%', '41 min'],
   ] as const
-
-  const [contentCounts, setContentCounts] = useState<ContentCounts | null>(null)
-  useEffect(() => {
-    getContentCounts().then(setContentCounts).catch(() => { /* mantém null, card mostra "Carregando..." */ })
-  }, [])
 
   const [studentProgress, setStudentProgress] = useState<StudentProgress | null>(null)
   useEffect(() => {
@@ -477,15 +472,14 @@ function DashboardPage() {
 
           <div className="dashboard-grid">
             <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => showToast('Em breve: mais opções de personalização do progresso.', 'info')}><MoreHorizontal /></button></div><div className="progress-list">
-              {contentCounts ? [
-                ['Aulas em vídeo', `${contentCounts.aulas} aula${contentCounts.aulas === 1 ? '' : 's'} disponíveis`, contentCounts.aulas, '#6d28d9'],
-                ['Materiais', `${contentCounts.materiais} arquivo${contentCounts.materiais === 1 ? '' : 's'} disponíveis`, contentCounts.materiais, '#0f7890'],
-                ['Biblioteca de conteúdos', `${Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0)} arquivo(s) disponíveis`, Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0), '#c8a24d'],
-              ].map(([title, detail, value, color]) => {
-                const maxValue = Math.max(1, contentCounts.aulas, contentCounts.materiais, Object.values(contentCounts.bibliotecas).reduce((a, b) => a + b, 0))
-                const percent = Math.round((Number(value) / maxValue) * 100)
-                return <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{value}</strong></div>
-              }) : Array.from({ length: 3 }).map((_, index) => (
+              {studentProgress ? [
+                ['Aulas assistidas', `${studentProgress.aulasAssistidas} de ${studentProgress.aulasDisponiveis} aulas`, studentProgress.aulasPercent, '#6d28d9'],
+                ['Redações entregues', `${studentProgress.redacoesEntregues} de ${REDACOES_META_PROGRESSO} redações`, studentProgress.redacoesPercent, '#0f7890'],
+              ].map(([title, detail, percent, color]) => (
+                // A barra só sobe de acordo com o progresso real do aluno (aulas assistidas e
+                // redações entregues) — não com a quantidade de conteúdo disponível na plataforma.
+                <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{percent}%</strong></div>
+              )) : Array.from({ length: 2 }).map((_, index) => (
                 <div key={index} style={{ display: 'grid', gridTemplateColumns: '105px 1fr 34px', alignItems: 'center', gap: 13 }}>
                   <div className="skeleton skeleton-line sm" style={{ width: '75%' }} />
                   <div className="skeleton" style={{ height: 5, borderRadius: 4 }} />
