@@ -67,7 +67,7 @@ const sidebarItems = [
   { icon: Target, label: 'Simulados', href: '/simulados' },
   { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
   { icon: BookCheck, label: 'Gabaritos dos Simulados', href: '/conteudo/gabaritos' },
-  { icon: CalendarDays, label: 'Mentorias', href: '/mentorias' },
+  { icon: CalendarDays, label: 'Encontros Individuais', href: '/mentorias' },
   { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
   { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
   { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
@@ -359,7 +359,7 @@ function DashboardPage() {
       if (faltam > 0) items.push({ id: 'meta-semanal', text: `Faltam ${faltam} dia(s) de estudo para bater sua meta semanal.` })
       else items.push({ id: 'meta-ok', text: 'Você já bateu sua meta semanal. Parabéns! 🎉' })
     }
-    items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque uma mentoria individual.' })
+    items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque um encontro individual.' })
     return items
   }, [weeklyGoal, lembretes, contentNotifications])
 

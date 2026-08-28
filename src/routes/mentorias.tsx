@@ -89,7 +89,7 @@ function MentoriasPage() {
   return (
     <main className="panel">
       <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
-      <h1 style={{ marginBottom: 4 }}>Mentorias individuais</h1>
+      <h1 style={{ marginBottom: 4 }}>Encontros Individuais</h1>
       <p className="panel-subtitle">Escolha um horário disponível para conversar com a Carla. Cada encontro dura 40 minutos.</p>
 
       {actionError && (

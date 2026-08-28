@@ -5,7 +5,7 @@ const FEATURES = [
   { icon: CirclePlay, label: 'Aulas em vídeo, no seu ritmo' },
   { icon: FileCheck2, label: 'Redações com correção detalhada' },
   { icon: Target, label: 'Simulados com nota na hora' },
-  { icon: CalendarDays, label: 'Mentorias com a Carla' },
+  { icon: CalendarDays, label: 'Encontros individuais com a Carla' },
 ] as const
 
 // Boas-vindas de primeiro acesso: aparece uma única vez, some pra sempre depois do primeiro dismiss.
