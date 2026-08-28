@@ -584,7 +584,11 @@ function DashboardPage() {
                 <div className="competencies">{competencyScheme.map((competency) => {
                   const score = latestCorrection?.competencyScores?.find((s) => s.id === competency.id)
                   const value = score?.value ?? 0
-                  return <span key={competency.id}><i style={{ height: `${(value / competency.maxValue) * 100}%` }} /><small>{competency.label.split(' ')[0]}</small><b>{score ? value : '–'}</b></span>
+                  // Usa o maxValue guardado na própria nota (de quando ela foi corrigida), não o
+                  // esquema atual — evita a barra estourar se a professora editar os valores depois.
+                  const maxValue = score?.maxValue || competency.maxValue || 1
+                  const percent = Math.max(0, Math.min(100, (value / maxValue) * 100))
+                  return <span key={competency.id}><i style={{ height: `${percent}%` }} /><small>{competency.label.split(' ')[0]}</small><b>{score ? value : '–'}</b></span>
                 })}</div>
                 <Link to="/redacoes">{latestCorrection ? 'Ver correção detalhada' : 'Enviar redação'} <ChevronRight /></Link>
               </section>
