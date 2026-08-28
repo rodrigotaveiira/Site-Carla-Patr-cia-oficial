@@ -591,7 +591,9 @@ function DashboardPage() {
                   // esquema atual — evita a barra estourar se a professora editar os valores depois.
                   const maxValue = score?.maxValue || competency.maxValue || 1
                   const percent = Math.max(0, Math.min(100, (value / maxValue) * 100))
-                  return <span key={competency.id}><i style={{ height: `${percent}%` }} /><small>{competency.label.split(' ')[0]}</small><b>{score ? value : '–'}</b></span>
+                  // Mostra o nome inteiro da competência (quebrando em até 2 linhas) em vez de
+                  // cortar na primeira palavra — o rótulo curto ficava ilegível.
+                  return <span key={competency.id}><div className="bar-track"><i style={{ height: `${percent}%` }} /></div><small>{competency.label}</small><b>{score ? value : '–'}</b></span>
                 })}</div>
                 <Link to="/redacoes">{latestCorrection ? 'Ver correção detalhada' : 'Enviar redação'} <ChevronRight /></Link>
               </section>

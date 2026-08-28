@@ -470,10 +470,13 @@ footer .brand b { color: white; }
 .material-item button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 112px; padding: 9px 12px; color: white; background: linear-gradient(135deg, var(--purple), #4f46e5); border: 0; border-radius: 5px; font-size: 13px; font-weight: 800; cursor: pointer; }
 .material-item button svg { width: 13px; }
 .correction-card > p { color: #7d8693; font-size: 13px; line-height: 1.6; }
-.competencies { height: 86px; display: flex; align-items: flex-end; justify-content: space-around; gap: 8px; padding: 8px 10px 0; border-bottom: 1px solid #e8eaf0; }
-.competencies span { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; }
-.competencies i { width: 15px; min-height: 20px; background: linear-gradient(#a855f7, #6d28d9); border-radius: 3px 3px 0 0; }
-.competencies small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #9aa2ac; font-size: 11px; }
+.competencies { display: flex; align-items: flex-end; justify-content: space-around; gap: 6px; padding: 10px 8px 0; border-bottom: 1px solid #e8eaf0; }
+.competencies span { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.competencies .bar-track { width: 100%; max-width: 16px; height: 46px; display: flex; align-items: flex-end; justify-content: center; }
+.competencies i { width: 100%; min-height: 6px; background: linear-gradient(#a855f7, #6d28d9); border-radius: 3px 3px 0 0; }
+/* Duas linhas garantidas (min-height) pra caber o nome inteiro da competência sem cortar,
+   e pra toda coluna ter a mesma altura (barras ficam alinhadas mesmo com nomes de tamanhos diferentes). */
+.competencies small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px; max-width: 100%; color: #9aa2ac; font-size: 10.5px; line-height: 1.3; text-align: center; word-break: break-word; }
 .competencies b { color: var(--navy); font-size: 12px; }
 
 @media (max-width: 1100px) {
@@ -668,7 +671,6 @@ footer .brand b { color: white; }
   .material-item small { font-size: 13px; }
   .material-item button { font-size: 13px; }
   .correction-card > p { font-size: 13px; }
-  .competencies small { font-size: 13px; }
   .competencies b { font-size: 13px; }
 
 }
