@@ -1,7 +1,7 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
   BookCheck, BookMarked, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
-  LogOut, Menu, MessageSquareText, Pencil, Settings, Target, TrendingUp, User, Users, X, Zap,
+  LogOut, Menu, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -121,12 +121,6 @@ function AppLayout() {
 
       <section className="student-main">
         <button className="mobile-nav-toggle" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu"><Menu /></button>
-        {/* Marca d'água dentro da aba de conteúdo — fixa no canto, atrás de tudo,
-            nunca clicável. Some em telas pequenas, onde só atrapalharia. */}
-        <div className="panel-watermark" aria-hidden="true">
-          <Pencil />
-          <span>Carla Patrícia</span>
-        </div>
         <Outlet />
       </section>
     </main>
