@@ -58,21 +58,41 @@ export const Route = createFileRoute('/dashboard')({
 })
 
 
-const sidebarItems = [
-  { icon: Home, label: 'Dashboard', href: '#top' },
-  { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
-  { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
-  { icon: Files, label: 'Materiais', href: '/materiais' },
-  { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
-  { icon: Target, label: 'Simulados', href: '/simulados' },
-  { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
-  { icon: BookCheck, label: 'Gabaritos dos Simulados', href: '/conteudo/gabaritos' },
-  { icon: CalendarDays, label: 'Encontros Individuais', href: '/mentorias' },
-  { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
-  { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
-  { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
-  { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
-  { icon: User, label: 'Perfil', href: '/perfil' },
+// Agrupado por intenção (estudar / avaliar / acompanhar) em vez de uma lista única de
+// 14 itens — mais rápido de escanear que um menu corrido.
+const sidebarGroups = [
+  {
+    title: null,
+    items: [{ icon: Home, label: 'Dashboard', href: '#top' }],
+  },
+  {
+    title: 'Estudar',
+    items: [
+      { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
+      { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
+      { icon: Files, label: 'Materiais', href: '/materiais' },
+      { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
+      { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
+      { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
+    ],
+  },
+  {
+    title: 'Avaliar',
+    items: [
+      { icon: Target, label: 'Simulados', href: '/simulados' },
+      { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
+      { icon: BookCheck, label: 'Gabaritos dos Simulados', href: '/conteudo/gabaritos' },
+    ],
+  },
+  {
+    title: 'Acompanhar',
+    items: [
+      { icon: CalendarDays, label: 'Encontros Individuais', href: '/mentorias' },
+      { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
+      { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
+      { icon: User, label: 'Perfil', href: '/perfil' },
+    ],
+  },
 ] as const
 async function downloadMaterial(id: string) {
   const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
@@ -402,11 +422,27 @@ function DashboardPage() {
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
       <aside className={sidebarOpen ? 'student-sidebar open' : 'student-sidebar'}>
         <div className="sidebar-head"><Link className="dashboard-brand" to="/"><span className="brand-mark"><img src="/logo-icone.png" alt="CPM" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></span><span><b>Carla Patrícia</b><small>Área do aluno</small></span></Link><button onClick={() => setSidebarOpen(false)}><X /></button></div>
-        <nav>{sidebarItems.map(({ icon: Icon, label, href }, index) => <a className={index === 0 ? 'active' : ''} href={href} key={label}><Icon />{label}</a>)}
-          {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
-          {isProfessor && <Link to="/professor"><Settings />Painel do professor</Link>}
+        <nav>
+          {sidebarGroups.map((group) => (
+            <div className="sidebar-group" key={group.title ?? 'inicio'}>
+              {group.title && <small className="sidebar-group-title">{group.title}</small>}
+              {group.items.map(({ icon: Icon, label, href }) => (
+                <a className={href === '#top' ? 'active' : ''} href={href} key={label}><Icon />{label}</a>
+              ))}
+            </div>
+          ))}
+          {(isAdmin || isProfessor) && (
+            <div className="sidebar-group">
+              <small className="sidebar-group-title">Administração</small>
+              {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
+              {isProfessor && <Link to="/professor"><Settings />Painel do professor</Link>}
+            </div>
+          )}
         </nav>
-        <div className="sidebar-help"><MessageSquareText /><b>Precisa de ajuda?</b><p>Nossa equipe está por perto.</p><a href="mailto:contato@carlapatriciamedina.com.br">Falar com suporte</a></div>
+        <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
+          <MessageSquareText size={16} />
+          <span>Dúvida? Fale com a gente</span>
+        </a>
         <button className="logout" onClick={() => void logout()}><LogOut /> Sair da conta</button>
       </aside>
 
