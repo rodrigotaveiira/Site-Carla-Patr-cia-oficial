@@ -58,6 +58,11 @@ function MateriaisPage() {
       <p className="panel-subtitle">
         Arquivos em Word e PDF enviados pela professora. Cada download é protegido com seu nome e CPF.
       </p>
+      {!loading && !error && materials.length > 0 && (
+        <p className="panel-meta-strip">
+          {materials.length} {materials.length === 1 ? 'material disponível' : 'materiais disponíveis'} · o mais recente é de {new Date(materials[0].createdAt).toLocaleDateString('pt-BR')}
+        </p>
+      )}
 
       {error && <p className="form-error">{error}</p>}
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
@@ -72,6 +77,7 @@ function MateriaisPage() {
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b style={{ color: 'var(--navy)' }}>{material.title}</b>
                 {material.description && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.description}</div>}
+                <div className="list-meta">Adicionado em {new Date(material.createdAt).toLocaleDateString('pt-BR')}</div>
               </div>
             </div>
             <button onClick={() => handleDownload(material.id)} disabled={downloadingId === material.id} className="btn btn-primary btn-sm">

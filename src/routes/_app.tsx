@@ -1,7 +1,7 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
   BookCheck, BookMarked, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
-  LogOut, Menu, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
+  LogOut, Menu, MessageSquareText, Pencil, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -112,6 +112,12 @@ function AppLayout() {
             </div>
           )}
         </nav>
+        {/* Preenche o espaço roxo que sobra entre o menu e o rodapé da barra —
+            era a maior área "vazia" da tela, mesmo com o menu recolhido. */}
+        <div className="sidebar-watermark" aria-hidden="true">
+          <Pencil />
+          <span>Carla Patrícia</span>
+        </div>
         <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
           <MessageSquareText size={16} />
           <span>Dúvida? Fale com a gente</span>
