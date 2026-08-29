@@ -100,7 +100,7 @@ function ProgressoPage() {
                     <span>{row.count}</span>
                   </div>
                   <div style={{ marginTop: 6, height: 6, background: '#f0f1f4', borderRadius: 4, overflow: 'hidden' }}>
-                    <div style={{ width: `${(row.count / maxCount) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #a855f7, #6d28d9)' }} />
+                    <div style={{ width: `${(row.count / maxCount) * 100}%`, height: '100%', background: 'var(--purple)' }} />
                   </div>
                 </div>
               </a>

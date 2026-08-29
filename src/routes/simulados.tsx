@@ -210,7 +210,7 @@ function SimuladosPage() {
             {chronological.map((attempt) => (
               <div key={attempt.id} title={attempt.simuladoTitle} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 44 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{attempt.percent}%</span>
-                <div style={{ width: 24, height: `${Math.max(6, (attempt.percent / 100) * 80)}px`, background: 'linear-gradient(180deg, #a855f7, #6d28d9)', borderRadius: 4 }} />
+                <div style={{ width: 24, height: `${Math.max(6, (attempt.percent / 100) * 80)}px`, background: 'var(--purple)', borderRadius: 4 }} />
                 <span style={{ fontSize: 10, color: '#9ca3af' }}>{new Date(attempt.submittedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
               </div>
             ))}

@@ -519,9 +519,9 @@ function DashboardPage() {
             <section className="dashboard-card weekly-goal"><div className="card-title"><div><span>Meta semanal</span><h3>{weeklyGoal ? weeklyGoal.completedDates.length : 0} de {weeklyGoal ? weeklyGoal.goal : 5} dias de estudo</h3></div>{streak && streak > 1 ? (
               <span className="streak-badge">✒️ {streak}</span>
             ) : weeklyDaysDone >= 5 ? (
-              <Trophy className="trophy-gold" />
+              <span className="trophy-chip"><Trophy size={15} /> {weeklyDaysDone}</span>
             ) : weeklyDaysDone >= 3 ? (
-              <Trophy className="trophy-silver" />
+              <span className="trophy-chip silver"><Trophy size={15} /> {weeklyDaysDone}</span>
             ) : null}</div><div className="week-days">{weeklyGoal ? weeklyGoal.dates.map((date, index) => {
               const isDone = weeklyGoal?.completedDates.includes(date)
               const isToday = date === new Date().toISOString().slice(0, 10)

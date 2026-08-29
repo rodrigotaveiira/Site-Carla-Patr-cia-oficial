@@ -1,8 +1,25 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
+import { Compass } from 'lucide-react'
 import { CallbackHandler } from '@/components/CallbackHandler'
 import { IdentityProvider } from '@/lib/identity-context'
 import { ToastProvider } from '@/lib/toast'
 import '../styles.css'
+
+function NotFoundPage() {
+  return (
+    <main className="panel" style={{ textAlign: 'center' }}>
+      <div className="designed-empty" style={{ padding: '60px 0 20px' }}>
+        <span className="designed-empty-icon"><Compass /></span>
+        <b style={{ fontSize: 17 }}>Essa página não existe</b>
+        <p>O endereço que você tentou abrir não existe ou foi movido. Confira o link ou volte para um lugar conhecido.</p>
+      </div>
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+        <Link to="/dashboard" className="btn btn-primary">Ir para o dashboard</Link>
+        <Link to="/" className="btn btn-ghost">Voltar para o início</Link>
+      </div>
+    </main>
+  )
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -39,6 +56,7 @@ export const Route = createRootRoute({
     ],
   }),
   shellComponent: RootDocument,
+  notFoundComponent: NotFoundPage,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {

@@ -262,7 +262,7 @@ function RedacoesPage() {
               {chronological.map((submission) => (
                 <div key={submission.id} title={submission.title} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 44 }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{submission.grade}</span>
-                  <div style={{ width: 24, height: `${Math.max(6, ((submission.grade ?? 0) / maxGrade) * 90)}px`, background: 'linear-gradient(180deg, #a855f7, #6d28d9)', borderRadius: 4 }} />
+                  <div style={{ width: 24, height: `${Math.max(6, ((submission.grade ?? 0) / maxGrade) * 90)}px`, background: 'var(--purple)', borderRadius: 4 }} />
                   <span style={{ fontSize: 10, color: '#9ca3af' }}>{new Date(submission.correctedAt ?? submission.submittedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
                 </div>
               ))}
@@ -306,7 +306,7 @@ function RedacoesPage() {
                             <span>{score.value} / {score.maxValue}</span>
                           </div>
                           <div style={{ height: 5, background: '#e5e0f5', borderRadius: 4, overflow: 'hidden', marginTop: 3 }}>
-                            <div style={{ width: `${(score.value / score.maxValue) * 100}%`, height: '100%', background: 'linear-gradient(90deg, #a855f7, #6d28d9)' }} />
+                            <div style={{ width: `${(score.value / score.maxValue) * 100}%`, height: '100%', background: 'var(--purple)' }} />
                           </div>
                         </div>
                       ))}
