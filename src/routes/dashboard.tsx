@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
+  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronDown, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Home, Library, LogOut, Menu, MessageSquareText,
   MoreHorizontal, PenLine, Search, Settings, Target, TrendingUp, Trophy, User, Users, X, Zap,
 } from 'lucide-react'
@@ -66,7 +66,7 @@ const sidebarGroups = [
     items: [{ icon: Home, label: 'Dashboard', href: '#top' }],
   },
   {
-    title: 'Estudar',
+    title: 'Conteúdo',
     items: [
       { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
       { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
@@ -417,6 +417,17 @@ function DashboardPage() {
   // Troféu da meta semanal: prata a partir de 3 dias, dourado só quando a meta (5 dias) é batida.
   const weeklyDaysDone = weeklyGoal ? weeklyGoal.completedDates.length : 0
 
+  // Grupos do menu lateral começam fechados — só mostra os itens quando o aluno clica no título do grupo.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
+  function toggleGroup(title: string) {
+    setOpenGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(title)) next.delete(title)
+      else next.add(title)
+      return next
+    })
+  }
+
   return (
     <main className="student-app">
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
@@ -425,17 +436,29 @@ function DashboardPage() {
         <nav>
           {sidebarGroups.map((group) => (
             <div className="sidebar-group" key={group.title ?? 'inicio'}>
-              {group.title && <small className="sidebar-group-title">{group.title}</small>}
-              {group.items.map(({ icon: Icon, label, href }) => (
+              {group.title && (
+                <button type="button" className="sidebar-group-title" onClick={() => toggleGroup(group.title)}>
+                  {group.title}
+                  <ChevronDown size={13} className={openGroups.has(group.title) ? 'open' : ''} />
+                </button>
+              )}
+              {(!group.title || openGroups.has(group.title)) && group.items.map(({ icon: Icon, label, href }) => (
                 <a className={href === '#top' ? 'active' : ''} href={href} key={label}><Icon />{label}</a>
               ))}
             </div>
           ))}
           {(isAdmin || isProfessor) && (
             <div className="sidebar-group">
-              <small className="sidebar-group-title">Administração</small>
-              {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
-              {isProfessor && <Link to="/professor"><Settings />Painel do professor</Link>}
+              <button type="button" className="sidebar-group-title" onClick={() => toggleGroup('Administração')}>
+                Administração
+                <ChevronDown size={13} className={openGroups.has('Administração') ? 'open' : ''} />
+              </button>
+              {openGroups.has('Administração') && (
+                <>
+                  {isAdmin && <Link to="/admin"><Settings />Painel admin</Link>}
+                  {isProfessor && <Link to="/professor"><Settings />Painel do professor</Link>}
+                </>
+              )}
             </div>
           )}
         </nav>

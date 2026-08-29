@@ -316,7 +316,16 @@ footer .brand b { color: white; }
 .dashboard-brand b { color: white; }
 .student-sidebar nav { display: grid; gap: 16px; }
 .sidebar-group { display: grid; gap: 3px; }
-.sidebar-group-title { display: block; padding: 10px 13px 3px; color: rgba(226, 216, 245, .42); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.sidebar-group-title {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  margin: 4px 0 1px; padding: 8px 13px; background: none; border: 0; border-radius: 7px;
+  color: rgba(226, 216, 245, .55); font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .08em; cursor: pointer; transition: background .15s, color .15s;
+}
+.sidebar-group-title:hover { color: rgba(226, 216, 245, .85); background: #ffffff0a; }
+.sidebar-group-title:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
+.sidebar-group-title svg { width: 13px; color: rgba(226, 216, 245, .4); transition: transform .18s ease; }
+.sidebar-group-title svg.open { transform: rotate(180deg); color: rgba(226, 216, 245, .8); }
 .student-sidebar nav a { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 13px; color: rgba(226, 216, 245, 0.75); border-radius: 7px; font-size: 15px; font-weight: 600; transition: background .15s, color .15s, box-shadow .15s; }
 .student-sidebar nav a svg { width: 17px; }
 .student-sidebar nav a:hover { color: white; background: #ffffff0e; }
