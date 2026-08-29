@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Download, FileText } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -9,7 +9,7 @@ import {
   listContentItems, type ContentItem, type ContentSection,
 } from '@/lib/content-library'
 
-export const Route = createFileRoute('/conteudo/$secao')({
+export const Route = createFileRoute('/_app/conteudo/$secao')({
   beforeLoad: async ({ params }) => {
     if (!isContentSection(params.secao)) throw redirect({ to: '/dashboard' })
 
@@ -63,8 +63,7 @@ function ConteudoPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1>{sectionLabel}</h1>
       <p className="panel-subtitle">Materiais em PDF enviados pela professora Carla. Cada download é protegido com seu nome e CPF.</p>
 
@@ -88,6 +87,6 @@ function ConteudoPage() {
         ))}
         {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo disponível ainda nesta seção.</p>}
       </div>
-    </main>
+    </div>
   )
 }

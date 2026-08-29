@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CalendarDays, Clock3 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -7,7 +7,7 @@ import { userHasRole, isStaff } from '@/lib/roles'
 import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
 import { EmptyState } from '@/components/EmptyState'
 
-export const Route = createFileRoute('/mentorias')({
+export const Route = createFileRoute('/_app/mentorias')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -88,8 +88,7 @@ function MentoriasPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1 style={{ marginBottom: 4 }}>Encontros Individuais</h1>
       <p className="panel-subtitle">Escolha um horário disponível para conversar com a Carla. Cada encontro dura 40 minutos.</p>
 
@@ -152,6 +151,6 @@ function MentoriasPage() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   )
 }

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CalendarDays, Check, Download, HandHelping, PenLine, Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -9,7 +9,7 @@ import { listTemas, type TemaRedacao } from '@/lib/temas-redacao'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
-export const Route = createFileRoute('/redacoes')({
+export const Route = createFileRoute('/_app/redacoes')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -115,8 +115,7 @@ function RedacoesPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1>Redações</h1>
       <p className="panel-subtitle">Envie uma foto ou arquivo da sua redação para correção da professora.</p>
 
@@ -328,6 +327,6 @@ function RedacoesPage() {
           )}
         </div>
       </section>
-    </main>
+    </div>
   )
 }

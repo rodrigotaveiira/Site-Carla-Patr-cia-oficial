@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CalendarDays, Clock3, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -7,7 +7,7 @@ import { userHasRole, isStaff } from '@/lib/roles'
 import { joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots, type MentoriaGrupoSlot } from '@/lib/mentorias-grupo'
 import { EmptyState } from '@/components/EmptyState'
 
-export const Route = createFileRoute('/mentorias-grupo')({
+export const Route = createFileRoute('/_app/mentorias-grupo')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -89,8 +89,7 @@ function MentoriasGrupoPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1 style={{ marginBottom: 4 }}>Mentorias em grupo</h1>
       <p className="panel-subtitle">Entre em um grupo com horário e número de vagas definidos pela professora.</p>
 
@@ -151,6 +150,6 @@ function MentoriasGrupoPage() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   )
 }

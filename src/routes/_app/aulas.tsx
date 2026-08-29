@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CheckCircle2, CirclePlay } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -9,7 +9,7 @@ import { getMyWatchedLessons, markLessonWatched } from '@/lib/lesson-progress'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
-export const Route = createFileRoute('/aulas')({
+export const Route = createFileRoute('/_app/aulas')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -74,8 +74,7 @@ function AulasPage() {
   }, {})
 
   return (
-    <main className="panel panel-wide">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel panel-wide">
       <h1>Aulas</h1>
 
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
@@ -130,6 +129,6 @@ function AulasPage() {
           ))}
         </div>
       )}
-    </main>
+    </div>
   )
 }

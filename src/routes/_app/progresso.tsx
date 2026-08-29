@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BookMarked, CircleHelp, CirclePlay, Files, Library, Target, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,7 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
 
-export const Route = createFileRoute('/progresso')({
+export const Route = createFileRoute('/_app/progresso')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -48,8 +48,7 @@ function ProgressoPage() {
   const maxCount = Math.max(1, ...rows.map((r) => r.count))
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1 style={{ marginBottom: 4 }}>Meu progresso</h1>
       <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas e nas redações entregues.</p>
 
@@ -108,6 +107,6 @@ function ProgressoPage() {
           </div>
         </>
       )}
-    </main>
+    </div>
   )
 }

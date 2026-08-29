@@ -346,7 +346,9 @@ footer .brand b { color: white; }
   background-size: 16px 16px;
 }
 .dashboard-topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 34px; background: white; border-bottom: 1px solid #e8eaf0; }
-.dashboard-menu { display: none; }
+/* Botão de abrir o menu no celular — mora no layout (_app.tsx), não em cada página,
+   porque agora a barra lateral persiste entre todas as páginas do aluno. */
+.mobile-nav-toggle { display: none; }
 .dashboard-search { position: relative; display: flex; align-items: center; gap: 10px; flex: 1 1 330px; min-width: 0; max-width: 330px; }
 .dashboard-search svg { width: 17px; color: #9ca3af; flex-shrink: 0; }
 .dashboard-search input { width: 100%; border: 0; outline: 0; font-size: 15px; }
@@ -362,7 +364,7 @@ footer .brand b { color: white; }
 .topbar-actions { flex-shrink: 0; display: flex; align-items: center; gap: 20px; }
 .topbar-actions > button { position: relative; color: #667085; background: none; border: 0; border-radius: 50%; padding: 6px; cursor: pointer; transition: background .15s, color .15s; }
 .topbar-actions > button:hover { color: var(--purple); background: var(--lilac-tint); }
-.topbar-actions > button:focus-visible, .topbar-logout:focus-visible, .avatar-edit-button:focus-visible, .dashboard-menu:focus-visible {
+.topbar-actions > button:focus-visible, .topbar-logout:focus-visible, .avatar-edit-button:focus-visible {
   outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); border-radius: 50%;
 }
 .topbar-actions > button svg { width: 19px; }
@@ -586,7 +588,15 @@ footer .brand b { color: white; }
   .student-sidebar { position: fixed; z-index: 100; left: -250px; width: 235px; transition: left .3s; }
   .student-sidebar.open { left: 0; box-shadow: 20px 0 50px #0b193a55; }
   .sidebar-head > button { display: block; color: white; background: none; border: 0; }
-  .dashboard-menu { display: grid; place-items: center; color: var(--navy); background: none; border: 0; }
+  .mobile-nav-toggle {
+    display: flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; margin: 12px 0 0 14px;
+    color: var(--navy); background: white; border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(15,35,66,.08); cursor: pointer;
+  }
+  .mobile-nav-toggle:hover { border-color: var(--purple); color: var(--purple); }
+  .mobile-nav-toggle:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
+  .mobile-nav-toggle svg { width: 19px; }
   .dashboard-search { margin-left: 15px; }
 }
 

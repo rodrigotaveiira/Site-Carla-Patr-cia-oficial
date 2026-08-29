@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Check, MessageCircleHeart, Send, User as UserIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -8,7 +8,7 @@ import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { listMyRecados, sendRecado, type Recado } from '@/lib/recados'
 import { useToast } from '@/lib/toast'
 
-export const Route = createFileRoute('/perfil')({
+export const Route = createFileRoute('/_app/perfil')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -128,8 +128,7 @@ function PerfilPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1><UserIcon /> Meu perfil</h1>
       <p className="panel-subtitle">Edite sua foto, seu nome e mande um recado direto para a professora.</p>
 
@@ -192,6 +191,6 @@ function PerfilPage() {
         )}
         {loadingRecados && myRecados.length === 0 && <p className="panel-card-hint" style={{ marginTop: 14 }}>Carregando seus recados...</p>}
       </section>
-    </main>
+    </div>
   )
 }

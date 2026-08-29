@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CheckCircle2, ChevronRight, Circle, ClipboardList, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -11,7 +11,7 @@ import {
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
-export const Route = createFileRoute('/simulados')({
+export const Route = createFileRoute('/_app/simulados')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -101,7 +101,7 @@ function SimuladosPage() {
   // --- Tela de resultado ---------------------------------------------
   if (active && result) {
     return (
-      <main className="panel">
+      <div className="panel">
         <button onClick={backToList} className="panel-back">← Voltar aos simulados</button>
         <h1>{active.title}</h1>
 
@@ -139,7 +139,7 @@ function SimuladosPage() {
             )
           })}
         </div>
-      </main>
+      </div>
     )
   }
 
@@ -147,7 +147,7 @@ function SimuladosPage() {
   if (active) {
     const answeredCount = Object.keys(answers).length
     return (
-      <main className="panel">
+      <div className="panel">
         <button onClick={backToList} className="panel-back">← Voltar aos simulados</button>
         <h1>{active.title}</h1>
         <p className="panel-subtitle">{answeredCount} de {active.questions.length} respondidas</p>
@@ -188,14 +188,13 @@ function SimuladosPage() {
           {submitting ? 'Enviando...' : 'Finalizar simulado'}
         </button>
         {takeError && <p className="form-error">{takeError}</p>}
-      </main>
+      </div>
     )
   }
 
   // --- Lista de simulados disponíveis ----------------------------------
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1><ClipboardList /> Simulados</h1>
       <p className="panel-subtitle">Faça o simulado e acompanhe seu crescimento, sua aprovação está a caminho.</p>
 
@@ -255,6 +254,6 @@ function SimuladosPage() {
           </div>
         </section>
       )}
-    </main>
+    </div>
   )
 }

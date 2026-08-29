@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Download, Files, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -8,7 +8,7 @@ import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/mat
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
-export const Route = createFileRoute('/materiais')({
+export const Route = createFileRoute('/_app/materiais')({
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -53,8 +53,7 @@ function MateriaisPage() {
   }
 
   return (
-    <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+    <div className="panel">
       <h1><ShieldCheck /> Materiais</h1>
       <p className="panel-subtitle">
         Arquivos em Word e PDF enviados pela professora. Cada download é protegido com seu nome e CPF.
@@ -84,6 +83,6 @@ function MateriaisPage() {
           <EmptyState icon={Files} title="Nenhum material disponível ainda" description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui." />
         )}
       </div>
-    </main>
+    </div>
   )
 }
