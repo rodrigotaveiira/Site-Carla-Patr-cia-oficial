@@ -335,12 +335,6 @@ footer .brand b { color: white; }
 .student-sidebar nav a.active { color: white; background: #ffffff1f; font-weight: 700; box-shadow: inset 0 0 0 1px #ffffff14; }
 .student-sidebar nav a:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
 .student-sidebar nav a i { margin-left: auto; min-width: 17px; height: 17px; display: grid; place-items: center; color: white; background: var(--purple); border-radius: 20px; font-size: 13px; font-style: normal; }
-/* Preenche o vão roxo entre o menu e o rodapé da barra lateral — cresce ou
-   encolhe com o espaço sobrando (menu recolhido = vão grande, expandido =
-   pequeno), sempre atrás e nunca clicável. */
-.sidebar-watermark { flex: 1 1 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; pointer-events: none; user-select: none; }
-.sidebar-watermark svg { width: 86px; height: 86px; stroke-width: .6px; color: #fff; opacity: .09; transform: rotate(-8deg); }
-.sidebar-watermark span { color: #fff; opacity: .12; font-family: var(--serif); font-style: italic; font-size: 21px; white-space: nowrap; }
 .sidebar-help { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 13px; color: rgba(226, 216, 245, .85); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; transition: background .15s, color .15s; }
 .sidebar-help svg { flex-shrink: 0; color: var(--gold); }
 .sidebar-help:hover { color: #fff; background: #ffffff0e; }
@@ -356,6 +350,21 @@ footer .brand b { color: white; }
   background-image: radial-gradient(rgba(109,40,217,.055) 1px, transparent 1px);
   background-size: 16px 16px;
 }
+
+/* Marca d'água discreta dentro da aba de conteúdo — fica no canto, atrás de
+   tudo, pra tirar a cara de fundo em branco das páginas com pouco conteúdo. */
+.panel-watermark {
+  position: fixed; right: -26px; bottom: -30px; z-index: 0;
+  display: flex; align-items: flex-end; gap: 16px;
+  pointer-events: none; user-select: none;
+}
+.panel-watermark svg { width: 180px; height: 180px; stroke-width: .55px; color: var(--navy); opacity: .05; transform: rotate(-9deg); }
+.panel-watermark span { margin-bottom: 12px; color: var(--navy); font-family: var(--serif); font-style: italic; font-size: 80px; line-height: 1; white-space: nowrap; opacity: .05; }
+@media (max-width: 860px) {
+  .panel-watermark { display: none; }
+}
+.panel, .dashboard-content { position: relative; z-index: 1; }
+
 .dashboard-topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 34px; background: white; border-bottom: 1px solid #e8eaf0; }
 /* Botão de abrir o menu no celular — mora no layout (_app.tsx), não em cada página,
    porque agora a barra lateral persiste entre todas as páginas do aluno. */

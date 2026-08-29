@@ -112,12 +112,6 @@ function AppLayout() {
             </div>
           )}
         </nav>
-        {/* Preenche o espaço roxo que sobra entre o menu e o rodapé da barra —
-            era a maior área "vazia" da tela, mesmo com o menu recolhido. */}
-        <div className="sidebar-watermark" aria-hidden="true">
-          <Pencil />
-          <span>Carla Patrícia</span>
-        </div>
         <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
           <MessageSquareText size={16} />
           <span>Dúvida? Fale com a gente</span>
@@ -127,6 +121,12 @@ function AppLayout() {
 
       <section className="student-main">
         <button className="mobile-nav-toggle" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu"><Menu /></button>
+        {/* Marca d'água dentro da aba de conteúdo — fixa no canto, atrás de tudo,
+            nunca clicável. Some em telas pequenas, onde só atrapalharia. */}
+        <div className="panel-watermark" aria-hidden="true">
+          <Pencil />
+          <span>Carla Patrícia</span>
+        </div>
         <Outlet />
       </section>
     </main>
