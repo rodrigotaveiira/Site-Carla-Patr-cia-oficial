@@ -178,7 +178,7 @@ function HomePage() {
           <div className="portrait-frame">
             <div className="portrait-label"><br /><b></b></div>
             <a href="https://im.ge/i/QM8BQuT"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></a>
-            <div className="floating-card score-card"><span>Nota alcançada</span><b>960</b><small><TrendingUp size={14} /> +180 pontos</small></div>
+            <div className="floating-card score-card"><span>Nota alcançada</span><b>35+</b><small><TrendingUp size={14} /> +180 pontos</small></div>
             <div className="floating-card experience-card"><Award size={22} /><div><b>22+ anos</b><span>de experiência</span></div></div>
           </div>
         </motion.div>
