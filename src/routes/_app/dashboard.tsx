@@ -510,6 +510,8 @@ function DashboardPage() {
             </span>
           ))}</div>{weeklyGoal && weeklyGoal.completedDates.length >= weeklyGoal.goal ? (
             <p className="weekly-goal-success">🎉 Você completou sua meta semanal!</p>
+          ) : weeklyGoal && weeklyGoal.goal - weeklyGoal.completedDates.length === 1 ? (
+            <p className="weekly-goal-success">🔥 Só mais um dia pra bater sua meta da semana!</p>
           ) : weeklyGoal ? (
             <p>Você está a {weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!</p>
           ) : (
