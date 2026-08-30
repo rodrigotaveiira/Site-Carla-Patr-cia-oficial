@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
-  <circle cx="100" cy="100" r="78" stroke="currentColor" stroke-width="4"/>
-  <circle cx="100" cy="100" r="66" stroke="currentColor" stroke-width="1.5"/>
-  <text x="100" y="114" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="46" fill="currentColor">CPM</text>
-</svg>
