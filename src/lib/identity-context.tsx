@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { getUser, logout as identityLogout, onAuthChange, updateUser as identityUpdateUser, type User } from '@netlify/identity'
 import { describeDevice } from './device'
 import { checkSessionActive, registerLogin } from './sessions'
@@ -134,6 +135,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [kickedOut, setKickedOut] = useState(false)
   const isLocalUserRef = useRef(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const localUser = readLocalUser()
@@ -208,6 +210,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
     clearLocalUser()
     window.localStorage.removeItem(DEVICE_SESSION_KEY)
     setUser(null)
+    void navigate({ to: '/login' })
   }
 
   return (
