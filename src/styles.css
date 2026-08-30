@@ -364,15 +364,11 @@ footer .brand b { color: white; }
   pointer-events: none;
   z-index: 0;
 }
-.academic-background img {
+.academic-background .wm-item {
   position: absolute;
   display: block;
-  /* Os recortes vêm de um fundo claro que quase bate com --lilac-tint mas
-     não é idêntico — em opacity puro isso aparece como um retângulo pálido
-     em volta de cada ícone. multiply resolve: branco não altera o fundo,
-     só o traço/sombreado desenhado realmente tinge a página. */
-  mix-blend-mode: multiply;
 }
+.academic-background .wm-item svg { display: block; }
 .panel, .dashboard-content {
   position: relative;
   z-index: 1;
@@ -381,7 +377,7 @@ footer .brand b { color: white; }
 @media (max-width: 720px) {
   /* No celular, só uma fração dos elementos fica visível — o resto some
      pra não poluir uma tela pequena. */
-  .academic-background img.wm-desktop-only { display: none; }
+  .academic-background .wm-desktop-only { display: none; }
 }
 
 .dashboard-topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 34px; background: white; border-bottom: 1px solid #e8eaf0; }
