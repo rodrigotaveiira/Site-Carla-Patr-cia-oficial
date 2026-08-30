@@ -367,7 +367,11 @@ footer .brand b { color: white; }
 .academic-background img {
   position: absolute;
   display: block;
-  filter: none;
+  /* Os recortes vêm de um fundo claro que quase bate com --lilac-tint mas
+     não é idêntico — em opacity puro isso aparece como um retângulo pálido
+     em volta de cada ícone. multiply resolve: branco não altera o fundo,
+     só o traço/sombreado desenhado realmente tinge a página. */
+  mix-blend-mode: multiply;
 }
 .panel, .dashboard-content {
   position: relative;

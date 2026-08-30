@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<circle cx="256" cy="256" r="205" fill="none" stroke="#7C3AED" stroke-width="12"/>
-<circle cx="256" cy="256" r="185" fill="none" stroke="#C4B5FD" stroke-width="4"/>
-<text x="256" y="285" text-anchor="middle" font-family="cursive" font-size="125" font-style="italic" fill="#7C3AED">CPM</text>
-<path d="M150 330 Q255 365 365 320" fill="none" stroke="#7C3AED" stroke-width="7" stroke-linecap="round"/>
-</svg>
