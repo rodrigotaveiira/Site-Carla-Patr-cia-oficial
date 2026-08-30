@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
+  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Library, LogOut,
   MoreHorizontal, PenLine, Search, Target, Trophy, Zap,
 } from 'lucide-react'
@@ -9,7 +9,7 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
-import { getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type WeeklyGoal } from '@/lib/weekly-activity'
+import { getMonthlyActivity, getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type MonthlyActivity, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
 import { getStudentProgress, REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
@@ -21,6 +21,7 @@ import { searchContent, type SearchResult, type SearchResultType } from '@/lib/s
 import { downloadAchievementImage } from '@/lib/achievement-image'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
+import { MonthReviewModal } from '@/components/MonthReviewModal'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -289,6 +290,19 @@ function DashboardPage() {
 
   const [weeklyGoal, setWeeklyGoal] = useState<WeeklyGoal | null>(null)
   const [streak, setStreak] = useState<number | null>(null)
+  const [monthly, setMonthly] = useState<MonthlyActivity | null>(null)
+  const [monthOpen, setMonthOpen] = useState(false)
+  const [monthLoading, setMonthLoading] = useState(false)
+
+  function openMonthReview() {
+    setMonthOpen(true)
+    if (monthly) return
+    setMonthLoading(true)
+    getMonthlyActivity()
+      .then((result) => { if (result) setMonthly(result) })
+      .catch(() => { /* sem conexão com o servidor, o modal mostra um aviso */ })
+      .finally(() => setMonthLoading(false))
+  }
 
   // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
   useEffect(() => {
@@ -382,6 +396,14 @@ function DashboardPage() {
   return (
     <>
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
+      {monthOpen && monthly && <MonthReviewModal monthly={monthly} onClose={() => setMonthOpen(false)} />}
+      {monthOpen && !monthly && monthLoading && (
+        <div className="onboarding-overlay" role="dialog" aria-modal="true" onClick={() => setMonthOpen(false)}>
+          <div className="month-review-modal month-review-loading" onClick={(event) => event.stopPropagation()}>
+            <p>Carregando seu mês...</p>
+          </div>
+        </div>
+      )}
       <header className="dashboard-topbar"><div className="dashboard-search" ref={searchBoxRef}>
         <Search />
         <input
@@ -516,7 +538,11 @@ function DashboardPage() {
             <p>Você está a {weeklyGoal.goal - weeklyGoal.completedDates.length} dia(s) de completar sua meta!</p>
           ) : (
             <div className="skeleton skeleton-line sm w-60" style={{ marginTop: 4 }} />
-          )}</section>
+          )}
+          <button type="button" className="weekly-goal-month-link" onClick={openMonthReview}>
+            <CalendarCheck size={14} /> Ver como foi meu mês <ChevronRight size={14} />
+          </button>
+          </section>
 
           <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
             {recentContent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}

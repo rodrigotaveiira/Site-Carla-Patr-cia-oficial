@@ -83,6 +83,58 @@ export const getStreak = createServerFn({ method: 'GET' }).handler(async (): Pro
   return streak
 })
 
+export type MonthlyActivity = {
+  year: number
+  month: number // 1–12
+  monthLabel: string // ex. "agosto de 2026"
+  daysInMonth: number
+  completedDates: string[] // datas do mês em que o aluno acessou a plataforma
+  goal: number
+  weeks: { completedCount: number; goalMet: boolean }[] // uma entrada por semana (seg–dom) que passa pelo mês
+}
+
+// Resumo do mês atual pra tela de "como foi meu mês": quantos dias o aluno
+// estudou e quantas semanas (segunda a domingo) bateram a meta semanal.
+// Semanas que cruzam a virada do mês só contam os dias que caem dentro deste
+// mês — por isso a primeira/última semana pode aparecer "incompleta" mesmo
+// que o aluno tenha estudado todos os dias que valem pra ela.
+export const getMonthlyActivity = createServerFn({ method: 'GET' }).handler(
+  async (): Promise<MonthlyActivity | null> => {
+    const user = await getServerUser()
+    if (!user) return null
+
+    const store = activityStore()
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() // 0-based
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    const completedDates: string[] = []
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = toISODate(new Date(year, month, day))
+      const value = await store.get(`${user.id}:${date}`)
+      if (value) completedDates.push(date)
+    }
+
+    const weeksMap = new Map<string, number>()
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day)
+      const weekKey = toISODate(startOfWeek(date))
+      const isoDate = toISODate(date)
+      const soFar = weeksMap.get(weekKey) ?? 0
+      weeksMap.set(weekKey, completedDates.includes(isoDate) ? soFar + 1 : soFar)
+    }
+    const weeks = Array.from(weeksMap.values()).map((completedCount) => ({
+      completedCount,
+      goalMet: completedCount >= WEEKLY_GOAL,
+    }))
+
+    const monthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+
+    return { year, month: month + 1, monthLabel, daysInMonth, completedDates, goal: WEEKLY_GOAL, weeks }
+  },
+)
+
 // Marca "hoje" como um dia de acesso do aluno logado e devolve a semana inteira.
 // Chamado só depois que o aluno fica pelo menos 10 minutos com o dashboard aberto.
 export const registerAccessAndGetWeeklyGoal = createServerFn({ method: 'POST' }).handler(

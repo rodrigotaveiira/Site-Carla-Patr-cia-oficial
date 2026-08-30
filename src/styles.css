@@ -548,6 +548,31 @@ footer .brand b { color: white; }
 .weekly-goal > p { margin: 19px 0 0; padding-top: 14px; color: #7b8490; border-top: 1px solid #eff0f2; font-size: 13px; text-align: center; }
 .weekly-goal-success { margin: 19px 0 0; padding: 12px 14px 0; color: var(--purple); font-weight: 800; font-size: 14px; text-align: center; border-top: 1px solid #eff0f2; }
 .streak-badge { display: flex; align-items: center; gap: 4px; padding: 5px 10px; color: var(--purple-dark); background: #f1e9fd; border-radius: 20px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.weekly-goal-month-link { display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; margin-top: 10px; padding: 8px; color: var(--purple); background: none; border: 0; border-radius: 8px; font-size: 12.5px; font-weight: 800; cursor: pointer; transition: background .15s, color .15s; }
+.weekly-goal-month-link:hover { color: var(--purple-dark); background: var(--lilac-tint); }
+.weekly-goal-month-link:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
+.weekly-goal-month-link svg:last-child { width: 13px; }
+
+.month-review-modal { position: relative; width: 100%; max-width: 400px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(9,30,57,.35); animation: onboarding-in .3s ease; }
+@media (prefers-reduced-motion: reduce) { .month-review-modal { animation: none; } }
+.month-review-loading { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+.month-review-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; display: grid; place-items: center; color: rgba(255,255,255,.85); background: rgba(255,255,255,.14); border: 0; border-radius: 50%; cursor: pointer; transition: background .15s; }
+.month-review-close:hover { background: rgba(255,255,255,.24); }
+.month-review-close:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
+.month-review-header { padding: 28px 24px 20px; background: linear-gradient(135deg, var(--navy-dark), var(--purple)); color: #fff; text-align: center; }
+.month-review-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.4); }
+.month-review-header h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 20px; text-transform: capitalize; }
+.month-review-header p { margin: 0; color: rgba(255,255,255,.85); font-size: 13px; font-variant-numeric: tabular-nums; }
+.month-review-body { padding: 22px 22px 26px; }
+.month-review-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
+.month-review-weekdays span { text-align: center; color: #a0a7b0; font-size: 11px; font-weight: 700; }
+.month-review-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.month-review-grid span { display: grid; place-items: center; aspect-ratio: 1; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 12px; font-variant-numeric: tabular-nums; }
+.month-review-grid span.done { color: #fff; background: var(--purple); font-weight: 700; }
+.month-review-grid span.today { color: var(--purple); background: #f1e9fd; border: 1px solid var(--purple); font-weight: 700; }
+.month-review-grid span.future { color: #cdd2d9; background: none; }
+.month-review-grid .month-review-pad { background: none; }
+.month-review-footnote { margin: 20px 0 0; padding-top: 14px; color: #7b8490; border-top: 1px solid #eff0f2; font-size: 13px; text-align: center; line-height: 1.55; }
 .recent-content { grid-column: span 2; }
 .recent-content .card-title a { margin: 0; }
 .recent-item { display: grid; grid-template-columns: 36px 1fr auto 28px; align-items: center; gap: 11px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eff0f3; }
