@@ -1,10 +1,10 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
-  BookCheck, BookMarked, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
+  BookMarked, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
   LogOut, Menu, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useIdentity } from '@/lib/identity-context'
 import { userHasRole } from '@/lib/roles'
 import { AcademicBackground } from '@/components/AcademicBackground'
@@ -13,8 +13,10 @@ export const Route = createFileRoute('/_app')({
   component: AppLayout,
 })
 
-// Agrupado por intenção (conteúdo / avaliar / acompanhar) em vez de uma lista única de
-// 14 itens — mais rápido de escanear que um menu corrido. Cada grupo abre/fecha sozinho.
+// Agrupado por intenção (conteúdo / praticar / acompanhamento) em vez de uma lista única
+// de itens — mais rápido de escanear que um menu corrido. Cada grupo abre/fecha sozinho.
+// Gabaritos não tem item próprio: a correção comentada aparece dentro do fluxo de
+// Simulados (tela de resultado), não como destino separado no menu.
 const sidebarGroups = [
   {
     title: null,
@@ -24,41 +26,67 @@ const sidebarGroups = [
     title: 'Conteúdo',
     items: [
       { icon: CirclePlay, label: 'Aulas', href: '/aulas' },
-      { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
       { icon: Files, label: 'Materiais', href: '/materiais' },
-      { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
+      { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
       { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
       { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
     ],
   },
   {
-    title: 'Avaliar',
+    title: 'Praticar',
     items: [
+      { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
       { icon: Target, label: 'Simulados', href: '/simulados' },
       { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
-      { icon: BookCheck, label: 'Gabaritos dos Simulados', href: '/conteudo/gabaritos' },
     ],
   },
   {
-    title: 'Acompanhar',
+    title: 'Acompanhamento',
     items: [
-      { icon: CalendarDays, label: 'Encontros Individuais', href: '/mentorias' },
-      { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
       { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
-      { icon: User, label: 'Perfil', href: '/perfil' },
+      { icon: CalendarDays, label: 'Encontros individuais', href: '/mentorias' },
+      { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
     ],
   },
 ] as const
+
+function initialsFrom(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase()
+  return (parts[0]![0] + parts[parts.length - 1]![0]).toUpperCase()
+}
 
 function AppLayout() {
   const { user, logout } = useIdentity()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
+  const [accountOpen, setAccountOpen] = useState(false)
+  const accountRef = useRef<HTMLDivElement>(null)
   const isAdmin = userHasRole(user, 'admin')
   const isProfessor = userHasRole(user, 'professor') && !isAdmin
 
   // Rota atual de verdade — o item ativo no menu reflete onde o aluno está, não um valor fixo.
   const pathname = useRouterState({ select: (state) => state.location.pathname })
+
+  const displayName = user?.user_metadata?.full_name?.trim() || user?.email || 'Minha conta'
+
+  // Clique fora ou Esc fecha o menu da conta — comportamento padrão de dropdown.
+  useEffect(() => {
+    if (!accountOpen) return
+    function handlePointerDown(event: MouseEvent) {
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) setAccountOpen(false)
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setAccountOpen(false)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [accountOpen])
 
   function toggleGroup(title: string) {
     setOpenGroups((prev) => {
@@ -113,11 +141,35 @@ function AppLayout() {
             </div>
           )}
         </nav>
-        <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
-          <MessageSquareText size={16} />
-          <span>Dúvida? Fale com a gente</span>
-        </a>
-        <button className="logout" onClick={() => void logout()}><LogOut /> Sair da conta</button>
+        <div className="sidebar-foot">
+          <div className="account-menu" ref={accountRef}>
+            <button
+              type="button"
+              className="account-trigger"
+              onClick={() => setAccountOpen((prev) => !prev)}
+              aria-haspopup="menu"
+              aria-expanded={accountOpen}
+            >
+              <span className="account-avatar">{initialsFrom(displayName)}</span>
+              <span className="account-name">{displayName}</span>
+              <ChevronDown size={14} className={accountOpen ? 'open' : ''} />
+            </button>
+            {accountOpen && (
+              <div className="account-panel" role="menu">
+                <Link to="/perfil" role="menuitem" onClick={() => { setAccountOpen(false); setSidebarOpen(false) }}>
+                  <User size={15} /> Perfil
+                </Link>
+                <button type="button" role="menuitem" onClick={() => void logout()}>
+                  <LogOut size={15} /> Sair da conta
+                </button>
+              </div>
+            )}
+          </div>
+          <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
+            <MessageSquareText size={16} />
+            <span>Dúvida? Fale com a gente</span>
+          </a>
+        </div>
       </aside>
 
       <section className="student-main">

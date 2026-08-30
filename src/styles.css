@@ -335,14 +335,25 @@ footer .brand b { color: white; }
 .student-sidebar nav a.active { color: white; background: #ffffff1f; font-weight: 700; box-shadow: inset 0 0 0 1px #ffffff14; }
 .student-sidebar nav a:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
 .student-sidebar nav a i { margin-left: auto; min-width: 17px; height: 17px; display: grid; place-items: center; color: white; background: var(--purple); border-radius: 20px; font-size: 13px; font-style: normal; }
-.sidebar-help { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 13px; color: rgba(226, 216, 245, .85); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; transition: background .15s, color .15s; }
+.sidebar-foot { margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 14px; border-top: 1px solid #ffffff17; }
+.sidebar-help { display: flex; align-items: center; gap: 10px; padding: 12px 13px; color: rgba(226, 216, 245, .85); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 700; transition: background .15s, color .15s; }
 .sidebar-help svg { flex-shrink: 0; color: var(--gold); }
 .sidebar-help:hover { color: #fff; background: #ffffff0e; }
 .sidebar-help:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
-.logout { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 12px; color: rgba(226, 216, 245, 0.65); background: none; border: 0; border-radius: 6px; font-size: 14px; cursor: pointer; transition: color .15s, background .15s; }
-.logout:hover { color: #fff; background: rgba(255,255,255,.06); }
-.logout:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.22); }
-.logout svg { width: 16px; }
+
+.account-menu { position: relative; }
+.account-trigger { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; color: rgba(226, 216, 245, .9); background: none; border: 0; border-radius: 8px; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; transition: background .15s, color .15s; }
+.account-trigger:hover { color: #fff; background: #ffffff0e; }
+.account-trigger:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
+.account-avatar { flex-shrink: 0; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--purple); color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+.account-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-trigger svg { flex-shrink: 0; color: rgba(226, 216, 245, .5); transition: transform .18s ease, color .15s; }
+.account-trigger svg.open { transform: rotate(180deg); color: rgba(226, 216, 245, .85); }
+.account-panel { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); display: grid; gap: 2px; padding: 6px; background: var(--navy-dark); border: 1px solid #ffffff1c; border-radius: 10px; box-shadow: 0 12px 30px #0b193a55; z-index: 10; }
+.account-panel a, .account-panel button { display: flex; align-items: center; gap: 9px; padding: 9px 10px; color: rgba(226, 216, 245, .85); background: none; border: 0; border-radius: 6px; font-size: 13px; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; transition: color .15s, background .15s; }
+.account-panel a:hover, .account-panel button:hover { color: #fff; background: #ffffff12; }
+.account-panel a:focus-visible, .account-panel button:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff33; }
+.account-panel svg { flex-shrink: 0; color: rgba(226, 216, 245, .55); }
 .student-main {
   position: relative;
   min-width: 0;
@@ -742,7 +753,7 @@ footer .brand b { color: white; }
   .notifications-panel b { font-size: 14px; }
   .notifications-panel p { font-size: 13px; }
   .sidebar-help { font-size: 13px; }
-  .logout { font-size: 13px; }
+  .account-trigger { font-size: 13px; }
   .dashboard-search input { font-size: 14px; }
   .user-chip b { font-size: 13px; }
   .user-chip small { font-size: 13px; }
@@ -810,6 +821,8 @@ footer .brand b { color: white; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .panel-meta-strip { margin: 10px 0 0; color: #9aa2ac; font-size: 12px; font-variant-numeric: tabular-nums; }
+.panel-inline-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--purple); font-weight: 700; font-size: 13px; text-decoration: none; }
+.panel-inline-link:hover { color: var(--purple-dark); text-decoration: underline; }
 
 .panel-card {
   margin-top: 24px; padding: 20px; background: var(--lilac-tint); border-radius: 14px;

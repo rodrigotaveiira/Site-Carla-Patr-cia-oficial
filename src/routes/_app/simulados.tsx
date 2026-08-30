@@ -1,5 +1,5 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
-import { CheckCircle2, ChevronRight, Circle, ClipboardList, XCircle } from 'lucide-react'
+import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { BookCheck, CheckCircle2, ChevronRight, Circle, ClipboardList, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -104,6 +104,9 @@ function SimuladosPage() {
       <div className="panel">
         <button onClick={backToList} className="panel-back">← Voltar aos simulados</button>
         <h1>{active.title}</h1>
+        <Link to="/conteudo/gabaritos" className="panel-inline-link">
+          <BookCheck size={14} /> Ver gabarito comentado completo
+        </Link>
 
         <div style={{ marginTop: 20, background: 'var(--lilac-tint)', border: '1px solid #e0dcf0', borderRadius: 12, padding: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 13, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase' }}>Sua nota</div>
@@ -197,6 +200,9 @@ function SimuladosPage() {
     <div className="panel">
       <h1><ClipboardList /> Simulados</h1>
       <p className="panel-subtitle">Faça o simulado e acompanhe seu crescimento, sua aprovação está a caminho.</p>
+      <Link to="/conteudo/gabaritos" className="panel-inline-link">
+        <BookCheck size={14} /> Ver gabaritos comentados
+      </Link>
 
       {takeError && <p className="form-error">{takeError}</p>}
       {loadError && <p className="form-error">{loadError}</p>}
