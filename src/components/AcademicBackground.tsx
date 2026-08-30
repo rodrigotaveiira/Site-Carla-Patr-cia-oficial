@@ -64,26 +64,30 @@ type WatermarkItem = {
   tier: Tier
 }
 
+// Posições recalculadas numa grade mental de 1400×800 pra garantir que
+// nenhuma caixa (retângulo real do elemento, não só o "centro") encoste
+// na outra — antes tinha selo+caderno e caneta+selo se sobrepondo,
+// criando aquele resíduo/mancha estranha atrás do conteúdo.
 const ITEMS: WatermarkItem[] = [
   // --- tier A: os poucos elementos que sobrevivem até o celular (3–5) ---
-  { kind: 'raster', icon: 'sparkles', width: 42, height: 47, top: '9%', left: '20%', opacity: 0.06, tier: 'A' },
+  { kind: 'raster', icon: 'sparkles', width: 42, height: 47, top: '7%', left: '20%', opacity: 0.06, tier: 'A' },
   { kind: 'raster', icon: 'book', width: 200, height: 123, top: '-9%', left: '-6%', rotate: -5, opacity: 0.08, tier: 'A' },
-  { kind: 'vector', icon: 'seal', width: 170, height: 170, bottom: '5%', left: '6%', opacity: 0.06, color: INK.mid, tier: 'A' },
-  { kind: 'vector', icon: 'ribbon', width: 480, height: 136, bottom: '-3%', left: '8%', opacity: 0.035, color: INK.soft, tier: 'A' },
+  { kind: 'vector', icon: 'seal', width: 150, height: 150, top: '46%', left: '-4%', opacity: 0.06, color: INK.mid, tier: 'A' },
+  { kind: 'vector', icon: 'ribbon', width: 480, height: 136, bottom: '-3%', left: '34%', opacity: 0.035, color: INK.soft, tier: 'A' },
 
   // --- tier B: entram a partir do tablet (total 7–9) ---
-  { kind: 'raster', icon: 'pen', width: 150, height: 182, top: '20%', right: '-6%', rotate: 22, opacity: 0.08, tier: 'B' },
-  { kind: 'vector', icon: 'wordmark', width: 360, height: 85, top: '40%', left: '54%', rotate: -1, opacity: 0.055, color: INK.deep, tier: 'B' },
-  { kind: 'raster', icon: 'sparkles', width: 46, height: 52, bottom: '24%', right: '9%', opacity: 0.06, tier: 'B' },
+  { kind: 'raster', icon: 'pen', width: 150, height: 182, top: '18%', right: '-6%', rotate: 22, opacity: 0.08, tier: 'B' },
+  { kind: 'vector', icon: 'wordmark', width: 340, height: 80, top: '42%', left: '50%', rotate: -1, opacity: 0.055, color: INK.deep, tier: 'B' },
+  { kind: 'raster', icon: 'sparkles', width: 46, height: 52, top: '52%', right: '6%', opacity: 0.06, tier: 'B' },
 
   // --- tier C: só no desktop, completam a composição (total 10–14) ---
-  { kind: 'vector', icon: 'seal', width: 190, height: 190, top: '36%', right: '-7%', rotate: 6, opacity: 0.06, color: INK.soft, tier: 'C' },
-  { kind: 'raster', icon: 'books', width: 195, height: 163, top: '58%', right: '10%', rotate: 4, opacity: 0.08, tier: 'C' },
-  { kind: 'raster', icon: 'cap', width: 148, height: 127, bottom: '9%', left: '46%', rotate: -4, opacity: 0.08, tier: 'C' },
-  { kind: 'raster', icon: 'notebookPen', width: 170, height: 183, top: '68%', left: '4%', rotate: -6, opacity: 0.08, tier: 'C' },
-  { kind: 'vector', icon: 'wordmark', width: 300, height: 71, bottom: '2%', left: '-4%', rotate: 3, opacity: 0.055, color: INK.mid, tier: 'C' },
-  { kind: 'vector', icon: 'nibFlourish', width: 160, height: 105, top: '6%', right: '22%', rotate: -8, opacity: 0.05, color: INK.soft, tier: 'C' },
-  { kind: 'raster', icon: 'spiralNotebook', width: 130, height: 184, bottom: '32%', left: '30%', rotate: 6, opacity: 0.07, tier: 'C' },
+  { kind: 'vector', icon: 'seal', width: 180, height: 180, top: '22%', left: '12%', rotate: 6, opacity: 0.06, color: INK.soft, tier: 'C' },
+  { kind: 'raster', icon: 'books', width: 190, height: 159, bottom: '6%', right: '8%', rotate: 4, opacity: 0.08, tier: 'C' },
+  { kind: 'raster', icon: 'cap', width: 145, height: 125, bottom: '28%', left: '46%', rotate: -4, opacity: 0.08, tier: 'C' },
+  { kind: 'raster', icon: 'notebookPen', width: 165, height: 178, top: '68%', left: '3%', rotate: -6, opacity: 0.08, tier: 'C' },
+  { kind: 'vector', icon: 'wordmark', width: 280, height: 66, bottom: '-2%', left: '8%', rotate: 3, opacity: 0.055, color: INK.mid, tier: 'C' },
+  { kind: 'vector', icon: 'nibFlourish', width: 150, height: 100, top: '5%', right: '24%', rotate: -8, opacity: 0.05, color: INK.soft, tier: 'C' },
+  { kind: 'raster', icon: 'spiralNotebook', width: 130, height: 184, top: '40%', left: '30%', rotate: 6, opacity: 0.07, tier: 'C' },
 ]
 
 const TIER_CLASS: Record<Tier, string> = {
