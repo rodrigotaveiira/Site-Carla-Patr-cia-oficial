@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, ChevronRight, CircleHelp, CirclePlay,
+  Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, CheckCircle2, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Library, LogOut,
   MoreHorizontal, PenLine, Search, Target, Trophy, Zap,
 } from 'lucide-react'
@@ -11,6 +11,8 @@ import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getMonthlyActivity, getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type MonthlyActivity, type WeeklyGoal } from '@/lib/weekly-activity'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { listLessons, type Lesson } from '@/lib/aulas'
+import { getMyWatchedLessons } from '@/lib/lesson-progress'
 import { getStudentProgress, REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
 import { listMyRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
 import { getCompetencyScheme, type Competency } from '@/lib/competencies'
@@ -22,6 +24,7 @@ import { downloadAchievementImage } from '@/lib/achievement-image'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
+import { EmptyState } from '@/components/EmptyState'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -162,11 +165,27 @@ function DashboardPage() {
     }
   }
 
-  const recentContent = [
-    ['Competência 3: argumentação', 'Redação · 72%', '32 min'],
-    ['Concordância verbal', 'Gramática · 45%', '28 min'],
-    ['Repertório sociocultural', 'Repertório · 20%', '41 min'],
-  ] as const
+  const [lessons, setLessons] = useState<Lesson[]>([])
+  const [watchedLessonIds, setWatchedLessonIds] = useState<string[]>([])
+  const [lessonsLoaded, setLessonsLoaded] = useState(false)
+  useEffect(() => {
+    listLessons().then(setLessons).catch(() => { /* sem aulas cadastradas ainda */ }).finally(() => setLessonsLoaded(true))
+    getMyWatchedLessons().then(setWatchedLessonIds).catch(() => { /* mantém lista vazia */ })
+  }, [])
+
+  // "Continue de onde parou": as próximas aulas ainda não assistidas, na
+  // ordem em que foram cadastradas (a ordem do curso). Se o aluno já
+  // assistiu tudo, mostra as aulas mais recentes em vez de ficar vazio.
+  const recentContent = useMemo(() => {
+    const unwatched = lessons.filter((lesson) => !watchedLessonIds.includes(lesson.id))
+    const source = unwatched.length > 0 ? unwatched : [...lessons].reverse()
+    return source.slice(0, 3).map((lesson) => ({
+      id: lesson.id,
+      title: lesson.title,
+      module: lesson.module,
+      watched: watchedLessonIds.includes(lesson.id),
+    }))
+  }, [lessons, watchedLessonIds])
 
   const [studentProgress, setStudentProgress] = useState<StudentProgress | null>(null)
   useEffect(() => {
@@ -545,7 +564,26 @@ function DashboardPage() {
           </section>
 
           <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
-            {recentContent.map(([title, info, time], index) => <div className="recent-item" key={title}><span className={`recent-icon icon-${index}`}><BookOpen /></span><div><b>{title}</b><small>{info}</small></div><span><Clock3 />{time}</span><Link to="/aulas"><CirclePlay /></Link></div>)}
+            {!lessonsLoaded && Array.from({ length: 3 }).map((_, index) => (
+              <div className="recent-item" key={index}>
+                <span className="skeleton skeleton-circle" style={{ width: 38, height: 38 }} />
+                <div style={{ display: 'grid', gap: 6 }}>
+                  <span className="skeleton skeleton-line sm w-60" />
+                  <span className="skeleton skeleton-line sm w-40" />
+                </div>
+              </div>
+            ))}
+            {lessonsLoaded && recentContent.length === 0 && (
+              <EmptyState icon={CirclePlay} title="Nenhuma aula publicada ainda" description="Assim que a professora publicar a primeira aula, ela aparece aqui." />
+            )}
+            {recentContent.map(({ id, title, module, watched }, index) => (
+              <div className="recent-item" key={id}>
+                <span className={`recent-icon icon-${index}`}><BookOpen /></span>
+                <div><b>{title}</b><small>{module} · {watched ? 'Já assistida' : 'Ainda não assistida'}</small></div>
+                <span>{watched ? <CheckCircle2 size={16} color="#15803d" /> : <Clock3 />}</span>
+                <Link to="/aulas" search={{ lesson: id }}><CirclePlay /></Link>
+              </div>
+            ))}
           </section>
 
           <section className="dashboard-card material-card" id="materiais">

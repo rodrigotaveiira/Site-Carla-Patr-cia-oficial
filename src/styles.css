@@ -922,6 +922,12 @@ footer .brand b { color: white; }
 .list-title { color: var(--navy); font-weight: 700; font-size: 14px; }
 .list-meta { color: #9aa2ac; font-size: 12px; margin-top: 3px; }
 
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: #9ca3af; background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.icon-btn:hover:not(:disabled) { color: var(--purple); background: var(--lilac-tint); border-color: var(--purple); }
+.icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
+.icon-btn:disabled { opacity: .4; cursor: not-allowed; }
+.lesson-move-select { width: auto !important; max-width: 190px; padding: 7px 10px !important; font-size: 13px !important; }
+
 .empty-state { color: var(--muted); font-size: 14px; padding: 28px 0; text-align: center; }
 .form-error { color: #dc2626; margin: 10px 0 0; font-size: 13px; }
 .form-success { color: #15803d; margin: 10px 0 0; font-size: 13px; }

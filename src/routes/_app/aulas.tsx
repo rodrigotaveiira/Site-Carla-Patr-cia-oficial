@@ -4,12 +4,17 @@ import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { listLessons, type Lesson } from '@/lib/aulas'
+import { listLessonModules, listLessons, type Lesson, type LessonModule } from '@/lib/aulas'
 import { getMyWatchedLessons, markLessonWatched } from '@/lib/lesson-progress'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
 export const Route = createFileRoute('/_app/aulas')({
+  // Deixa o dashboard linkar direto pra uma aula específica (ex.: "continue de onde
+  // parou") sem obrigar todo outro link pra "/aulas" a informar esse parâmetro.
+  validateSearch: (search: Record<string, unknown>): { lesson?: string } => ({
+    lesson: typeof search.lesson === 'string' ? search.lesson : undefined,
+  }),
   beforeLoad: async () => {
     if (typeof window !== 'undefined') {
       const localUser = readLocalUser()
@@ -44,7 +49,9 @@ function toEmbedUrl(videoUrl: string): { type: 'iframe' | 'video'; src: string }
 }
 
 function AulasPage() {
+  const { lesson: requestedLessonId } = Route.useSearch()
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [modules, setModules] = useState<LessonModule[]>([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Lesson | null>(null)
   const [watchedIds, setWatchedIds] = useState<string[]>([])
@@ -53,9 +60,12 @@ function AulasPage() {
     listLessons()
       .then((data) => {
         setLessons(data)
-        if (data.length > 0) selectLesson(data[0])
+        const requested = requestedLessonId ? data.find((l) => l.id === requestedLessonId) : undefined
+        if (requested) selectLesson(requested)
+        else if (data.length > 0) selectLesson(data[0])
       })
       .finally(() => setLoading(false))
+    listLessonModules().then(setModules).catch(() => { /* sem módulos cadastrados, agrupa pelo texto mesmo */ })
     getMyWatchedLessons().then(setWatchedIds).catch(() => { /* mantém lista vazia */ })
   }, [])
 
@@ -67,11 +77,19 @@ function AulasPage() {
     }
   }
 
+  // Agrupa na mesma ordem em que a professora organizou os módulos na admin;
+  // aulas com um texto de módulo que não bate com nenhum módulo cadastrado
+  // (aulas antigas, de antes dessa lista existir) aparecem no fim.
   const grouped = lessons.reduce<Record<string, Lesson[]>>((acc, lesson) => {
     acc[lesson.module] = acc[lesson.module] || []
     acc[lesson.module].push(lesson)
     return acc
   }, {})
+  const knownModuleNames = modules.map((m) => m.name)
+  const orderedModuleNames = [
+    ...knownModuleNames.filter((name) => grouped[name]),
+    ...Object.keys(grouped).filter((name) => !knownModuleNames.includes(name)),
+  ]
 
   return (
     <div className="panel panel-wide">
@@ -104,13 +122,13 @@ function AulasPage() {
         </div>
       )}
 
-      {Object.keys(grouped).length > 0 && (
+      {orderedModuleNames.length > 0 && (
         <div style={{ display: 'grid', gap: 24, marginTop: 32 }}>
-          {Object.entries(grouped).map(([moduleName, moduleLessons]) => (
+          {orderedModuleNames.map((moduleName) => (
             <div key={moduleName}>
               <h3 style={{ fontSize: 15, color: 'var(--navy)' }}>{moduleName}</h3>
               <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-                {moduleLessons.map((lesson) => (
+                {grouped[moduleName]!.map((lesson) => (
                   <button
                     key={lesson.id}
                     onClick={() => selectLesson(lesson)}
