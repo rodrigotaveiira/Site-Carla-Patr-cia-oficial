@@ -1,44 +1,53 @@
-// Camada decorativa da Área do Aluno — ícones de um pacote profissional
-// (Phosphor Icons, licença MIT — ver src/assets/watermark/LICENSE-phosphor.txt)
-// no mesmo espírito da referência (caneta, livro, capelo, caderno, brilho),
-// mais o selo "CPM" e o nome da professora em tipografia limpa (não são
-// ícones de biblioteca — são vetores próprios, na mesma pasta). Tudo
-// espalhado de forma orgânica atrás do conteúdo, como marca d'água.
+// Camada decorativa da Área do Aluno — ilustrações editoriais em traço fino
+// (livro, pena, pilha de livros, capelo, caderno, brilhos, linha curva —
+// os SVGs personalizados fornecidos) mais o selo "CPM" e o nome da
+// professora em tipografia própria, tudo numa única família de lilás, bem
+// esmaecido. Poucos elementos, grandes, com bastante espaço vazio entre
+// eles — pensado como marca d'água de fundo, não como grade de ícones.
 //
 // Importados com `?raw` e renderizados inline (não via <img>) para que
-// `currentColor` herde a cor real via CSS — um <img> de SVG externo não
-// herda cor da página.
+// `currentColor` herde a cor real via CSS; cada instância define sua
+// própria cor dentro da família #7C3AED/#8B5CF6/#A78BFA.
 import bookSvg from '@/assets/watermark/book.svg?raw'
 import booksSvg from '@/assets/watermark/books.svg?raw'
 import capSvg from '@/assets/watermark/graduation-cap.svg?raw'
 import notebookSvg from '@/assets/watermark/notebook.svg?raw'
-import notePencilSvg from '@/assets/watermark/note-pencil.svg?raw'
 import penNibSvg from '@/assets/watermark/pen-nib.svg?raw'
-import featherSvg from '@/assets/watermark/feather.svg?raw'
 import sparkleSvg from '@/assets/watermark/sparkle.svg?raw'
 import curveSvg from '@/assets/watermark/curve.svg?raw'
 import sealSvg from '@/assets/watermark/seal.svg?raw'
 import wordmarkSvg from '@/assets/watermark/wordmark.svg?raw'
 
 // Garante que o SVG injetado sempre preencha o wrapper que define
-// posição/tamanho, não importa o viewBox de origem.
-function fill(svg: string) {
-  return svg.replace('<svg ', '<svg width="100%" height="100%" ')
+// posição/tamanho, e troca a cor fixa do arquivo original por currentColor
+// — assim cada instância pode ter sua própria cor via CSS, sem precisar
+// de uma cópia do arquivo por cor.
+function prep(svg: string) {
+  return svg
+    .replace('<svg ', '<svg width="100%" height="100%" ')
+    .replaceAll('#7C3AED', 'currentColor')
+    .replaceAll('#C4B5FD', 'currentColor')
 }
 
 const ICONS = {
-  book: fill(bookSvg),
-  books: fill(booksSvg),
-  cap: fill(capSvg),
-  notebook: fill(notebookSvg),
-  notePencil: fill(notePencilSvg),
-  penNib: fill(penNibSvg),
-  feather: fill(featherSvg),
-  sparkle: fill(sparkleSvg),
-  curve: fill(curveSvg),
-  seal: fill(sealSvg),
-  wordmark: fill(wordmarkSvg),
+  book: prep(bookSvg),
+  books: prep(booksSvg),
+  cap: prep(capSvg),
+  notebook: prep(notebookSvg),
+  penNib: prep(penNibSvg),
+  sparkle: prep(sparkleSvg),
+  curve: prep(curveSvg),
+  seal: prep(sealSvg),
+  wordmark: prep(wordmarkSvg),
 }
+
+// Família única de lilás — quase sem variação de matiz, só um leve
+// gradiente de intensidade pra dar profundidade sem chamar atenção.
+const INK = { deep: '#7C3AED', mid: '#8B5CF6', soft: '#A78BFA' }
+
+// "tier" controla em quantas larguras de tela o elemento aparece:
+// A = sempre (mobile+tablet+desktop), B = tablet+desktop, C = só desktop.
+type Tier = 'A' | 'B' | 'C'
 
 type WatermarkItem = {
   icon: keyof typeof ICONS
@@ -50,36 +59,35 @@ type WatermarkItem = {
   right?: string
   rotate?: number
   opacity: number
-  color?: string
-  mobile?: boolean
+  color: string
+  tier: Tier
 }
 
 const ITEMS: WatermarkItem[] = [
-  // Selo CPM e nome — elementos de identidade, opacidade mais baixa (~6%)
-  { icon: 'seal', width: 110, height: 110, top: '8%', right: '4%', rotate: -4, opacity: 0.07, color: 'var(--purple)' },
-  { icon: 'seal', width: 130, height: 130, bottom: '9%', left: '-4%', rotate: 6, opacity: 0.07, color: 'var(--purple)' },
-  { icon: 'wordmark', width: 230, height: 53, top: '35%', left: '55%', rotate: -2, opacity: 0.07, color: 'var(--navy)' },
-  { icon: 'wordmark', width: 210, height: 48, bottom: '5%', left: '5%', rotate: 2, opacity: 0.07, color: 'var(--navy)' },
-  // Brilhos — pequenos, opacidade mais alta (~10%)
-  { icon: 'sparkle', width: 26, height: 26, top: '6%', left: '24%', opacity: 0.12, color: 'var(--gold)', mobile: true },
-  { icon: 'sparkle', width: 34, height: 34, bottom: '20%', right: '7%', opacity: 0.12, color: 'var(--gold)', mobile: true },
-  { icon: 'sparkle', width: 18, height: 18, top: '58%', right: '30%', opacity: 0.1, color: 'var(--gold)' },
-  // Canetas
-  { icon: 'penNib', width: 60, height: 60, top: '20%', left: '73%', rotate: 20, opacity: 0.09, color: 'var(--purple)', mobile: true },
-  { icon: 'feather', width: 78, height: 78, bottom: '22%', left: '24%', rotate: -18, opacity: 0.08, color: 'var(--purple)' },
-  // Livro aberto
-  { icon: 'book', width: 92, height: 92, top: '25%', left: '7%', rotate: -4, opacity: 0.08, color: 'var(--navy)', mobile: true },
-  { icon: 'book', width: 84, height: 84, bottom: '30%', right: '13%', rotate: 6, opacity: 0.08, color: 'var(--navy)' },
-  // Pilha de livros
-  { icon: 'books', width: 90, height: 90, top: '54%', left: '35%', rotate: 4, opacity: 0.08, color: 'var(--navy)' },
-  // Capelo de formatura
-  { icon: 'cap', width: 88, height: 88, bottom: '7%', left: '43%', rotate: -3, opacity: 0.08, color: 'var(--purple)', mobile: true },
-  // Caderno e anotações
-  { icon: 'notePencil', width: 82, height: 82, top: '65%', left: '8%', rotate: -6, opacity: 0.08, color: 'var(--navy)' },
-  { icon: 'notebook', width: 74, height: 74, top: '30%', left: '27%', rotate: 5, opacity: 0.08, color: 'var(--navy)', mobile: true },
-  // Linha curva decorativa
-  { icon: 'curve', width: 280, height: 70, bottom: '13%', left: '-5%', rotate: 2, opacity: 0.06, color: 'var(--purple)' },
+  // --- tier A: os poucos elementos que sobrevivem até o celular (3–5) ---
+  { icon: 'sparkle', width: 34, height: 23, top: '9%', left: '20%', opacity: 0.05, color: INK.soft, tier: 'A' },
+  { icon: 'book', width: 190, height: 143, top: '-9%', left: '-6%', rotate: -5, opacity: 0.07, color: INK.deep, tier: 'A' },
+  { icon: 'seal', width: 160, height: 160, bottom: '5%', left: '6%', opacity: 0.06, color: INK.mid, tier: 'A' },
+  { icon: 'curve', width: 480, height: 120, bottom: '-3%', left: '8%', opacity: 0.035, color: INK.soft, tier: 'A' },
+
+  // --- tier B: entram a partir do tablet (total 7–9) ---
+  { icon: 'penNib', width: 160, height: 160, top: '20%', right: '-6%', rotate: 22, opacity: 0.08, color: INK.mid, tier: 'B' },
+  { icon: 'wordmark', width: 360, height: 83, top: '40%', left: '54%', rotate: -1, opacity: 0.055, color: INK.deep, tier: 'B' },
+  { icon: 'sparkle', width: 44, height: 30, bottom: '24%', right: '9%', opacity: 0.05, color: INK.soft, tier: 'B' },
+
+  // --- tier C: só no desktop, completam a composição (total 10–14) ---
+  { icon: 'seal', width: 190, height: 190, top: '36%', right: '-7%', rotate: 6, opacity: 0.06, color: INK.soft, tier: 'C' },
+  { icon: 'books', width: 190, height: 158, top: '58%', right: '10%', rotate: 4, opacity: 0.065, color: INK.deep, tier: 'C' },
+  { icon: 'cap', width: 145, height: 106, bottom: '9%', left: '46%', rotate: -4, opacity: 0.07, color: INK.mid, tier: 'C' },
+  { icon: 'notebook', width: 170, height: 142, top: '68%', left: '4%', rotate: -6, opacity: 0.07, color: INK.deep, tier: 'C' },
+  { icon: 'wordmark', width: 300, height: 69, bottom: '2%', left: '-4%', rotate: 3, opacity: 0.055, color: INK.mid, tier: 'C' },
 ]
+
+const TIER_CLASS: Record<Tier, string> = {
+  A: 'wm-item',
+  B: 'wm-item wm-tier-b',
+  C: 'wm-item wm-tier-c',
+}
 
 export function AcademicBackground() {
   return (
@@ -87,7 +95,7 @@ export function AcademicBackground() {
       {ITEMS.map((item, index) => (
         <span
           key={index}
-          className={item.mobile ? 'wm-item' : 'wm-item wm-desktop-only'}
+          className={TIER_CLASS[item.tier]}
           style={{
             width: item.width,
             height: item.height,
