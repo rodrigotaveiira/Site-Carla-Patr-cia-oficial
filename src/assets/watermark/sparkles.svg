@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 420" fill="none" aria-hidden="true">
+<style>
+  .s{stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .f{fill:currentColor}
+</style>
+
+<path class="s" stroke-width="8" d="M165 62c13 63 40 90 104 103-64 13-91 40-104 104-13-64-40-91-104-104 64-13 91-40 104-103z"/>
+<path class="s" stroke-width="7" d="M425 96c9 45 28 64 73 73-45 9-64 28-73 73-9-45-28-64-73-73 45-9 64-28 73-73z"/>
+<path class="s" stroke-width="6" d="M360 268c7 34 21 48 55 55-34 7-48 21-55 55-7-34-21-48-55-55 34-7 48-21 55-55z"/>
+
+</svg>

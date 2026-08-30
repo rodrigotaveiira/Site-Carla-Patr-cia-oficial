@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 340" fill="none" aria-hidden="true">
+<style>
+  .s{stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .f{fill:currentColor}
+</style>
+
+<path class="s" stroke-width="9" d="M35 210C160 51 313 53 437 167c122 112 265 103 377-6 96-94 208-105 351 8"/>
+<path class="s" stroke-width="5" opacity=".45" d="M32 242c143-128 291-111 412 1 119 110 260 95 372-17 87-87 193-95 350-6"/>
+
+</svg>

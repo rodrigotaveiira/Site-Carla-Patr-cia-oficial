@@ -344,17 +344,52 @@ footer .brand b { color: white; }
 .logout:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.22); }
 .logout svg { width: 16px; }
 .student-main {
+  position: relative;
   min-width: 0;
   height: 100%;
   overflow-y: auto;
-  background-image: radial-gradient(rgba(109,40,217,.055) 1px, transparent 1px);
-  background-size: 16px 16px;
+  overflow-x: hidden;
+  background-color: var(--lilac-tint);
+}
+
+/* Camada decorativa da Área do Aluno: as marcas d'água fornecidas (selo
+   CPM, nome, caneta, livro, pilha, capelo, caderno, brilhos etc.)
+   espalhadas de forma orgânica atrás do conteúdo. Nunca captura
+   clique/toque e nunca deixa a página rolar na horizontal. O conteúdo
+   real (.panel, .dashboard-content) fica por cima via z-index. */
+.academic-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  /* Gradiente extremamente sutil, só pra dar uma respiração de luz no
+     centro-alto da página — não é um fundo roxo, é quase imperceptível. */
+  background-image: radial-gradient(circle at 50% 30%, rgba(124,58,237,0.035), transparent 55%);
+}
+.academic-background .wm-item {
+  position: absolute;
+  display: block;
+}
+.academic-background .wm-item svg { display: block; }
+.panel, .dashboard-content {
+  position: relative;
+  z-index: 1;
+}
+/* Densidade por largura de tela — poucos elementos grandes, nunca uma
+   grade cheia. Tablet perde a "camada C" (só desktop); celular perde
+   também a "camada B", sobrando só o essencial (3–5 elementos). */
+@media (max-width: 1024px) {
+  .academic-background .wm-tier-c { display: none; }
+}
+@media (max-width: 720px) {
+  .academic-background .wm-tier-b { display: none; }
 }
 
 .dashboard-topbar { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 34px; background: white; border-bottom: 1px solid #e8eaf0; }
 /* Botão de abrir o menu no celular — mora no layout (_app.tsx), não em cada página,
    porque agora a barra lateral persiste entre todas as páginas do aluno. */
-.mobile-nav-toggle { display: none; }
+.mobile-nav-toggle { display: none; position: relative; z-index: 1; }
 .dashboard-search { position: relative; display: flex; align-items: center; gap: 10px; flex: 1 1 330px; min-width: 0; max-width: 330px; }
 .dashboard-search svg { width: 17px; color: #9ca3af; flex-shrink: 0; }
 .dashboard-search input { width: 100%; border: 0; outline: 0; font-size: 15px; }

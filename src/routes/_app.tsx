@@ -7,6 +7,7 @@ import {
 import { useState } from 'react'
 import { useIdentity } from '@/lib/identity-context'
 import { userHasRole } from '@/lib/roles'
+import { AcademicBackground } from '@/components/AcademicBackground'
 
 export const Route = createFileRoute('/_app')({
   component: AppLayout,
@@ -120,6 +121,7 @@ function AppLayout() {
       </aside>
 
       <section className="student-main">
+        <AcademicBackground />
         <button className="mobile-nav-toggle" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu"><Menu /></button>
         <Outlet />
       </section>

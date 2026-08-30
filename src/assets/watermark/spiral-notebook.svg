@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 650" fill="none" aria-hidden="true">
+<style>
+  .s{stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+  .f{fill:currentColor}
+</style>
+
+<rect class="s" x="101" y="82" width="350" height="478" rx="28" stroke-width="10"/>
+<path class="s" stroke-width="8" d="M160 51v63M223 51v63M286 51v63M349 51v63"/>
+<path class="s" stroke-width="6" opacity=".62" d="M154 183h243M154 253h243M154 323h243M154 393h189"/>
+
+</svg>
