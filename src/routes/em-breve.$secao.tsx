@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { noindexHead } from '@/lib/seo'
 
 const titulos: Record<string, string> = {
   aulas: 'Aulas',
@@ -14,6 +15,7 @@ const titulos: Record<string, string> = {
 }
 
 export const Route = createFileRoute('/em-breve/$secao')({
+  head: noindexHead,
   component: EmBrevePage,
 })
 

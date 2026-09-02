@@ -1,7 +1,40 @@
 User-agent: *
 Allow: /
 
-Disallow: /login
+# Area do aluno — todas essas rotas exigem login e redirecionam quem nao esta
+# logado, entao o buscador nunca chega a ver o conteudo delas.
 Disallow: /dashboard
+Disallow: /aulas
+Disallow: /materiais
+Disallow: /conteudo/
+Disallow: /simulados
+Disallow: /redacoes
+Disallow: /progresso
+Disallow: /mentorias
+Disallow: /mentorias-grupo
+Disallow: /perfil
+
+# Painel administrativo e area do professor
+Disallow: /admin
+Disallow: /professor
+Disallow: /aulas-admin
+Disallow: /aula-ao-vivo-admin
+Disallow: /conteudo-admin/
+Disallow: /lembretes-admin
+Disallow: /materiais-admin
+Disallow: /mentorias-admin
+Disallow: /mentorias-grupo-admin
+Disallow: /notas-admin
+Disallow: /recados-admin
+Disallow: /redacoes-admin
+Disallow: /sessoes-admin
+Disallow: /simulados-admin
+Disallow: /temas-redacao-admin
+
+# /login, /aguardando-aprovacao, /calendario e /em-breve NAO entram aqui de
+# proposito. Elas respondem 200 pra qualquer visitante, e "Disallow" impede o
+# rastreamento, nao a indexacao — bloqueadas aqui, o Google ainda poderia listar
+# a URL crua (a home linka pra /login) sem nunca ler o "noindex" delas. Elas
+# ficam rastreaveis e respondem "noindex, nofollow" via src/lib/seo.ts.
 
 Sitemap: https://carlapatriciamedina.com/sitemap.xml

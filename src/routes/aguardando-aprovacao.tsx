@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useSearch } from '@tanstack/react-router'
 import { ShieldCheck } from 'lucide-react'
+import { noindexHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/aguardando-aprovacao')({
+  head: noindexHead,
   component: AguardandoAprovacaoPage,
   validateSearch: (search: Record<string, unknown>) => ({
     debug: typeof search.debug === 'string' ? search.debug : undefined,
