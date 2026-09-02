@@ -147,6 +147,29 @@ export const Route = createRootRoute({
         href: 'https://carlapatriciamedina.com/',
       },
 
+      // O Google so usa o favicon nos resultados se ele estiver declarado numa tag
+      // `icon` — achar /favicon.ico pelo caminho padrao nao basta. O .ico carrega
+      // 16/32/48 e o PNG de 192 atende a preferencia do Google por >= 48px.
+      {
+        rel: 'icon',
+        href: '/favicon.ico',
+        sizes: '16x16 32x32 48x48',
+      },
+
+      {
+        rel: 'icon',
+        type: 'image/png',
+        href: '/icon-192.png',
+        sizes: '192x192',
+      },
+
+      // O iOS pinta transparencia de preto, entao este vai com fundo solido.
+      {
+        rel: 'apple-touch-icon',
+        href: '/apple-touch-icon.png',
+        sizes: '180x180',
+      },
+
       {
         rel: 'preconnect',
         href: 'https://fonts.googleapis.com',
