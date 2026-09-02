@@ -46,7 +46,7 @@ export const Route = createRootRoute({
       },
     ],
     links: [
-      { rel: 'canonical', href: 'https://friendly-pothos-3cd60f.netlify.app/' },
+      { rel: 'canonical', href: 'https://carlapatriciamedina.com/' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       {
@@ -72,7 +72,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
               '@type': 'EducationalOrganization',
               name: 'Carla Patrícia Medina',
               description: 'Cursos de Redação, Gramática e Língua Portuguesa.',
-              url: 'https://friendly-pothos-3cd60f.netlify.app/',
+              url: 'https://carlapatriciamedina.com/',
               areaServed: 'Brasil',
             }),
           }}
