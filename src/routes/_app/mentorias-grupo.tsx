@@ -5,7 +5,9 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots, type MentoriaGrupoSlot } from '@/lib/mentorias-grupo'
+import { verifyPassword } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
+import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 
 export const Route = createFileRoute('/_app/mentorias-grupo')({
   beforeLoad: async () => {
@@ -34,6 +36,8 @@ function MentoriasGrupoPage() {
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState('')
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  // Grupo escolhido, esperando o aluno confirmar com a senha.
+  const [pendingSlot, setPendingSlot] = useState<MentoriaGrupoSlot | null>(null)
 
   async function load() {
     setLoading(true)
@@ -64,17 +68,21 @@ function MentoriasGrupoPage() {
     return acc
   }, {})
 
-  async function handleJoin(id: string) {
+  // Só entra no grupo depois que a senha da conta confere. Os erros sobem pro
+  // modal, que é onde o aluno está olhando — inclusive o de grupo que lotou
+  // entre a escolha e a confirmação.
+  async function handleConfirmJoin(password: string) {
+    const slot = pendingSlot
+    if (!slot) return
+
     setActionError('')
-    setActionLoadingId(id)
-    try {
-      await joinMentoriaGrupoSlot({ data: { id } })
-      await load()
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Não foi possível entrar nesse grupo.')
-    } finally {
-      setActionLoadingId(null)
-    }
+
+    const valid = await verifyPassword(user?.email ?? '', password)
+    if (!valid) throw new Error('Senha incorreta. Tente de novo.')
+
+    await joinMentoriaGrupoSlot({ data: { id: slot.id } })
+    setPendingSlot(null)
+    await load()
   }
 
   async function handleLeave(id: string) {
@@ -139,12 +147,11 @@ function MentoriasGrupoPage() {
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {dateSlots.map((slot) => (
-                  <button key={slot.id} onClick={() => handleJoin(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-ghost">
+                  <button key={slot.id} onClick={() => setPendingSlot(slot)} className="btn btn-ghost">
                     <Clock3 size={14} /> {slot.time}
                     <span style={{ color: '#8e98a5', fontWeight: 600 }}>
                       ({slot.students.length}/{slot.capacity})
                     </span>
-                    {actionLoadingId === slot.id ? '...' : ''}
                   </button>
                 ))}
               </div>
@@ -152,6 +159,15 @@ function MentoriasGrupoPage() {
           ))}
         </div>
       </section>
+
+      {pendingSlot && (
+        <ConfirmPasswordModal
+          detail={`${formatDate(pendingSlot.date)} às ${pendingSlot.time} · ${pendingSlot.duration} min · ${pendingSlot.students.length}/${pendingSlot.capacity} vagas ocupadas`}
+          confirmLabel="Confirmar entrada no grupo"
+          onConfirm={handleConfirmJoin}
+          onCancel={() => setPendingSlot(null)}
+        />
+      )}
     </div>
   )
 }

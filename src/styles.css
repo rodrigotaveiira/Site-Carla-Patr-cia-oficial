@@ -1035,3 +1035,23 @@ footer .brand b { color: white; }
 @media (max-width: 560px) {
   .toast-viewport { top: auto; bottom: 16px; left: 16px; right: 16px; max-width: none; }
 }
+
+/* Confirmação por senha antes de marcar mentoria (individual e em grupo).
+   Reaproveita .onboarding-overlay como fundo e .month-review-close no X. */
+.confirm-password-modal { position: relative; width: 100%; max-width: 400px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(9,30,57,.35); animation: onboarding-in .3s ease; }
+@media (prefers-reduced-motion: reduce) { .confirm-password-modal { animation: none; } }
+.confirm-password-header { padding: 28px 24px 20px; background: linear-gradient(135deg, var(--navy-dark), var(--purple)); color: #fff; text-align: center; }
+.confirm-password-icon { display: inline-grid; place-items: center; width: 46px; height: 46px; margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.4); }
+.confirm-password-header h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 20px; }
+.confirm-password-header p { margin: 0; color: rgba(255,255,255,.8); font-size: 13px; line-height: 1.55; }
+.confirm-password-body { padding: 22px 24px 26px; }
+.confirm-password-detail { padding: 12px 14px; margin-bottom: 16px; background: var(--lilac-tint); border-radius: 10px; color: var(--navy); font-size: 13.5px; font-weight: 700; line-height: 1.45; }
+/* So a inicial: "capitalize" aqui daria "12 De Marco As 14:00". */
+.confirm-password-detail::first-letter { text-transform: uppercase; }
+.confirm-password-body label { display: block; color: var(--navy); font-size: 13px; font-weight: 700; }
+.confirm-password-actions { display: grid; gap: 10px; margin-top: 18px; }
+.confirm-password-actions .onboarding-skip:disabled { opacity: .5; cursor: default; }
+@media (max-width: 480px) {
+  .confirm-password-header { padding: 24px 18px 18px; }
+  .confirm-password-body { padding: 18px 18px 22px; }
+}

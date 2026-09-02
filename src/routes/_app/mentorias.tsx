@@ -5,7 +5,9 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import { verifyPassword } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
+import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 
 export const Route = createFileRoute('/_app/mentorias')({
   beforeLoad: async () => {
@@ -34,6 +36,8 @@ function MentoriasPage() {
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState('')
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  // Horário escolhido, esperando o aluno confirmar com a senha.
+  const [pendingSlot, setPendingSlot] = useState<MentoriaSlot | null>(null)
 
   async function load() {
     setLoading(true)
@@ -63,17 +67,21 @@ function MentoriasPage() {
     return acc
   }, {})
 
-  async function handleBook(id: string) {
+  // Só marca depois que a senha da conta confere. Os erros sobem pro modal, que
+  // é onde o aluno está olhando — inclusive o de horário tomado por outro aluno
+  // entre a escolha e a confirmação.
+  async function handleConfirmBooking(password: string) {
+    const slot = pendingSlot
+    if (!slot) return
+
     setActionError('')
-    setActionLoadingId(id)
-    try {
-      await bookMentoriaSlot({ data: { id } })
-      await load()
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Não foi possível marcar esse horário.')
-    } finally {
-      setActionLoadingId(null)
-    }
+
+    const valid = await verifyPassword(user?.email ?? '', password)
+    if (!valid) throw new Error('Senha incorreta. Tente de novo.')
+
+    await bookMentoriaSlot({ data: { id: slot.id } })
+    setPendingSlot(null)
+    await load()
   }
 
   async function handleCancel(id: string) {
@@ -140,12 +148,12 @@ function MentoriasPage() {
                 {dateSlots.map((slot) => (
                   <button
                     key={slot.id}
-                    onClick={() => handleBook(slot.id)}
-                    disabled={actionLoadingId === slot.id || hasBooking}
+                    onClick={() => setPendingSlot(slot)}
+                    disabled={hasBooking}
                     title={hasBooking ? 'Cancele seu encontro marcado pra escolher outro horário.' : undefined}
                     className="btn btn-ghost"
                   >
-                    <Clock3 size={14} /> {slot.time} {actionLoadingId === slot.id ? '...' : ''}
+                    <Clock3 size={14} /> {slot.time}
                   </button>
                 ))}
               </div>
@@ -153,6 +161,15 @@ function MentoriasPage() {
           ))}
         </div>
       </section>
+
+      {pendingSlot && (
+        <ConfirmPasswordModal
+          detail={`${formatDate(pendingSlot.date)} às ${pendingSlot.time} · ${pendingSlot.duration} min`}
+          confirmLabel="Confirmar horário"
+          onConfirm={handleConfirmBooking}
+          onCancel={() => setPendingSlot(null)}
+        />
+      )}
     </div>
   )
 }
