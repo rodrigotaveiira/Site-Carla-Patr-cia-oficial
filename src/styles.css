@@ -458,8 +458,11 @@ footer .brand b { color: white; }
 .dashboard-hero-card h2 { margin: 16px 0 7px; font-family: var(--serif); font-size: 29px; font-weight: 400; }
 .dashboard-hero-card h2 em { color: #e4c86e; }
 .dashboard-hero-card p { color: #e2d8f5; font-size: 14px; }
-.dashboard-hero-card button, .dashboard-hero-card a { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; width: fit-content; }
-.dashboard-hero-card button svg, .dashboard-hero-card a svg { width: 14px; color: var(--purple); }
+/* O anel de progresso tambem e um <button> dentro do card, mas nao e um CTA:
+   sem o :not, ".dashboard-hero-card button" (0,1,1) vence ".hero-ring" (0,1,0) e
+   pinta o anel de branco, com raio de 5px, matando o conic-gradient dourado. */
+.dashboard-hero-card button:not(.hero-ring), .dashboard-hero-card a { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; width: fit-content; }
+.dashboard-hero-card button:not(.hero-ring) svg, .dashboard-hero-card a svg { width: 14px; color: var(--purple); }
 /* Registrada como <number> pra poder animar o preenchimento do anel com uma
    transição de CSS pura (o navegador interpola o valor sozinho) — nada de
    requestAnimationFrame controlado por JS pra manter isso sincronizado. */
@@ -471,7 +474,8 @@ footer .brand b { color: white; }
 
 .hero-ring-wrap { position: absolute; z-index: 2; right: 12%; }
 .hero-ring {
-  position: relative; display: grid; place-items: center; width: 128px; height: 128px; padding: 0; margin: 0;
+  --ring-size: 128px;
+  position: relative; display: grid; place-items: center; width: var(--ring-size); height: var(--ring-size); padding: 0; margin: 0;
   border: 0; border-radius: 50%; cursor: pointer;
   --ring-percent: 0;
   background: conic-gradient(#d7b95e calc(var(--ring-percent) * 1%), #ffffff18 calc(var(--ring-percent) * 1%) 100%);
@@ -482,9 +486,13 @@ footer .brand b { color: white; }
 .hero-ring:active { transform: scale(0.98); }
 .hero-ring:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff55; }
 .hero-ring:before { content: ''; position: absolute; inset: 9px; background: var(--purple-dark); border-radius: 50%; }
-.hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; font-family: inherit; }
-.hero-ring b { font-family: var(--serif); font-size: 30px; font-weight: 400; color: #fff; font-variant-numeric: tabular-nums; }
-.hero-ring span { color: #e2d8f5; font-size: 12px; text-transform: uppercase; }
+/* O miolo e um circulo, nao uma caixa: o rotulo fica abaixo do centro, onde a
+   largura util e bem menor que o diametro. Sem esse limite ele encosta nas bordas
+   (sobrava 1px no desktop) ou vaza (no celular, onde o anel encolhe). Com o limite
+   ele quebra em duas linhas centradas e respira dentro do circulo. */
+.hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; max-width: calc(var(--ring-size) * 0.64); font-family: inherit; text-align: center; }
+.hero-ring b { font-family: var(--serif); font-size: calc(var(--ring-size) * 0.23); line-height: 1.05; font-weight: 400; color: #fff; font-variant-numeric: tabular-nums; }
+.hero-ring span { color: #e2d8f5; font-size: clamp(9.5px, calc(var(--ring-size) * 0.082), 11px); line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; }
 
 .hero-ring-panel {
   position: absolute; z-index: 100; width: 240px; padding: 16px;
@@ -758,7 +766,7 @@ footer .brand b { color: white; }
   .dashboard-hero-card { min-height: 310px; align-items: flex-start; padding: 28px 25px; }
   .dashboard-hero-card > div:first-child { max-width: none; }
   .hero-ring-wrap { right: 25px; bottom: 22px; }
-  .hero-ring { width: 100px; height: 100px; }
+  .hero-ring { --ring-size: 100px; }
   .hero-ring-panel { width: min(240px, calc(100vw - 24px)); }
   .dashboard-grid { grid-template-columns: 1fr; }
   .progress-card, .recent-content, .material-card { grid-column: span 1; }
@@ -826,8 +834,7 @@ footer .brand b { color: white; }
   .welcome-row p { font-size: 14px; }
   .outline-button { font-size: 13px; }
   .dashboard-hero-card p { font-size: 13px; }
-  .dashboard-hero-card button { font-size: 13px; }
-  .hero-ring span { font-size: 13px; }
+  .dashboard-hero-card button:not(.hero-ring) { font-size: 13px; }
   .card-title span { font-size: 13px; }
   .progress-list b { font-size: 13px; }
   .progress-list small { font-size: 13px; }
