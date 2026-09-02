@@ -13,6 +13,7 @@ Disallow: /progresso
 Disallow: /mentorias
 Disallow: /mentorias-grupo
 Disallow: /perfil
+Disallow: /calendario
 
 # Painel administrativo e area do professor
 Disallow: /admin
@@ -31,8 +32,8 @@ Disallow: /sessoes-admin
 Disallow: /simulados-admin
 Disallow: /temas-redacao-admin
 
-# /login, /aguardando-aprovacao, /calendario e /em-breve NAO entram aqui de
-# proposito. Elas respondem 200 pra qualquer visitante, e "Disallow" impede o
+# /login, /aguardando-aprovacao e /em-breve NAO entram aqui de proposito.
+# Elas respondem 200 pra qualquer visitante, e "Disallow" impede o
 # rastreamento, nao a indexacao — bloqueadas aqui, o Google ainda poderia listar
 # a URL crua (a home linka pra /login) sem nunca ler o "noindex" delas. Elas
 # ficam rastreaveis e respondem "noindex, nofollow" via src/lib/seo.ts.
