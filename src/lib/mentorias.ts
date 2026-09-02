@@ -3,6 +3,7 @@ import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
+import { notificarAgendamento } from './notificar-agendamento'
 
 export type MentoriaSlot = {
   id: string
@@ -132,6 +133,18 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
     if (!result?.modified) {
       throw new Error('Esse horário acabou de ser reservado por outro aluno. Escolha outro.')
     }
+
+    // Só depois da reserva gravada. `notificarAgendamento` nunca lança: se o
+    // e-mail falhar, o aluno continua com o horário marcado.
+    await notificarAgendamento({
+      nomeAluno: studentName,
+      emailAluno: user.email ?? '',
+      data: slot.date,
+      hora: slot.time,
+      duracao: slot.duration,
+      emGrupo: false,
+    })
+
     return updated
   })
 

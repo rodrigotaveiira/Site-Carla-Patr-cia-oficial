@@ -3,6 +3,7 @@ import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
+import { notificarAgendamento } from './notificar-agendamento'
 
 export type MentoriaGrupoStudent = { email: string; name: string }
 
@@ -154,6 +155,19 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     if (!result?.modified) {
       throw new Error('Esse grupo acabou de mudar. Atualize a página e tente de novo.')
     }
+
+    // Só depois da entrada gravada. `notificarAgendamento` nunca lança: se o
+    // e-mail falhar, o aluno continua no grupo.
+    await notificarAgendamento({
+      nomeAluno: studentName,
+      emailAluno: email,
+      data: slot.date,
+      hora: slot.time,
+      duracao: slot.duration,
+      emGrupo: true,
+      ocupacaoGrupo: { inscritos: updated.students.length, capacidade: slot.capacity },
+    })
+
     return updated
   })
 

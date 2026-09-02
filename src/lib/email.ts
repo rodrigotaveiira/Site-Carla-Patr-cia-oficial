@@ -10,7 +10,11 @@ const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 
 // Precisa ser um endereço do domínio verificado no Resend, senão o envio é
 // recusado. Dá pra sobrescrever por variável de ambiente sem mexer no código.
-const REMETENTE_PADRAO = 'Carla Patrícia Medina <contato@carlapatriciamedina.com>'
+const REMETENTE_PADRAO = 'Carla Patrícia Medina <noreply@carlapatriciamedina.com>'
+
+// Sai de um noreply, mas resposta de aluno nao pode cair num buraco: o Reply-To
+// manda pro endereco de contato de verdade.
+const RESPONDER_PARA_PADRAO = 'contato@carlapatriciamedina.com.br'
 
 export type ResultadoEnvio =
   | { status: 'enviado'; id: string }
@@ -28,6 +32,7 @@ export async function enviarEmail(params: {
   if (!apiKey) return { status: 'nao-configurado' }
 
   const remetente = (typeof process !== 'undefined' && process.env.EMAIL_REMETENTE) || REMETENTE_PADRAO
+  const responderPara = (typeof process !== 'undefined' && process.env.EMAIL_RESPONDER_PARA) || RESPONDER_PARA_PADRAO
 
   try {
     const response = await fetch(RESEND_ENDPOINT, {
@@ -40,6 +45,7 @@ export async function enviarEmail(params: {
         from: remetente,
         to: [params.para],
         subject: params.assunto,
+        reply_to: responderPara,
         html: params.html,
         text: params.texto,
       }),
