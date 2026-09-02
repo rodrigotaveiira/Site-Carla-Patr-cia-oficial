@@ -20,6 +20,7 @@ Disallow: /admin
 Disallow: /professor
 Disallow: /aulas-admin
 Disallow: /aula-ao-vivo-admin
+Disallow: /calendario-admin
 Disallow: /conteudo-admin/
 Disallow: /lembretes-admin
 Disallow: /materiais-admin

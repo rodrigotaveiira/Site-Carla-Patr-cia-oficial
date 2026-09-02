@@ -24,6 +24,7 @@ import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
+import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
@@ -117,6 +118,11 @@ const LgpdRoute = LgpdRouteImport.update({
 const LembretesAdminRoute = LembretesAdminRouteImport.update({
   id: '/lembretes-admin',
   path: '/lembretes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
+  id: '/calendario-admin',
+  path: '/calendario-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AulasAdminRoute = AulasAdminRouteImport.update({
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
+  '/calendario-admin': typeof CalendarioAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -255,6 +262,7 @@ export interface FileRoutesByTo {
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
+  '/calendario-admin': typeof CalendarioAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
+  '/calendario-admin': typeof CalendarioAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/aguardando-aprovacao'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
+    | '/calendario-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/aguardando-aprovacao'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
+    | '/calendario-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/aguardando-aprovacao'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
+    | '/calendario-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -437,6 +449,7 @@ export interface RootRouteChildren {
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
   AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasAdminRoute: typeof AulasAdminRoute
+  CalendarioAdminRoute: typeof CalendarioAdminRoute
   LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
@@ -561,6 +574,13 @@ declare module '@tanstack/react-router' {
       path: '/lembretes-admin'
       fullPath: '/lembretes-admin'
       preLoaderRoute: typeof LembretesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario-admin': {
+      id: '/calendario-admin'
+      path: '/calendario-admin'
+      fullPath: '/calendario-admin'
+      preLoaderRoute: typeof CalendarioAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aulas-admin': {
@@ -736,6 +756,7 @@ const rootRouteChildren: RootRouteChildren = {
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
   AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasAdminRoute: AulasAdminRoute,
+  CalendarioAdminRoute: CalendarioAdminRoute,
   LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
