@@ -50,6 +50,7 @@ export type StudentProgress = {
   aulasAssistidas: number
   aulasDisponiveis: number
   aulasPercent: number
+  aulasTracked: boolean // false = ainda não tem nenhuma aula cadastrada; a fatia de aulas não entra na média
   redacoesEntregues: number
   redacoesPercent: number
 }
@@ -66,13 +67,22 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
     throw new Error('Acesso negado.')
   }
 
-  const totalLessons = await countBlobs('lessons')
+  // Pega os ids das aulas que existem HOJE (não só a contagem) — precisamos
+  // deles pra filtrar o histórico de "assistidas" logo abaixo.
+  const lessonsStore = getStore({ name: 'lessons', consistency: 'strong' })
+  const { blobs: lessonBlobs } = await lessonsStore.list()
+  const currentLessonIds = new Set(lessonBlobs.map((blob) => blob.key))
+  const totalLessons = currentLessonIds.size
 
   const watchStore = getStore({ name: 'lesson-watch-progress', consistency: 'strong' })
   const watchedList = user.email
     ? ((await watchStore.get(user.email, { type: 'json' })) as string[] | null) ?? []
     : []
-  const watchedCount = watchedList.length
+  // Conta só as aulas assistidas que AINDA existem — o registro de "assistida" nunca é
+  // limpo quando uma aula é excluída (ex.: admin reorganizando módulos), então sem esse
+  // filtro o aluno podia acabar com "5 aulas assistidas de 2 disponíveis" e o progresso
+  // ficava travado em 100% mesmo sem nenhuma aula real disponível hoje.
+  const watchedCount = watchedList.filter((id) => currentLessonIds.has(id)).length
 
   const redacoesStore = getStore({ name: 'redacoes-submissions', consistency: 'strong' })
   const { blobs } = await redacoesStore.list()
@@ -82,15 +92,20 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
     if (value?.studentEmail === user.email) redacoesEntregues += 1
   }
 
-  const aulasPercent = totalLessons > 0 ? Math.min(100, (watchedCount / totalLessons) * 100) : 0
+  const aulasTracked = totalLessons > 0
+  const aulasPercent = aulasTracked ? Math.min(100, (watchedCount / totalLessons) * 100) : 0
   const redacoesPercent = Math.min(100, (redacoesEntregues / REDACOES_META_PROGRESSO) * 100)
-  const overallPercent = Math.round((aulasPercent + redacoesPercent) / 2)
+  // Sem nenhuma aula cadastrada ainda, misturar um "0%" de aulas na média só afundaria
+  // artificialmente o progresso do aluno por causa de um conteúdo que nem existe pra
+  // assistir — nesse caso o progresso geral considera só a fatia de redações.
+  const overallPercent = aulasTracked ? Math.round((aulasPercent + redacoesPercent) / 2) : Math.round(redacoesPercent)
 
   const result: StudentProgress = {
     overallPercent,
     aulasAssistidas: watchedCount,
     aulasDisponiveis: totalLessons,
     aulasPercent: Math.round(aulasPercent),
+    aulasTracked,
     redacoesEntregues,
     redacoesPercent: Math.round(redacoesPercent),
   }
