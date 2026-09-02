@@ -25,6 +25,7 @@ import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
 import { EmptyState } from '@/components/EmptyState'
+import { ProgressRing } from '@/components/ProgressRing'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -470,7 +471,7 @@ function DashboardPage() {
       <div className="dashboard-content">
         <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/mentorias"><CalendarDays /> Ver calendário</Link></div>
 
-        <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><div className="hero-ring" style={{ background: `conic-gradient(#d7b95e 0 ${studentProgress?.overallPercent ?? 0}%, #ffffff18 ${studentProgress?.overallPercent ?? 0}% 100%)` }}><div><b>{studentProgress ? `${studentProgress.overallPercent}%` : '...'}</b><span>progresso geral</span></div></div><div className="dashboard-decoration">A+</div></section>
+        <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><ProgressRing progress={studentProgress} /><div className="dashboard-decoration">A+</div></section>
 
         {excellenceBadge && (
           <section className="achievement-banner">

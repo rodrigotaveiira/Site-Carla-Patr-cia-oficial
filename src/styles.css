@@ -460,11 +460,49 @@ footer .brand b { color: white; }
 .dashboard-hero-card p { color: #e2d8f5; font-size: 14px; }
 .dashboard-hero-card button, .dashboard-hero-card a { display: flex; align-items: center; gap: 8px; margin-top: 19px; padding: 10px 14px; color: var(--navy); background: white; border: 0; border-radius: 5px; font-size: 14px; font-weight: 800; text-decoration: none; cursor: pointer; width: fit-content; }
 .dashboard-hero-card button svg, .dashboard-hero-card a svg { width: 14px; color: var(--purple); }
-.hero-ring { position: absolute; z-index: 2; right: 12%; width: 128px; height: 128px; display: grid; place-items: center; border-radius: 50%; background: conic-gradient(#d7b95e 0 0%, #ffffff18 0% 100%); }
+/* Registrada como <number> pra poder animar o preenchimento do anel com uma
+   transição de CSS pura (o navegador interpola o valor sozinho) — nada de
+   requestAnimationFrame controlado por JS pra manter isso sincronizado. */
+@property --ring-percent {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.hero-ring-wrap { position: absolute; z-index: 2; right: 12%; }
+.hero-ring {
+  position: relative; display: grid; place-items: center; width: 128px; height: 128px; padding: 0; margin: 0;
+  border: 0; border-radius: 50%; cursor: pointer;
+  --ring-percent: 0;
+  background: conic-gradient(#d7b95e calc(var(--ring-percent) * 1%), #ffffff18 calc(var(--ring-percent) * 1%) 100%);
+  transition: transform .18s ease, box-shadow .18s ease, --ring-percent 1.1s cubic-bezier(.16, 1, .3, 1);
+}
+@media (prefers-reduced-motion: reduce) { .hero-ring { transition: transform .18s ease, box-shadow .18s ease; } }
+.hero-ring:hover { transform: scale(1.035); }
+.hero-ring:active { transform: scale(0.98); }
+.hero-ring:focus-visible { outline: none; box-shadow: 0 0 0 3px #ffffff55; }
 .hero-ring:before { content: ''; position: absolute; inset: 9px; background: var(--purple-dark); border-radius: 50%; }
-.hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; }
-.hero-ring b { font-family: var(--serif); font-size: 30px; font-weight: 400; }
+.hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; font-family: inherit; }
+.hero-ring b { font-family: var(--serif); font-size: 30px; font-weight: 400; color: #fff; font-variant-numeric: tabular-nums; }
 .hero-ring span { color: #e2d8f5; font-size: 12px; text-transform: uppercase; }
+
+.hero-ring-panel {
+  position: absolute; z-index: 100; width: 240px; padding: 16px;
+  background: var(--purple-dark); border: 1px solid #ffffff22; border-radius: 12px; box-shadow: 0 20px 44px #0b193a55;
+  animation: hero-ring-panel-in .16s ease;
+}
+@keyframes hero-ring-panel-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero-ring-panel { animation: none; } }
+.hero-ring-panel > b { display: block; margin-bottom: 12px; color: #fff; font-family: var(--serif); font-weight: 400; font-size: 14px; }
+.hero-ring-panel-close { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; display: grid; place-items: center; color: #e2d8f5; background: #ffffff14; border: 0; border-radius: 50%; cursor: pointer; }
+.hero-ring-panel-close:hover { background: #ffffff26; color: #fff; }
+.hero-ring-metric + .hero-ring-metric { margin-top: 14px; padding-top: 14px; border-top: 1px solid #ffffff18; }
+.hero-ring-metric-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hero-ring-metric-head span { display: flex; align-items: center; gap: 6px; color: #e2d8f5; font-size: 12.5px; font-weight: 700; }
+.hero-ring-metric-head b { color: #fff; font-size: 13px; font-variant-numeric: tabular-nums; }
+.hero-ring-bar { margin-top: 8px; height: 5px; background: #ffffff1c; border-radius: 4px; overflow: hidden; }
+.hero-ring-bar i { display: block; height: 100%; background: #d7b95e; border-radius: inherit; }
+.hero-ring-metric > small { display: block; margin-top: 6px; color: #c8bfe3; font-size: 11.5px; }
 .dashboard-decoration { position: absolute; right: -20px; bottom: -73px; color: transparent; font-family: var(--serif); font-size: 220px; -webkit-text-stroke: 1px #ffffff0e; }
 
 .achievement-banner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 16px; padding: 18px 22px; background: linear-gradient(120deg, #fff8ea, #fdf1e0); border: 1px solid #f0dcae; border-radius: 10px; }
@@ -719,7 +757,9 @@ footer .brand b { color: white; }
   .welcome-row .outline-button { display: none; }
   .dashboard-hero-card { min-height: 310px; align-items: flex-start; padding: 28px 25px; }
   .dashboard-hero-card > div:first-child { max-width: none; }
-  .hero-ring { right: 25px; bottom: 22px; width: 100px; height: 100px; }
+  .hero-ring-wrap { right: 25px; bottom: 22px; }
+  .hero-ring { width: 100px; height: 100px; }
+  .hero-ring-panel { width: min(240px, calc(100vw - 24px)); }
   .dashboard-grid { grid-template-columns: 1fr; }
   .progress-card, .recent-content, .material-card { grid-column: span 1; }
   .progress-list > div { grid-template-columns: 87px 1fr 30px; }
