@@ -25,7 +25,16 @@ function makeSlotId(date: string, time: string) {
   return `${date}_${time}`
 }
 
+// Precisa de login: cada grupo carrega nome e e-mail de todo aluno inscrito
+// (students), e essa função fica exposta como endpoint de rede independente
+// da tela — sem essa checagem, qualquer um sem conta conseguiria listar
+// quem está em cada mentoria em grupo.
 export const listMentoriaGrupoSlots = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await getServerUser()
+  if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
+    throw new Error('Acesso negado.')
+  }
+
   const store = slotsStore()
   const { blobs } = await store.list()
   const slots: MentoriaGrupoSlot[] = []

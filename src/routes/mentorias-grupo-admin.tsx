@@ -45,6 +45,8 @@ function MentoriasGrupoAdminPage() {
     try {
       const data = await listMentoriaGrupoSlots()
       setSlots(data)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível carregar os grupos.', 'error')
     } finally {
       setLoading(false)
     }
