@@ -469,7 +469,7 @@ function DashboardPage() {
       {photoError && <p className="avatar-edit-error">{photoError}</p>}
 
       <div className="dashboard-content">
-        <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/mentorias"><CalendarDays /> Ver calendário</Link></div>
+        <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/calendario"><CalendarDays /> Ver calendário</Link></div>
 
         <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><ProgressRing progress={studentProgress} /><div className="dashboard-decoration">A+</div></section>
 
