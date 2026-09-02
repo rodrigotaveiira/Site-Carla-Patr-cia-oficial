@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "layout-transition",
+        "value": "width .25s",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-08-26T22:42:42.112Z",
+        "reason": "Claude judgment: 6px carousel dot grows to 22px pill on click, infrequent + self-contained in its own flex row; converting to transform:scaleX would stretch the circular cap radius into an ellipse at this tiny scale, a visible shape regression not worth the marginal perf gain here."
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-08-26T22:44:47.240Z",
+        "reason": "Claude judgment: L187 .dots button pagination dot (6px circle -> 22px pill on click) is tiny, self-contained in its own flex row, and infrequent; converting width to transform:scaleX would stretch the rounded cap into a visible ellipse at this scale, a worse regression than the minor width-transition cost."
+      }
+    ]
+  }
+}
