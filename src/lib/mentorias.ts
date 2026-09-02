@@ -23,7 +23,16 @@ function makeSlotId(date: string, time: string) {
   return `${date}_${time}`
 }
 
+// Precisa de login: cada horário carrega nome e e-mail do aluno que reservou
+// (student), e essa função fica exposta como endpoint de rede independente
+// da tela — sem essa checagem, qualquer um sem conta conseguiria listar
+// quem marcou encontro individual e quando.
 export const listMentoriaSlots = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await getServerUser()
+  if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
+    throw new Error('Acesso negado.')
+  }
+
   const store = slotsStore()
   const { blobs } = await store.list()
   const slots: MentoriaSlot[] = []

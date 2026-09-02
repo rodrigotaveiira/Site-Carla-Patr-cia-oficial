@@ -40,6 +40,8 @@ function MentoriasPage() {
     try {
       const data = await listMentoriaSlots()
       setSlots(data)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Não foi possível carregar os horários.')
     } finally {
       setLoading(false)
     }
