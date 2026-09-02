@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { STORES } from './blob-stores'
 
 // Eventos da agenda ficam num store próprio em vez de virarem campo de data
 // dentro de Lesson e Simulado. Aula gravada e simulado são *conteúdo*: ficam
@@ -30,7 +31,7 @@ export type CalendarEvent = {
 }
 
 function eventsStore() {
-  return getStore({ name: 'calendar-events', consistency: 'strong' })
+  return getStore({ name: STORES.eventosCalendario, consistency: 'strong' })
 }
 
 function isValidType(value: unknown): value is CalendarEventType {

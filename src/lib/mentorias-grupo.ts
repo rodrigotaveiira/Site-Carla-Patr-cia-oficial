@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { STORES } from './blob-stores'
 
 export type MentoriaGrupoStudent = { email: string; name: string }
 
@@ -18,7 +19,7 @@ export type MentoriaGrupoSlot = {
 // "strong" garante que, assim que alguém entra ou sai do grupo, todo mundo que
 // olhar a lista logo em seguida já vê a vaga atualizada (sem atraso de cache).
 function slotsStore() {
-  return getStore({ name: 'mentorias-grupo-slots', consistency: 'strong' })
+  return getStore({ name: STORES.mentoriasGrupo, consistency: 'strong' })
 }
 
 function makeSlotId(date: string, time: string) {

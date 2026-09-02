@@ -24,6 +24,7 @@ import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
+import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
@@ -118,6 +119,11 @@ const LgpdRoute = LgpdRouteImport.update({
 const LembretesAdminRoute = LembretesAdminRouteImport.update({
   id: '/lembretes-admin',
   path: '/lembretes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
+  id: '/confirmar-presenca',
+  path: '/confirmar-presenca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
@@ -227,6 +233,7 @@ export interface FileRoutesByFullPath {
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
+  '/confirmar-presenca': typeof ConfirmarPresencaRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
+  '/confirmar-presenca': typeof ConfirmarPresencaRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -301,6 +309,7 @@ export interface FileRoutesById {
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
+  '/confirmar-presenca': typeof ConfirmarPresencaRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
+    | '/confirmar-presenca'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -375,6 +385,7 @@ export interface FileRouteTypes {
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
+    | '/confirmar-presenca'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
+    | '/confirmar-presenca'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -450,6 +462,7 @@ export interface RootRouteChildren {
   AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
+  ConfirmarPresencaRoute: typeof ConfirmarPresencaRoute
   LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
@@ -574,6 +587,13 @@ declare module '@tanstack/react-router' {
       path: '/lembretes-admin'
       fullPath: '/lembretes-admin'
       preLoaderRoute: typeof LembretesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmar-presenca': {
+      id: '/confirmar-presenca'
+      path: '/confirmar-presenca'
+      fullPath: '/confirmar-presenca'
+      preLoaderRoute: typeof ConfirmarPresencaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/calendario-admin': {
@@ -757,6 +777,7 @@ const rootRouteChildren: RootRouteChildren = {
   AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,
+  ConfirmarPresencaRoute: ConfirmarPresencaRoute,
   LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,

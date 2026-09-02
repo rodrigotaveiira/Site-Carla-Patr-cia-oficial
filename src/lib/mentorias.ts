@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { STORES } from './blob-stores'
 
 export type MentoriaSlot = {
   id: string
@@ -16,7 +17,7 @@ export type MentoriaSlot = {
 // "strong" garante que, assim que um horário é marcado, todo mundo que olhar
 // a lista logo em seguida já vê ele como indisponível (sem atraso de cache).
 function slotsStore() {
-  return getStore({ name: 'mentorias-slots', consistency: 'strong' })
+  return getStore({ name: STORES.mentorias, consistency: 'strong' })
 }
 
 function makeSlotId(date: string, time: string) {

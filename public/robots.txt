@@ -33,7 +33,8 @@ Disallow: /sessoes-admin
 Disallow: /simulados-admin
 Disallow: /temas-redacao-admin
 
-# /login, /aguardando-aprovacao e /em-breve NAO entram aqui de proposito.
+# /login, /aguardando-aprovacao, /em-breve e /confirmar-presenca NAO entram
+# aqui de proposito.
 # Elas respondem 200 pra qualquer visitante, e "Disallow" impede o
 # rastreamento, nao a indexacao — bloqueadas aqui, o Google ainda poderia listar
 # a URL crua (a home linka pra /login) sem nunca ler o "noindex" delas. Elas
