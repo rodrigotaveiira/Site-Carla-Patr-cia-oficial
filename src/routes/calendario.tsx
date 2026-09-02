@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { noindexHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/calendario')({
+  head: noindexHead,
   component: CalendarioPage,
 })
 

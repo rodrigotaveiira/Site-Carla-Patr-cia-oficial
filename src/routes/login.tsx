@@ -3,8 +3,9 @@ import { AuthError, login, signup } from '@netlify/identity'
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, GraduationCap, LockKeyhole, Mail, Sparkles } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { loginLocalUser, registerLocalUser } from '@/lib/identity-context'
+import { noindexHead } from '@/lib/seo'
 
-export const Route = createFileRoute('/login')({ component: LoginPage })
+export const Route = createFileRoute('/login')({ head: noindexHead, component: LoginPage })
 
 function LoginPage() {
   const navigate = useNavigate()
