@@ -1,3 +1,5 @@
+import { formatarHora } from './formato'
+
 // E-mails disparados na hora em que o aluno marca uma mentoria: um pro aluno,
 // confirmando, e um pra Carla, avisando. Separado do envio pra poder ser
 // conferido sem chave do Resend e sem rede.
@@ -53,7 +55,7 @@ function caixaHorario(dataLonga: string, hora: string, duracao: number) {
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
     <tr><td style="padding:16px 18px;">
       <div style="color:${NAVY};font-size:16px;font-weight:700;">${escapar(dataLonga)}</div>
-      <div style="margin-top:4px;color:${ROXO};font-size:15px;font-weight:700;">${escapar(hora)} · ${duracao} minutos</div>
+      <div style="margin-top:4px;color:${ROXO};font-size:15px;font-weight:700;">${escapar(formatarHora(hora))} · ${duracao} minutos</div>
     </td></tr>
   </table>`
 }
@@ -91,7 +93,7 @@ export function montarEmailAgendamentoAluno(params: {
     `Olá, ${primeiroNome}!`,
     '',
     `Está marcado — ${tipo} ficou assim:`,
-    `${dataLonga} às ${hora} (${duracao} minutos).`,
+    `${dataLonga} às ${formatarHora(hora)} (${duracao} minutos).`,
     '',
     'Você vai receber outro e-mail pedindo pra confirmar presença, um pouco antes do encontro.',
     'Se algo mudar, cancele pela plataforma para liberar o horário para outro aluno.',
@@ -114,7 +116,7 @@ export function montarEmailAgendamentoProfessora(params: {
   const dataLonga = formatarDataLonga(data)
   const tipo = emGrupo ? 'Mentoria em grupo' : 'Encontro individual'
 
-  const assunto = `Novo agendamento: ${nomeAluno} — ${dataLonga.toLowerCase()} às ${hora}`
+  const assunto = `Novo agendamento: ${nomeAluno} — ${dataLonga.toLowerCase()} às ${formatarHora(hora)}`
 
   const linhaGrupo = ocupacaoGrupo
     ? `<p style="margin:14px 0 0;color:${NAVY};font-size:14px;">
@@ -139,7 +141,7 @@ export function montarEmailAgendamentoProfessora(params: {
   const texto = [
     `${nomeAluno} acabou de marcar um horário.`,
     '',
-    `${dataLonga} às ${hora} (${duracao} minutos).`,
+    `${dataLonga} às ${formatarHora(hora)} (${duracao} minutos).`,
     `Tipo: ${tipo}`,
     `Aluno: ${nomeAluno}`,
     `E-mail: ${emailAluno}`,

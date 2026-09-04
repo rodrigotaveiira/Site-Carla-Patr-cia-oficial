@@ -1,3 +1,5 @@
+import { formatarHora } from './formato'
+
 // Monta o e-mail de confirmação de presença. Separado do envio pra poder ser
 // conferido sem precisar de chave do Resend nem de rede.
 
@@ -45,7 +47,7 @@ export function montarEmailLembrete(params: {
   const tipoMentoria = emGrupo ? 'mentoria em grupo' : 'encontro individual com a Carla'
   const primeiroNome = nomeAluno.trim().split(/\s+/)[0] || 'Aluno(a)'
 
-  const assunto = `Confirme sua presença — ${emGrupo ? 'mentoria em grupo' : 'encontro individual'} ${dataLonga.toLowerCase()} às ${hora}`
+  const assunto = `Confirme sua presença — ${emGrupo ? 'mentoria em grupo' : 'encontro individual'} ${dataLonga.toLowerCase()} às ${formatarHora(hora)}`
 
   const outros = compromissos.filter((c) => c.hora !== hora || !c.titulo.includes('mentoria'))
 
@@ -54,7 +56,7 @@ export function montarEmailLembrete(params: {
       (c) => `
       <tr>
         <td style="padding:6px 0;color:${NAVY};font-size:14px;">
-          <strong style="color:${ROXO};">${escapar(c.hora || 'Dia todo')}</strong>
+          <strong style="color:${ROXO};">${escapar(formatarHora(c.hora) || 'Dia todo')}</strong>
           &nbsp;·&nbsp;${escapar(c.titulo)}
           <span style="color:#667085;">(${escapar(c.tipo)})</span>
         </td>
@@ -88,7 +90,7 @@ export function montarEmailLembrete(params: {
           <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
             <tr><td style="padding:16px 18px;">
               <div style="color:${NAVY};font-size:16px;font-weight:700;">${escapar(dataLonga)}</div>
-              <div style="margin-top:4px;color:${ROXO};font-size:15px;font-weight:700;">${escapar(hora)} · ${duracao} minutos</div>
+              <div style="margin-top:4px;color:${ROXO};font-size:15px;font-weight:700;">${escapar(formatarHora(hora))} · ${duracao} minutos</div>
             </td></tr>
           </table>
 
@@ -118,9 +120,9 @@ export function montarEmailLembrete(params: {
     `Olá, ${primeiroNome}!`,
     '',
     `Você tem um ${tipoMentoria} marcado.`,
-    `${dataLonga} às ${hora} (${duracao} minutos).`,
+    `${dataLonga} às ${formatarHora(hora)} (${duracao} minutos).`,
     ...(outros.length
-      ? ['', 'Também no seu dia:', ...outros.map((c) => `- ${c.hora || 'Dia todo'} · ${c.titulo} (${c.tipo})`)]
+      ? ['', 'Também no seu dia:', ...outros.map((c) => `- ${formatarHora(c.hora) || 'Dia todo'} · ${c.titulo} (${c.tipo})`)]
       : []),
     '',
     'Confirme sua presença:',

@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-08-26T22:44:47.240Z",
         "reason": "Claude judgment: L187 .dots button pagination dot (6px circle -> 22px pill on click) is tiny, self-contained in its own flex row, and infrequent; converting width to transform:scaleX would stretch the rounded cap into a visible ellipse at this scale, a worse regression than the minor width-transition cost."
+      },
+      {
+        "rule": "overused-font",
+        "value": "*",
+        "files": [
+          "src/lib/email-*.ts"
+        ],
+        "createdAt": "2026-09-04T02:32:40.441Z",
+        "reason": "Claude: templates de HTML de e-mail, nao interface web. Clientes de e-mail (Outlook, Gmail, Apple Mail) nao carregam webfont — Helvetica/Arial e a stack segura; uma face distintiva viraria fallback do cliente."
       }
     ]
   }
