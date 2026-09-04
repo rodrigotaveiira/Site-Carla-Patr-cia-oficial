@@ -8,6 +8,7 @@ import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaS
 import { verifyPassword } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
+import { formatarHora } from '@/lib/formato'
 
 export const Route = createFileRoute('/_app/mentorias')({
   beforeLoad: async () => {
@@ -100,7 +101,7 @@ function MentoriasPage() {
   return (
     <div className="panel">
       <h1 style={{ marginBottom: 4 }}>Encontros Individuais</h1>
-      <p className="panel-subtitle">Escolha um horário disponível para conversar com a Carla. Cada encontro dura 40 minutos.</p>
+      <p className="panel-subtitle">Escolha um horário disponível para conversar com Carlinha. Lembre-se de que cada encontro dura 40 minutos.</p>
 
       {actionError && (
         <div className="form-error" style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: 12, margin: '16px 0' }}>
@@ -117,7 +118,7 @@ function MentoriasPage() {
                 <div>
                   <div className="list-title" style={{ textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>
                   <div className="list-meta" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <Clock3 size={14} /> {slot.time} · {slot.duration} min
+                    <Clock3 size={14} /> {formatarHora(slot.time)} · {slot.duration} min
                   </div>
                 </div>
                 <button onClick={() => handleCancel(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-danger btn-sm">
@@ -153,7 +154,7 @@ function MentoriasPage() {
                     title={hasBooking ? 'Cancele seu encontro marcado pra escolher outro horário.' : undefined}
                     className="btn btn-ghost"
                   >
-                    <Clock3 size={14} /> {slot.time}
+                    <Clock3 size={14} /> {formatarHora(slot.time)}
                   </button>
                 ))}
               </div>
@@ -164,7 +165,7 @@ function MentoriasPage() {
 
       {pendingSlot && (
         <ConfirmPasswordModal
-          detail={`${formatDate(pendingSlot.date)} às ${pendingSlot.time} · ${pendingSlot.duration} min`}
+          detail={`${formatDate(pendingSlot.date)} às ${formatarHora(pendingSlot.time)} · ${pendingSlot.duration} min`}
           confirmLabel="Confirmar horário"
           onConfirm={handleConfirmBooking}
           onCancel={() => setPendingSlot(null)}

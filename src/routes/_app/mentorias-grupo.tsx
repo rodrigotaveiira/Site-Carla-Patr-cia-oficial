@@ -8,6 +8,7 @@ import { joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots, 
 import { verifyPassword } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
+import { formatarHora } from '@/lib/formato'
 
 export const Route = createFileRoute('/_app/mentorias-grupo')({
   beforeLoad: async () => {
@@ -118,7 +119,7 @@ function MentoriasGrupoPage() {
                 <div>
                   <div className="list-title" style={{ textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>
                   <div className="list-meta" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <Clock3 size={14} /> {slot.time} · {slot.duration} min
+                    <Clock3 size={14} /> {formatarHora(slot.time)} · {slot.duration} min
                     <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Users size={14} /> {slot.students.length}/{slot.capacity}
                     </span>
@@ -148,7 +149,7 @@ function MentoriasGrupoPage() {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                 {dateSlots.map((slot) => (
                   <button key={slot.id} onClick={() => setPendingSlot(slot)} className="btn btn-ghost">
-                    <Clock3 size={14} /> {slot.time}
+                    <Clock3 size={14} /> {formatarHora(slot.time)}
                     <span style={{ color: '#8e98a5', fontWeight: 600 }}>
                       ({slot.students.length}/{slot.capacity})
                     </span>
@@ -162,7 +163,7 @@ function MentoriasGrupoPage() {
 
       {pendingSlot && (
         <ConfirmPasswordModal
-          detail={`${formatDate(pendingSlot.date)} às ${pendingSlot.time} · ${pendingSlot.duration} min · ${pendingSlot.students.length}/${pendingSlot.capacity} vagas ocupadas`}
+          detail={`${formatDate(pendingSlot.date)} às ${formatarHora(pendingSlot.time)} · ${pendingSlot.duration} min · ${pendingSlot.students.length}/${pendingSlot.capacity} vagas ocupadas`}
           confirmLabel="Confirmar entrada no grupo"
           onConfirm={handleConfirmJoin}
           onCancel={() => setPendingSlot(null)}
