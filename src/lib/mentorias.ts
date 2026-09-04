@@ -2,6 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { STORES } from './blob-stores'
+import { notificarAgendamento } from './notificar-agendamento'
 
 export type MentoriaSlot = {
   id: string
@@ -16,7 +18,7 @@ export type MentoriaSlot = {
 // "strong" garante que, assim que um horário é marcado, todo mundo que olhar
 // a lista logo em seguida já vê ele como indisponível (sem atraso de cache).
 function slotsStore() {
-  return getStore({ name: 'mentorias-slots', consistency: 'strong' })
+  return getStore({ name: STORES.mentorias, consistency: 'strong' })
 }
 
 function makeSlotId(date: string, time: string) {
@@ -131,6 +133,18 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
     if (!result?.modified) {
       throw new Error('Esse horário acabou de ser reservado por outro aluno. Escolha outro.')
     }
+
+    // Só depois da reserva gravada. `notificarAgendamento` nunca lança: se o
+    // e-mail falhar, o aluno continua com o horário marcado.
+    await notificarAgendamento({
+      nomeAluno: studentName,
+      emailAluno: user.email ?? '',
+      data: slot.date,
+      hora: slot.time,
+      duracao: slot.duration,
+      emGrupo: false,
+    })
+
     return updated
   })
 
