@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { canonicalHead } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/termos')({
-  head: canonicalHead('/termos'),
+  head: pageHead({
+    path: '/termos',
+    title: 'Termos de Uso | Carla Patrícia Medina',
+    description:
+      'Regras de uso da plataforma da Carla Patrícia Medina: cadastro e conta, uso do conteúdo, cancelamento e alterações dos termos.',
+  }),
   component: TermosPage,
 })
 

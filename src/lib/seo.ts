@@ -10,19 +10,49 @@ export const noindexHead = () => ({
   meta: [{ name: 'robots', content: 'noindex, nofollow' }],
 })
 
+type PageSeo = {
+  /** Caminho da própria página, começando com barra: '/lgpd'. */
+  path: string
+  /** Sem isto a página herda o título da home e some no meio dos resultados. */
+  title?: string
+  description?: string
+  /**
+   * Só vale a pena declarar quando a intenção precisa ficar explícita — sem
+   * nenhuma meta `robots`, o padrão do Google já é indexar.
+   */
+  robots?: string
+}
+
 /**
- * Canonical apontando pra própria página.
+ * Head de uma página pública: canonical, og:url e, quando informados, título e
+ * descrição próprios.
  *
- * Existe porque o `__root.tsx` emitia um canonical fixo da home em TODAS as
- * rotas — o que fazia /lgpd, /privacidade e /termos se declararem duplicatas da
- * home e pedirem pra sair do índice. Canonical é por página, nunca global.
- *
- * `path` começa com barra: canonicalHead('/lgpd').
+ * Existe porque o `__root.tsx` falava pelas outras rotas. O canonical fixo da
+ * home fazia /lgpd, /privacidade e /termos se declararem duplicatas dela, e o
+ * título e a descrição de fallback faziam as três aparecerem na busca com o
+ * mesmo texto da home. As duas coisas são por página, nunca globais.
  */
-export function canonicalHead(path: string) {
+export function pageHead({ path, title, description, robots }: PageSeo) {
   const href = path === '/' ? `${SITE_URL}/` : `${SITE_URL}${path}`
+
+  const meta: Record<string, string>[] = [{ property: 'og:url', content: href }]
+
+  if (robots) meta.push({ name: 'robots', content: robots })
+
+  if (title) {
+    meta.push({ title })
+    meta.push({ property: 'og:title', content: title })
+    meta.push({ name: 'twitter:title', content: title })
+  }
+
+  if (description) {
+    meta.push({ name: 'description', content: description })
+    meta.push({ property: 'og:description', content: description })
+    meta.push({ name: 'twitter:description', content: description })
+  }
+
   return () => ({
+    meta,
     links: [{ rel: 'canonical', href }],
-    meta: [{ property: 'og:url', content: href }],
   })
 }
