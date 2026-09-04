@@ -48,7 +48,7 @@ const courses = [
   {
     tag: 'Mais procurado',
     title: 'Redação de Excelência',
-    text: 'Do planejamento à conclusão: domine as competências avaliadas e escreva com segurança.',
+    text: 'Estratégia prática e acompanhamento para você desenvolver sua escrita com clareza, segurança e desenvoltura.',
     image: 'https://i.im.ge/QM8BQuT/carla-t300.webp',
     items: ['Correções individuais', 'Aulas semanais', 'Temas inéditos'],
   },
@@ -61,7 +61,7 @@ const courses = [
   },
   {
     tag: 'Experiência VIP',
-    title: 'Encontros Individuais',
+    title: 'Mentorias individuais',
     text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento da redação.',
     image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85',
     items: ['Plano sob medida', 'Contato direto', 'Metas personalizadas'],
@@ -92,7 +92,7 @@ image: '/depoimentos/maria-clara-kemp.jpeg',  },
 ]
 
 const faqs = [
-  ['Para quem são os cursos?', 'PVoltado para estudantes do Ensino Médio, candidatos ao ENEM, vestibulares e concursos, e universitários que desejam aprimorar a escrita, desenvolver maior clareza e domínio técnico, e escrever com mais confiança.'],
+  ['Para quem são os cursos?', 'Voltado para vestibulandos que desejam aprimorar a escrita, desenvolver maior clareza e domínio técnico e gramatical e escrever com mais confiança.'],
   ['Como funcionam as correções?', 'Cada texto recebe uma análise criteriosa dos critérios da prova, comentários por trecho, nota detalhada e orientações práticas para a próxima produção.'],
   ['As aulas ficam gravadas?', 'Sim. As aulas ao vivo ficam disponíveis na plataforma para revisão durante o período de acesso do curso.'],
   ['Posso começar do zero?', 'Com certeza. A trilha respeita seu nível atual e conduz passo a passo da estrutura básica às estratégias avançadas.'],
@@ -157,7 +157,7 @@ function HomePage() {
         <motion.div className="hero-copy" initial={{ opacity: 0, x: -35 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .8 }}>
           <div className="eyebrow"><span /> Estratégia que transforma resultados</div>
           <h1>Sua aprovação começa por uma <em>redação de excelência.</em></h1>
-          <p>Aulas de Redação e Gramática com metodologia exclusiva, correção personalizada e acompanhamento completo para ENEM, vestibulares e concursos.</p>
+          <p>Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.</p>
           <div className="hero-proof">
             <strong>4,9/5</strong>
             <span>avaliação média dos alunos</span>
@@ -178,7 +178,6 @@ function HomePage() {
           <div className="portrait-frame">
             <div className="portrait-label"><br /><b></b></div>
             <a href="https://im.ge/i/QM8BQuT"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></a>
-            <div className="floating-card score-card"><span>Nota alcançada</span><b>35+</b><small><TrendingUp size={14} /> +180 pontos</small></div>
             <div className="floating-card experience-card"><Award size={22} /><div><b>22+ anos</b><span>de experiência</span></div></div>
           </div>
         </motion.div>
@@ -200,7 +199,7 @@ function HomePage() {
           <div className="section-kicker">Conheça sua professora</div>
           <h2>Experiência, sensibilidade e um olhar <em>único</em> para cada aluno.</h2>
           <p>Carla Patrícia Medina é professora de Língua Portuguesa e especialista em produção textual. Há mais de 22 anos, transforma insegurança em repertório, técnica e autonomia.</p>
-          <p>Sua metodologia une rigor acadêmico a uma orientação próxima e acolhedora — porque cada aprovação começa quando o aluno entende que é capaz.</p>
+          <p>Ensinar, para Carla, é assumir a responsabilidade por cada etapa da aprendizagem, sem perder de vista quem está aprendendo. Sua metodologia respeita a saúde emocional do aluno e substitui a simples memorização de métodos pela compreensão e por um conhecimento que permanece.</p>
           <div className="signature">Carla Patrícia <span>Medina</span></div>
           <div className="mini-values">
             <span><ShieldCheck /> Ensino responsável</span><span><Users /> Acompanhamento humano</span>
@@ -249,7 +248,7 @@ function HomePage() {
         <motion.div className="results-copy" {...reveal}>
           <div className="section-kicker">Resultados que falam</div>
           <h2>Mais do que notas.<br /><em>Novas possibilidades.</em></h2>
-          <p>Quando existe método, acompanhamento e constância, a evolução deixa de ser promessa e vira conquista.</p>
+          <p>Quando o aprendizado faz sentido para a vida, o resultado se torna consequência.</p>
           <div className="result-numbers">
             <div><b>84%</b><span>Alcançaram 30+ na redação</span></div><div><b>82%</b><span>Aprovados no vestibular</span></div>
           </div>

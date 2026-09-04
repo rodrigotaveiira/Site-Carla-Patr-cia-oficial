@@ -8,6 +8,7 @@ import { CALENDAR_EVENT_LABELS, listCalendarEvents, type CalendarEvent, type Cal
 import { listMentoriaSlots } from '@/lib/mentorias'
 import { listMentoriaGrupoSlots } from '@/lib/mentorias-grupo'
 import { EmptyState } from '@/components/EmptyState'
+import { formatarHora } from '@/lib/formato'
 
 export const Route = createFileRoute('/_app/calendario')({
   beforeLoad: async () => {
@@ -295,7 +296,7 @@ function CalendarioPage() {
                       <div className="list-title">{item.title}</div>
                       <div className="list-meta">
                         {KIND_LABELS[item.kind]}
-                        {item.time && ` · ${item.time}`}
+                        {item.time && ` · ${formatarHora(item.time)}`}
                       </div>
                     </div>
                   </div>

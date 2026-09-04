@@ -117,7 +117,7 @@ function RedacoesPage() {
   return (
     <div className="panel">
       <h1>Redações</h1>
-      <p className="panel-subtitle">Envie uma foto ou arquivo da sua redação para correção da professora.</p>
+      <p className="panel-subtitle">Envie uma foto ou arquivo da sua redação para ser corrigida pela professora.</p>
 
       {temas.length > 0 && (
         <section>
