@@ -71,10 +71,9 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .hero-trust > div:last-child > span { display: flex; gap: 2px; color: var(--gold); }
 .hero-trust small { color: #6c7480; font-size: 10px; font-weight: 600; }
 .hero-visual { display: flex; justify-content: flex-end; }
-.portrait-frame { position: relative; width: min(89%, 510px); height: 540px; border-radius: 240px 240px 28px 28px; background: var(--navy); box-shadow: 28px 34px 70px rgba(15,45,82,.22); border: 8px solid rgba(255,255,255,.7); }
+.portrait-frame { position: relative; width: min(89%, 510px); height: 540px; border-radius: 240px 240px 28px 28px; background: var(--cream); box-shadow: 28px 34px 70px rgba(15,45,82,.22); border: 8px solid #fff; }
 .portrait-frame:before { content: ''; position: absolute; inset: -13px 13px 13px -13px; border: 1px solid #c8a24d88; border-radius: inherit; z-index: -1; }
 .portrait-frame img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 35%; border-radius: inherit; filter: saturate(.84) contrast(1.04); }
-.portrait-frame:after { content: ''; position: absolute; inset: 45% 0 0; border-radius: 0 0 24px 24px; background: linear-gradient(transparent, rgba(9,30,57,.35)); }
 .portrait-label { position: absolute; z-index: 2; left: -48px; bottom: 52px; color: white; font-family: var(--serif); font-size: 18px; line-height: 1.05; transform: rotate(-90deg); transform-origin: left bottom; letter-spacing: .02em; }
 .floating-card { position: absolute; z-index: 3; display: flex; background: rgba(255,255,255,.96); box-shadow: 0 18px 50px rgba(18,38,65,.18); backdrop-filter: blur(8px); }
 .score-card { top: 70px; left: -54px; width: 144px; padding: 15px 18px; flex-direction: column; border-radius: 10px; }
