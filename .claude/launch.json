@@ -4,18 +4,8 @@
     {
       "name": "dev",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "dev"
-      ],
+      "runtimeArgs": ["dev"],
       "port": 3000
-    },
-    {
-      "name": "qa-deck",
-      "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "C:/Users/rodri/AppData/Local/Temp/claude/C--Users-rodri-Carla-Netlify-friendly-pothos-3cd60f/1ef13933-351d-4b6a-8ca4-d3bd04226e28/scratchpad/deck/server.js"
-      ],
-      "port": 8787
     }
   ]
 }
