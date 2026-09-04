@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { canonicalHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/termos')({
+  head: canonicalHead('/termos'),
   component: TermosPage,
 })
 

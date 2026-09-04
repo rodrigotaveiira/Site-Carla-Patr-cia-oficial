@@ -25,8 +25,32 @@ import {
   Zap,
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { canonicalHead } from '@/lib/seo'
 
-export const Route = createFileRoute('/')({ component: HomePage })
+// O SEO da home mora aqui, não no __root: canonical, og:url e os textos de
+// compartilhamento são desta página. No root eles vazavam pra toda rota, e as
+// páginas legais acabavam se declarando duplicatas da home.
+export const Route = createFileRoute('/')({
+  head: () => ({
+    meta: [
+      { name: 'robots', content: 'index, follow' },
+      { property: 'og:title', content: 'Carla Patrícia Medina | Redação e Gramática' },
+      {
+        property: 'og:description',
+        content:
+          'Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.',
+      },
+      { name: 'twitter:title', content: 'Carla Patrícia Medina | Redação e Gramática' },
+      {
+        name: 'twitter:description',
+        content: 'Aulas de Redação e Gramática para ENEM, vestibulares e concursos.',
+      },
+      ...canonicalHead('/')().meta,
+    ],
+    links: [...canonicalHead('/')().links],
+  }),
+  component: HomePage,
+})
 
 const reveal = {
   initial: { opacity: 0, y: 28 },

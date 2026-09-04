@@ -65,11 +65,6 @@ export const Route = createRootRoute({
       },
 
       {
-        name: 'robots',
-        content: 'index, follow',
-      },
-
-      {
         name: 'theme-color',
         content: '#0F2D52',
       },
@@ -78,22 +73,6 @@ export const Route = createRootRoute({
       {
         property: 'og:type',
         content: 'website',
-      },
-
-      {
-        property: 'og:title',
-        content: 'Carla Patrícia Medina | Redação e Gramática',
-      },
-
-      {
-        property: 'og:description',
-        content:
-          'Aulas de Redação e Gramática com metodologia, correção personalizada e acompanhamento para ENEM, vestibulares e concursos.',
-      },
-
-      {
-        property: 'og:url',
-        content: 'https://carlapatriciamedina.com/',
       },
 
       {
@@ -124,17 +103,6 @@ export const Route = createRootRoute({
       },
 
       {
-        name: 'twitter:title',
-        content: 'Carla Patrícia Medina | Redação e Gramática',
-      },
-
-      {
-        name: 'twitter:description',
-        content:
-          'Aulas de Redação e Gramática para ENEM, vestibulares e concursos.',
-      },
-
-      {
         name: 'twitter:image',
         content:
           'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=85',
@@ -142,11 +110,6 @@ export const Route = createRootRoute({
     ],
 
     links: [
-      {
-        rel: 'canonical',
-        href: 'https://carlapatriciamedina.com/',
-      },
-
       // O Google so usa o favicon nos resultados se ele estiver declarado numa tag
       // `icon` — achar /favicon.ico pelo caminho padrao nao basta. O .ico carrega
       // 16/32/48 e o PNG de 192 atende a preferencia do Google por >= 48px.
