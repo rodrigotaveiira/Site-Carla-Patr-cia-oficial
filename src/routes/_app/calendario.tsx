@@ -42,7 +42,7 @@ type AgendaItem = {
 
 const KIND_LABELS: Record<AgendaKind, string> = {
   ...CALENDAR_EVENT_LABELS,
-  mentoria: 'Encontro individual',
+  mentoria: 'Mentoria individual',
   'mentoria-grupo': 'Mentoria em grupo',
 }
 
@@ -134,7 +134,7 @@ function CalendarioPage() {
               date: slot.date,
               time: slot.time,
               kind: 'mentoria',
-              title: `Encontro individual com a Carla · ${slot.duration} min`,
+              title: `Mentoria individual com a Carla · ${slot.duration} min`,
               link: '',
             })
           }

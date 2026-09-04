@@ -118,7 +118,7 @@ function CalendarioAdminPage() {
       <h1>Calendário do curso</h1>
       <p className="panel-subtitle">
         Marque aulas ao vivo, liberação de aulas gravadas, simulados e simuladões. Os alunos veem tudo isso no calendário
-        deles. As mentorias entram sozinhas — continue cadastrando elas em Encontros Individuais e Mentorias em grupo.
+        deles. As mentorias entram sozinhas — continue cadastrando elas em Mentoria individual e Mentorias em grupo.
       </p>
 
       <form onSubmit={handleSubmit} className="calendar-admin-form">

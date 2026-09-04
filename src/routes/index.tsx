@@ -61,7 +61,7 @@ const courses = [
   },
   {
     tag: 'Experiência VIP',
-    title: 'Mentorias individuais',
+    title: 'Mentoria individual',
     text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento da redação.',
     image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85',
     items: ['Plano sob medida', 'Contato direto', 'Metas personalizadas'],
@@ -96,7 +96,7 @@ const faqs = [
   ['Como funcionam as correções?', 'Cada texto recebe uma análise criteriosa dos critérios da prova, comentários por trecho, nota detalhada e orientações práticas para a próxima produção.'],
   ['As aulas ficam gravadas?', 'Sim. As aulas ao vivo ficam disponíveis na plataforma para revisão durante o período de acesso do curso.'],
   ['Posso começar do zero?', 'Com certeza. A trilha respeita seu nível atual e conduz passo a passo da estrutura básica às estratégias avançadas.'],
-  ['Há acompanhamento individual?', 'Sim. Todos os planos incluem feedback, e os Encontros Individuais oferecem conversas e plano de estudos totalmente personalizados.'],
+  ['Há acompanhamento individual?', 'Sim. Todos os planos incluem feedback, e a Mentoria individual oferece conversas e plano de estudos totalmente personalizados.'],
 ]
 
 function HomePage() {

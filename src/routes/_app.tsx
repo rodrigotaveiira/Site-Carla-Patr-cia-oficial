@@ -45,7 +45,7 @@ const sidebarGroups = [
     items: [
       { icon: CalendarClock, label: 'Calendário', href: '/calendario' },
       { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
-      { icon: CalendarDays, label: 'Encontros individuais', href: '/mentorias' },
+      { icon: CalendarDays, label: 'Mentoria individual', href: '/mentorias' },
       { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
     ],
   },

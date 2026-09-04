@@ -32,7 +32,7 @@ const links = [
   { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.' },
   { icon: BookCheck, label: 'Gabaritos dos Simulados', to: '/conteudo-admin/gabaritos', description: 'Envie os gabaritos em PDF dos simulados.' },
   { icon: CalendarClock, label: 'Calendário do curso', to: '/calendario-admin', description: 'Aulas ao vivo, aulas liberadas, simulados e simuladões na agenda do aluno.' },
-  { icon: CalendarDays, label: 'Encontros Individuais', to: '/mentorias-admin', description: 'Cadastre horários de encontros individuais.' },
+  { icon: CalendarDays, label: 'Mentoria individual', to: '/mentorias-admin', description: 'Cadastre horários de mentoria individual.' },
   { icon: Users, label: 'Mentorias em grupo', to: '/mentorias-grupo-admin', description: 'Cadastre grupos com horário e número de vagas.' },
   { icon: Library, label: 'Biblioteca', to: '/conteudo-admin/biblioteca', description: 'PDFs da seção Biblioteca.' },
   { icon: CircleHelp, label: 'Questões', to: '/conteudo-admin/questoes', description: 'PDFs da seção Questões.' },

@@ -44,10 +44,12 @@ export function montarEmailLembrete(params: {
 }) {
   const { nomeAluno, data, hora, duracao, emGrupo, compromissos, linkConfirmacao } = params
   const dataLonga = formatarDataLonga(data)
-  const tipoMentoria = emGrupo ? 'mentoria em grupo' : 'encontro individual com a Carla'
+  // Os dois lados já vêm com o artigo, no feminino: a frase usa "marcada" logo
+  // adiante, e antes saía "um mentoria em grupo marcado" no caso de grupo.
+  const tipoMentoria = emGrupo ? 'uma mentoria em grupo' : 'uma mentoria individual com a Carla'
   const primeiroNome = nomeAluno.trim().split(/\s+/)[0] || 'Aluno(a)'
 
-  const assunto = `Confirme sua presença — ${emGrupo ? 'mentoria em grupo' : 'encontro individual'} ${dataLonga.toLowerCase()} às ${formatarHora(hora)}`
+  const assunto = `Confirme sua presença — ${emGrupo ? 'mentoria em grupo' : 'mentoria individual'} ${dataLonga.toLowerCase()} às ${formatarHora(hora)}`
 
   const outros = compromissos.filter((c) => c.hora !== hora || !c.titulo.includes('mentoria'))
 
@@ -84,7 +86,7 @@ export function montarEmailLembrete(params: {
 
         <tr><td style="padding:28px 30px;">
           <p style="margin:0 0 16px;color:${NAVY};font-size:15px;line-height:1.6;">
-            Olá, ${escapar(primeiroNome)}! Você tem um ${tipoMentoria} marcado.
+            Olá, ${escapar(primeiroNome)}! Você tem ${tipoMentoria} marcada.
           </p>
 
           <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
@@ -119,7 +121,7 @@ export function montarEmailLembrete(params: {
   const texto = [
     `Olá, ${primeiroNome}!`,
     '',
-    `Você tem um ${tipoMentoria} marcado.`,
+    `Você tem ${tipoMentoria} marcada.`,
     `${dataLonga} às ${formatarHora(hora)} (${duracao} minutos).`,
     ...(outros.length
       ? ['', 'Também no seu dia:', ...outros.map((c) => `- ${formatarHora(c.hora) || 'Dia todo'} · ${c.titulo} (${c.tipo})`)]
