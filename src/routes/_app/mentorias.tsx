@@ -100,7 +100,7 @@ function MentoriasPage() {
 
   return (
     <div className="panel">
-      <h1 style={{ marginBottom: 4 }}>Encontros Individuais</h1>
+      <h1 style={{ marginBottom: 4 }}>Mentoria individual</h1>
       <p className="panel-subtitle">Escolha um horário disponível para conversar com Carlinha. Lembre-se de que cada encontro dura 40 minutos.</p>
 
       {actionError && (

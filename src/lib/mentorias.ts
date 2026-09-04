@@ -28,7 +28,7 @@ function makeSlotId(date: string, time: string) {
 // Precisa de login: cada horário carrega nome e e-mail do aluno que reservou
 // (student), e essa função fica exposta como endpoint de rede independente
 // da tela — sem essa checagem, qualquer um sem conta conseguiria listar
-// quem marcou encontro individual e quando.
+// quem marcou mentoria individual e quando.
 export const listMentoriaSlots = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -93,7 +93,7 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
 
     const store = slotsStore()
 
-    // Cada aluno só pode ter um encontro individual futuro marcado por vez —
+    // Cada aluno só pode ter uma mentoria individual futura marcada por vez —
     // evita que um aluno reserve vários horários e "trave" a agenda pros outros.
     if (!userHasRole(user, 'admin')) {
       const today = new Date().toISOString().slice(0, 10)
@@ -102,7 +102,7 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
         if (blob.key === data.id) continue
         const existing = await store.get(blob.key, { type: 'json' }) as MentoriaSlot | null
         if (existing?.status === 'booked' && existing.student?.email === user.email && existing.date >= today) {
-          throw new Error('Você já tem um encontro individual marcado. Cancele-o antes de marcar outro horário.')
+          throw new Error('Você já tem uma mentoria individual marcada. Cancele-a antes de marcar outro horário.')
         }
       }
     }

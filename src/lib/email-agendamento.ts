@@ -71,13 +71,13 @@ export function montarEmailAgendamentoAluno(params: {
   const { nomeAluno, data, hora, duracao, emGrupo } = params
   const dataLonga = formatarDataLonga(data)
   const primeiroNome = nomeAluno.trim().split(/\s+/)[0] || 'Aluno(a)'
-  const tipo = emGrupo ? 'sua mentoria em grupo' : 'seu encontro individual com a Carla'
+  const tipo = emGrupo ? 'sua mentoria em grupo' : 'sua mentoria individual com a Carla'
 
-  const assunto = `Agendamento confirmado — ${emGrupo ? 'mentoria em grupo' : 'encontro individual'} em ${dataLonga.toLowerCase()}`
+  const assunto = `Agendamento confirmado — ${emGrupo ? 'mentoria em grupo' : 'mentoria individual'} em ${dataLonga.toLowerCase()}`
 
   const html = moldura(
     `<p style="margin:0 0 16px;color:${NAVY};font-size:15px;line-height:1.6;">
-       Olá, ${escapar(primeiroNome)}! Está marcado — ${tipo} ficou assim:
+       Olá, ${escapar(primeiroNome)}! Está marcada — ${tipo} ficou assim:
      </p>
      ${caixaHorario(dataLonga, hora, duracao)}
      <p style="margin:20px 0 0;color:${NAVY};font-size:15px;line-height:1.6;">
@@ -92,7 +92,7 @@ export function montarEmailAgendamentoAluno(params: {
   const texto = [
     `Olá, ${primeiroNome}!`,
     '',
-    `Está marcado — ${tipo} ficou assim:`,
+    `Está marcada — ${tipo} ficou assim:`,
     `${dataLonga} às ${formatarHora(hora)} (${duracao} minutos).`,
     '',
     'Você vai receber outro e-mail pedindo pra confirmar presença, um pouco antes do encontro.',
@@ -114,7 +114,7 @@ export function montarEmailAgendamentoProfessora(params: {
 }) {
   const { nomeAluno, emailAluno, data, hora, duracao, emGrupo, ocupacaoGrupo } = params
   const dataLonga = formatarDataLonga(data)
-  const tipo = emGrupo ? 'Mentoria em grupo' : 'Encontro individual'
+  const tipo = emGrupo ? 'Mentoria em grupo' : 'Mentoria individual'
 
   const assunto = `Novo agendamento: ${nomeAluno} — ${dataLonga.toLowerCase()} às ${formatarHora(hora)}`
 

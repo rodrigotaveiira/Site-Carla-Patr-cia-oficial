@@ -370,7 +370,7 @@ function DashboardPage() {
       if (faltam > 0) items.push({ id: 'meta-semanal', text: `Faltam ${faltam} dia(s) de estudo para bater sua meta semanal.` })
       else items.push({ id: 'meta-ok', text: 'Você já bateu sua meta semanal. Parabéns! 🎉' })
     }
-    items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque um encontro individual.' })
+    items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque uma mentoria individual.' })
     return items
   }, [weeklyGoal, lembretes, contentNotifications])
 

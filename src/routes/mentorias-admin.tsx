@@ -82,7 +82,7 @@ function MentoriasAdminPage() {
   return (
     <main className="panel">
       <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
-      <h1>Gerenciar Encontros Individuais</h1>
+      <h1>Gerenciar Mentoria individual</h1>
       <p className="panel-subtitle">Cadastre os horários em que você está disponível. Assim que um aluno marcar, o horário some da lista automaticamente pros outros.</p>
 
       <form onSubmit={handleAdd} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 24, flexWrap: 'wrap' }}>
