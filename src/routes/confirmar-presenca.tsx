@@ -3,6 +3,7 @@ import { CalendarCheck, CircleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { confirmarPresenca, type ResultadoConfirmacao } from '@/lib/confirmacao-presenca'
 import { noindexHead } from '@/lib/seo'
+import { formatarHora } from '@/lib/formato'
 
 // Destino do botão "Confirmar presença" do e-mail de lembrete. Página pública,
 // aberta pelo token do e-mail — por isso `noindex`, pra não entrar na busca.
@@ -72,7 +73,7 @@ function ConfirmarPresencaPage() {
           </b>
           {resultado.data && resultado.hora && (
             <p>
-              {formatarData(resultado.data)} às {resultado.hora}
+              {formatarData(resultado.data)} às {formatarHora(resultado.hora)}
               {resultado.duracao ? ` · ${resultado.duracao} minutos` : ''}.
             </p>
           )}
