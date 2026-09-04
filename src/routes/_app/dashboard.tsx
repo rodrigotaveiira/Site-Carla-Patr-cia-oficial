@@ -19,6 +19,7 @@ import { getCompetencyScheme, type Competency } from '@/lib/competencies'
 import { listLembretes, type Lembrete } from '@/lib/lembretes'
 import { getLiveClass, type LiveClass } from '@/lib/live-class'
 import { getRecentContentNotifications, type ContentNotification } from '@/lib/notifications'
+import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
 import { useToast } from '@/lib/toast'
@@ -357,14 +358,26 @@ function DashboardPage() {
     getRecentContentNotifications().then(setContentNotifications).catch(() => { /* sem avisos de arquivo por enquanto */ })
   }, [])
 
-  const notifications = useMemo(() => {
-    const items: { id: string; text: string }[] = []
+  // Novidade de verdade: lembrete da professora e arquivo novo. Só isto acende
+  // o ponto do sino, e por isso carrega data — é o que permite saber se chegou
+  // algo depois da última vez que o aluno olhou.
+  const novidades = useMemo(() => {
+    const items: { id: string; text: string; date: string }[] = []
     for (const lembrete of lembretes) {
-      items.push({ id: `lembrete-${lembrete.id}`, text: lembrete.message })
+      items.push({ id: `lembrete-${lembrete.id}`, text: lembrete.message, date: lembrete.createdAt })
     }
     for (const notification of contentNotifications) {
-      items.push({ id: notification.id, text: notification.text })
+      items.push({ id: notification.id, text: notification.text, date: notification.date })
     }
+    items.sort((a, b) => b.date.localeCompare(a.date))
+    return items
+  }, [lembretes, contentNotifications])
+
+  // Avisos de rotina: continuam no painel, mas não são novidade. Eram eles que
+  // deixavam o ponto do sino permanentemente aceso — o convite de mentoria em
+  // especial entrava sem condição nenhuma, então a lista nunca ficava vazia.
+  const rotina = useMemo(() => {
+    const items: { id: string; text: string }[] = []
     if (weeklyGoal) {
       const faltam = weeklyGoal.goal - weeklyGoal.completedDates.length
       if (faltam > 0) items.push({ id: 'meta-semanal', text: `Faltam ${faltam} dia(s) de estudo para bater sua meta semanal.` })
@@ -372,7 +385,23 @@ function DashboardPage() {
     }
     items.push({ id: 'mentoria', text: 'Quer tirar dúvidas com a Carla? Marque uma mentoria individual.' })
     return items
-  }, [weeklyGoal, lembretes, contentNotifications])
+  }, [weeklyGoal])
+
+  const [avisosVistosEm, setAvisosVistosEm] = useState(lerAvisosVistosEm)
+  const avisoMaisRecente = novidades[0]?.date ?? ''
+  const temNovidade = temAvisoNaoVisto(avisoMaisRecente, avisosVistosEm)
+
+  // Abrir o painel marca as novidades como vistas — é o gesto que significa
+  // "eu olhei". Fechar não desfaz.
+  function alternarAvisos() {
+    setNotificationsOpen((aberto) => {
+      if (!aberto && avisoMaisRecente) {
+        salvarAvisosVistosEm(avisoMaisRecente)
+        setAvisosVistosEm(avisoMaisRecente)
+      }
+      return !aberto
+    })
+  }
 
   function handlePhotoChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -450,12 +479,13 @@ function DashboardPage() {
           </div>
         )}
       </div><div className="topbar-actions"><div style={{ position: 'relative' }}>
-        <button type="button" onClick={() => setNotificationsOpen((open) => !open)}><Bell />{notifications.length > 0 && <i />}</button>
+        <button type="button" onClick={alternarAvisos} aria-label={temNovidade ? 'Avisos — há novidades' : 'Avisos'}><Bell />{temNovidade && <i />}</button>
         {notificationsOpen && (
           <div className="notifications-panel">
             <b>Avisos</b>
-            {notifications.length === 0 && <p>Nenhum aviso por enquanto.</p>}
-            {notifications.map((notification) => <p key={notification.id}>{notification.text}</p>)}
+            {novidades.length === 0 && rotina.length === 0 && <p>Nenhum aviso por enquanto.</p>}
+            {novidades.map((aviso) => <p key={aviso.id}>{aviso.text}</p>)}
+            {rotina.map((aviso) => <p key={aviso.id}>{aviso.text}</p>)}
           </div>
         )}
       </div><div className="user-chip">
