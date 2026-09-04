@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { canonicalHead } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/lgpd')({
-  head: canonicalHead('/lgpd'),
+  head: pageHead({
+    path: '/lgpd',
+    title: 'LGPD — Seus direitos sobre os dados | Carla Patrícia Medina',
+    description:
+      'Seus direitos sobre os dados pessoais na plataforma da Carla Patrícia Medina, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).',
+  }),
   component: LgpdPage,
 })
 

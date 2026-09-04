@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { canonicalHead } from '@/lib/seo'
+import { pageHead } from '@/lib/seo'
 
 export const Route = createFileRoute('/privacidade')({
-  head: canonicalHead('/privacidade'),
+  head: pageHead({
+    path: '/privacidade',
+    title: 'Política de Privacidade | Carla Patrícia Medina',
+    description:
+      'Quais dados a plataforma da Carla Patrícia Medina coleta, como são usados, por quanto tempo ficam guardados e quais são os seus direitos.',
+  }),
   component: PrivacidadePage,
 })
 
