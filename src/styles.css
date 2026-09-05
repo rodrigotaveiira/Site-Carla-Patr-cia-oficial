@@ -765,6 +765,10 @@ footer .brand b { color: white; }
   .welcome-row .outline-button { display: none; }
   .dashboard-hero-card { min-height: 310px; align-items: flex-start; padding: 28px 25px; }
   .dashboard-hero-card > div:first-child { max-width: none; }
+  /* O anel vira uma caixa de ~100px fixada no canto inferior direito do card.
+     O paragrafo, sem essa reserva, corria a largura toda e ficava por baixo
+     do anel quando quebrava linha ate ali embaixo. */
+  .dashboard-hero-card p { max-width: calc(100% - 110px); }
   .hero-ring-wrap { right: 25px; bottom: 22px; }
   .hero-ring { --ring-size: 100px; }
   .hero-ring-panel { width: min(240px, calc(100vw - 24px)); }
