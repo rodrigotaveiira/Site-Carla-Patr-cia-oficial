@@ -1,7 +1,7 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
   BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
-  LogOut, Menu, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
+  LogOut, Menu, MessageCircleHeart, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -47,6 +47,7 @@ const sidebarGroups = [
       { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
       { icon: CalendarDays, label: 'Mentoria individual', href: '/mentorias' },
       { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
+      { icon: MessageCircleHeart, label: 'Fale com a Carlinha', href: '/perfil' },
     ],
   },
 ] as const
