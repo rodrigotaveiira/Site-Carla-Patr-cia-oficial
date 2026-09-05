@@ -6,11 +6,19 @@ import { readLocalUsers } from './identity-context'
 // conta emprestada — nao e barreira de servidor: quem chamar a server function
 // direto continua marcando sem senha (ver README da issue #11).
 
-type LocalUserWithPassword = { email?: string; password?: string }
+type LocalUserWithPasswordHash = { email?: string; passwordHash?: string }
 
-// Mesmo criterio de ambiente usado na tela de login.
+// Mesmo criterio de ambiente usado na tela de login: só é `true` numa build
+// de desenvolvimento (`vite dev`); qualquer deploy do Netlify (produção ou
+// preview) é `vite build`, que resolve `import.meta.env.DEV` pra `false`.
 function isLocalDemoMode() {
-  return typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  return import.meta.env.DEV && typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const bytes = new TextEncoder().encode(password)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 /**
@@ -23,9 +31,10 @@ export async function verifyPassword(email: string, password: string): Promise<b
   if (!password) return false
 
   if (isLocalDemoMode()) {
-    const users = readLocalUsers() as LocalUserWithPassword[]
+    const users = readLocalUsers() as LocalUserWithPasswordHash[]
+    const hash = await hashPassword(password)
     return users.some(
-      (user) => user.email?.toLowerCase() === email.toLowerCase() && user.password === password,
+      (user) => user.email?.toLowerCase() === email.toLowerCase() && user.passwordHash === hash,
     )
   }
 
