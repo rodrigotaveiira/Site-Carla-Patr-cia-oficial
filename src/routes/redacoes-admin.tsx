@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, Download, HandHelping, PenLine, Settings } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronDown, ChevronUp, Download, HandHelping, ImagePlus, PenLine, Settings } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
@@ -23,7 +23,16 @@ export const Route = createFileRoute('/redacoes-admin')({
   component: RedacoesAdminPage,
 })
 
-type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl'>
+type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'>
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'))
+    reader.readAsDataURL(file)
+  })
+}
 
 function SchemeEditor({ scheme, onSaved }: { scheme: Competency[]; onSaved: (scheme: Competency[]) => void }) {
   const showToast = useToast()
@@ -105,6 +114,9 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
   })
   const [scores, setScores] = useState<CompetencyScore[]>(initialScores)
   const [feedback, setFeedback] = useState(submission.feedback ?? '')
+  const [correctionFile, setCorrectionFile] = useState<File | null>(null)
+  const correctionFileInputRef = useRef<HTMLInputElement>(null)
+  const [downloadingCorrection, setDownloadingCorrection] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [openLevelsId, setOpenLevelsId] = useState<string | null>(null)
@@ -116,11 +128,34 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
   const rawTotal = Math.round(scores.reduce((sum, s) => sum + (Number(s.value) || 0), 0) * 100) / 100
   const finalGrade = Math.round(rawTotal * 4 * 100) / 100
 
+  async function handleViewCorrectionFile() {
+    setDownloadingCorrection(true)
+    try {
+      const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id: submission.id, kind: 'correction' } })
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = fileDataUrl
+      link.click()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível abrir a foto da correção.')
+    } finally {
+      setDownloadingCorrection(false)
+    }
+  }
+
   async function handleSave() {
     setError('')
     setSaving(true)
     try {
-      await correctRedacao({ data: { id: submission.id, scores, feedback } })
+      const correctionFileDataUrl = correctionFile ? await readFileAsDataUrl(correctionFile) : undefined
+      await correctRedacao({
+        data: {
+          id: submission.id,
+          scores,
+          feedback,
+          ...(correctionFileDataUrl ? { correctionFileName: correctionFile!.name, correctionFileDataUrl } : {}),
+        },
+      })
       onSaved()
       showToast('Correção salva.')
     } catch (err) {
@@ -168,6 +203,33 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
         </div>
       ))}
       <div style={{ fontWeight: 800, color: 'var(--navy)' }}>Nota bruta: {rawTotal}/10 · Nota final (peso 4): {finalGrade}/40</div>
+
+      <div className="field" style={{ margin: 0 }}>
+        <label>Foto da correção (opcional)</label>
+        {submission.correctedFileName && !correctionFile && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, background: 'var(--lilac-tint)', borderRadius: 8, padding: '8px 12px', marginBottom: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 12, color: 'var(--navy)', wordBreak: 'break-word' }}>Já anexada: {submission.correctedFileName}</span>
+            <button type="button" onClick={handleViewCorrectionFile} disabled={downloadingCorrection} className="btn btn-ghost btn-sm">
+              <Download size={13} /> {downloadingCorrection ? 'Abrindo...' : 'Ver'}
+            </button>
+          </div>
+        )}
+        <input
+          ref={correctionFileInputRef}
+          type="file"
+          accept="image/*,.pdf,.doc,.docx"
+          onChange={(e) => setCorrectionFile(e.target.files?.[0] ?? null)}
+          style={{ display: 'none' }}
+        />
+        <button
+          type="button"
+          onClick={() => correctionFileInputRef.current?.click()}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '10px 14px', background: '#fff', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+        >
+          <ImagePlus size={16} /> {correctionFile ? correctionFile.name : submission.correctedFileName ? 'Trocar foto da correção' : 'Anexar foto da redação corrigida'}
+        </button>
+      </div>
+
       <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} />
       <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
