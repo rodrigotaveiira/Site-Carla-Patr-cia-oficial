@@ -10,8 +10,17 @@ const LOCAL_SESSION_KEY = 'cpm-local-user'
 const DEVICE_SESSION_KEY = 'cpm:device-session-id'
 const SESSION_CHECK_INTERVAL_MS = 25_000
 
+// O login/cadastro local (sem Netlify Identity) e uma conveniencia so pra
+// desenvolvimento: dados ficticios guardados no localStorage do navegador,
+// sem nenhuma validacao de servidor. `import.meta.env.DEV` e uma flag do
+// Vite resolvida em BUILD TIME — numa build de producao ela e `false` e o
+// bundler elimina este ramo como codigo morto, entao nada aqui roda ou fica
+// no bundle publicado. Isso e diferente (e mais forte) do que checar
+// `window.location.hostname`, que so depende do que o navegador reporta.
+const LOCAL_AUTH_ENABLED = import.meta.env.DEV
+
 type LocalUser = User & {
-  password?: string
+  passwordHash?: string
   cpf?: string
   user_metadata?: {
     full_name?: string
@@ -19,22 +28,42 @@ type LocalUser = User & {
   }
 }
 
+// Hash so pra nao guardar a senha em texto puro no localStorage do ambiente
+// de dev. NAO e uma barreira de seguranca de verdade (localStorage e sempre
+// legivel/gravavel pelo proprio navegador do usuario) — o objetivo unico e
+// nao deixar a senha em claro caso alguem abra o DevTools ou o storage seja
+// copiado/logado em algum lugar.
+async function hashPassword(password: string): Promise<string> {
+  const bytes = new TextEncoder().encode(password)
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
 export function readLocalUsers(): LocalUser[] {
-  if (typeof window === 'undefined') return []
+  if (!LOCAL_AUTH_ENABLED || typeof window === 'undefined') return []
 
   const stored = window.localStorage.getItem(LOCAL_USERS_KEY)
   if (!stored) return []
 
   try {
     const parsed = JSON.parse(stored)
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+    // Limpa registros antigos que ainda guardavam a senha em texto puro
+    // (formato anterior a este hash) — eles nao tem como ser migrados pro
+    // hash sem a senha original, entao sao descartados; o aluno de teste
+    // local so precisa se cadastrar de novo.
+    const clean = parsed.filter((user) => user && typeof user === 'object' && !('password' in user))
+    if (clean.length !== parsed.length) {
+      window.localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(clean))
+    }
+    return clean
   } catch {
     return []
   }
 }
 
 export function getLocalUserSession(): User | null {
-  if (typeof window === 'undefined') return null
+  if (!LOCAL_AUTH_ENABLED || typeof window === 'undefined') return null
 
   const stored = window.localStorage.getItem(LOCAL_SESSION_KEY)
   if (!stored) return null
@@ -52,41 +81,42 @@ export function readLocalUser(): User | null {
   return getLocalUserSession()
 }
 
-export function createLocalUserRecord(data: {
+export async function createLocalUserRecord(data: {
   name: string
   cpf: string
   email: string
   password: string
-}): LocalUser {
+}): Promise<LocalUser> {
   return {
     id: crypto.randomUUID(),
     email: data.email,
-    password: data.password,
+    passwordHash: await hashPassword(data.password),
     cpf: data.cpf,
     user_metadata: { full_name: data.name, cpf: data.cpf },
     confirmed_at: new Date().toISOString(),
   } as LocalUser
 }
 
-export function registerLocalUser(data: { name: string; cpf: string; email: string; password: string }) {
-  if (typeof window === 'undefined') return null
+export async function registerLocalUser(data: { name: string; cpf: string; email: string; password: string }) {
+  if (!LOCAL_AUTH_ENABLED || typeof window === 'undefined') return null
 
   const users = readLocalUsers()
   const exists = users.some((user) => user.email?.toLowerCase() === data.email.toLowerCase())
   if (exists) return null
 
-  const newUser = createLocalUserRecord(data)
+  const newUser = await createLocalUserRecord(data)
   users.push(newUser)
   window.localStorage.setItem(LOCAL_USERS_KEY, JSON.stringify(users))
   window.localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(newUser))
   return newUser
 }
 
-export function loginLocalUser(email: string, password: string) {
-  if (typeof window === 'undefined') return null
+export async function loginLocalUser(email: string, password: string) {
+  if (!LOCAL_AUTH_ENABLED || typeof window === 'undefined') return null
 
   const users = readLocalUsers()
-  const match = users.find((user) => user.email?.toLowerCase() === email.toLowerCase() && user.password === password)
+  const hash = await hashPassword(password)
+  const match = users.find((user) => user.email?.toLowerCase() === email.toLowerCase() && user.passwordHash === hash)
   if (!match) return null
 
   window.localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(match))
@@ -94,13 +124,25 @@ export function loginLocalUser(email: string, password: string) {
 }
 
 export function storeLocalUser(user: Partial<User>) {
-  if (typeof window === 'undefined') return
+  if (!LOCAL_AUTH_ENABLED || typeof window === 'undefined') return
   window.localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(user))
 }
 
 export function clearLocalUser() {
   if (typeof window === 'undefined') return
   window.localStorage.removeItem(LOCAL_SESSION_KEY)
+}
+
+// Se esta build NAO e de desenvolvimento, qualquer `cpm-local-user(s)` que
+// ainda exista no navegador (ex.: o mesmo perfil de navegador foi usado
+// antes contra um ambiente de dev/preview) e lixo que nao deve ter efeito
+// nenhum em produção — apaga de uma vez, sem esperar um login/logout.
+function purgeLocalAuthIfDisabled() {
+  if (LOCAL_AUTH_ENABLED || typeof window === 'undefined') return
+  if (window.localStorage.getItem(LOCAL_SESSION_KEY) || window.localStorage.getItem(LOCAL_USERS_KEY)) {
+    window.localStorage.removeItem(LOCAL_SESSION_KEY)
+    window.localStorage.removeItem(LOCAL_USERS_KEY)
+  }
 }
 
 type IdentityContextValue = {
@@ -138,6 +180,7 @@ export function IdentityProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
 
   useEffect(() => {
+    purgeLocalAuthIfDisabled()
     const localUser = readLocalUser()
     if (localUser) {
       isLocalUserRef.current = true

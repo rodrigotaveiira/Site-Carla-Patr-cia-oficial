@@ -19,7 +19,11 @@ function LoginPage() {
   )
   const [notice, setNotice] = useState('')
 
-  const isLocalDemoMode = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+  // `import.meta.env.DEV` e resolvida em build time pelo Vite: qualquer
+  // deploy (produção ou preview) é feito com `vite build`, que sempre
+  // resolve isso pra `false` — então esse modo de demonstração nunca existe
+  // fora de `vite dev` na máquina de quem está desenvolvendo.
+  const isLocalDemoMode = import.meta.env.DEV && typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -40,7 +44,7 @@ function LoginPage() {
             return
           }
 
-          const registered = registerLocalUser({ name, cpf, email, password })
+          const registered = await registerLocalUser({ name, cpf, email, password })
           if (!registered) {
             setError('Já existe uma conta para este e-mail. Faça login ou use outro endereço.')
             return
@@ -51,7 +55,7 @@ function LoginPage() {
           return
         }
 
-        const localUser = loginLocalUser(email, password)
+        const localUser = await loginLocalUser(email, password)
         if (!localUser) {
           setError('E-mail ou senha inválidos no ambiente local. Crie a conta primeiro.')
           return
@@ -74,7 +78,7 @@ function LoginPage() {
     } catch (caughtError) {
       const message = caughtError instanceof AuthError ? caughtError.message : 'Não foi possível acessar. Tente novamente.'
       if (isLocalDemoMode && mode === 'signup') {
-        const registered = registerLocalUser({ name, cpf, email, password })
+        const registered = await registerLocalUser({ name, cpf, email, password })
         if (!registered) {
           setError('Já existe uma conta para este e-mail. Faça login ou use outro endereço.')
           return

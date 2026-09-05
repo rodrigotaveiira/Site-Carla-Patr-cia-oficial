@@ -39,7 +39,7 @@ function lembretesStore() {
 }
 
 export const confirmarPresenca = createServerFn({ method: 'POST' })
-  .inputValidator((data: { token: string }) => data)
+  .validator(z.object({ token: z.string().trim().min(1).max(200) }))
   .handler(async ({ data }): Promise<ResultadoConfirmacao> => {
     const token = (data.token || '').trim()
     if (!token) return { ok: false, motivo: 'token-invalido' }

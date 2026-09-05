@@ -1,8 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkPdfDataUrl } from './watermark'
+import { validateUpload } from './upload-validation'
+import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
+
+const contentSectionSchema = z.enum(['biblioteca', 'questoes', 'simulados', 'repertorios', 'dicas', 'gabaritos'])
 
 // Seções de conteúdo em PDF geridas pela admin. Cada uma tem sua própria "gaveta" de arquivos.
 export const CONTENT_SECTIONS = {
@@ -54,7 +59,7 @@ async function requireStudent() {
 }
 
 export const listContentItems = createServerFn({ method: 'GET' })
-  .inputValidator((data: { section: ContentSection }) => data)
+  .validator(z.object({ section: contentSectionSchema }))
   .handler(async ({ data }) => {
     await requireStudent()
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
@@ -71,7 +76,7 @@ export const listContentItems = createServerFn({ method: 'GET' })
   })
 
 export const getContentItemFile = createServerFn({ method: 'GET' })
-  .inputValidator((data: { section: ContentSection; id: string }) => data)
+  .validator(z.object({ section: contentSectionSchema, id: idSchema }))
   .handler(async ({ data }) => {
     const user = await requireStudent()
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
@@ -91,24 +96,24 @@ export const getContentItemFile = createServerFn({ method: 'GET' })
   })
 
 export const addContentItem = createServerFn({ method: 'POST' })
-  .inputValidator((data: {
-    section: ContentSection
-    title: string
-    description: string
-    fileName: string
-    fileDataUrl: string
-  }) => data)
+  .validator(
+    z.object({
+      section: contentSectionSchema,
+      title: boundedText(300),
+      description: z.string().trim().max(2000),
+      fileName: fileNameSchema,
+      fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
+    }),
+  )
   .handler(async ({ data }) => {
     await requireAdmin(data.section)
-    if (!isContentSection(data.section)) throw new Error('Seção inválida.')
-    if (!data.title.trim()) throw new Error('Dê um título para o arquivo.')
-    if (!data.fileDataUrl || !data.fileName) throw new Error('Escolha um arquivo PDF para enviar.')
 
-    const extension = data.fileName.toLowerCase().slice(data.fileName.lastIndexOf('.'))
-    if (extension !== '.pdf') throw new Error('Envie um arquivo em PDF.')
-    if (data.fileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {
-      throw new Error('Esse arquivo é muito grande. Envie um PDF de até 12MB.')
-    }
+    validateUpload({
+      dataUrl: data.fileDataUrl,
+      fileName: data.fileName,
+      allowed: ['pdf'],
+      maxDecodedBytes: 12 * 1024 * 1024,
+    })
 
     const store = storeFor(data.section)
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -126,7 +131,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
   })
 
 export const deleteContentItem = createServerFn({ method: 'POST' })
-  .inputValidator((data: { section: ContentSection; id: string }) => data)
+  .validator(z.object({ section: contentSectionSchema, id: idSchema }))
   .handler(async ({ data }) => {
     await requireAdmin(data.section)
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')

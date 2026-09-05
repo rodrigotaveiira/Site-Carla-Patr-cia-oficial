@@ -1,8 +1,18 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
+import { boundedText, hhmm, id as idSchema, isoDate } from './schemas'
+
+const calendarEventInput = z.object({
+  date: isoDate,
+  time: hhmm,
+  type: z.string().trim().min(1).max(50),
+  title: boundedText(300),
+  link: z.string().trim().max(2000),
+})
 
 // Eventos da agenda ficam num store próprio em vez de virarem campo de data
 // dentro de Lesson e Simulado. Aula gravada e simulado são *conteúdo*: ficam
@@ -76,15 +86,11 @@ export const listCalendarEvents = createServerFn({ method: 'GET' }).handler(asyn
 })
 
 export const createCalendarEvent = createServerFn({ method: 'POST' })
-  .inputValidator((data: { date: string; time: string; type: string; title: string; link: string }) => data)
+  .validator(calendarEventInput)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    const title = data.title.trim()
-    if (!title) throw new Error('Escreva o que acontece nesse dia.')
-    if (!isValidDate(data.date)) throw new Error('Escolha uma data válida.')
-    if (!isValidTime(data.time)) throw new Error('Horário inválido.')
     if (!isValidType(data.type)) throw new Error('Tipo de evento inválido.')
 
     const event: CalendarEvent = {
@@ -92,8 +98,8 @@ export const createCalendarEvent = createServerFn({ method: 'POST' })
       date: data.date,
       time: data.time,
       type: data.type,
-      title,
-      link: data.link.trim(),
+      title: data.title,
+      link: data.link,
       createdAt: new Date().toISOString(),
     }
 
@@ -102,15 +108,11 @@ export const createCalendarEvent = createServerFn({ method: 'POST' })
   })
 
 export const updateCalendarEvent = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; date: string; time: string; type: string; title: string; link: string }) => data)
+  .validator(calendarEventInput.extend({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    const title = data.title.trim()
-    if (!title) throw new Error('Escreva o que acontece nesse dia.')
-    if (!isValidDate(data.date)) throw new Error('Escolha uma data válida.')
-    if (!isValidTime(data.time)) throw new Error('Horário inválido.')
     if (!isValidType(data.type)) throw new Error('Tipo de evento inválido.')
 
     const store = eventsStore()
@@ -122,8 +124,8 @@ export const updateCalendarEvent = createServerFn({ method: 'POST' })
       date: data.date,
       time: data.time,
       type: data.type,
-      title,
-      link: data.link.trim(),
+      title: data.title,
+      link: data.link,
     }
 
     await store.setJSON(data.id, updated)
@@ -131,7 +133,7 @@ export const updateCalendarEvent = createServerFn({ method: 'POST' })
   })
 
 export const deleteCalendarEvent = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')

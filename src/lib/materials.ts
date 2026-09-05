@@ -1,8 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
+import { validateUpload } from './upload-validation'
+import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema, isoDate } from './schemas'
 
 export type Material = {
   id: string
@@ -25,7 +28,6 @@ export type MaterialListItem = Omit<Material, 'fileDataUrl'> & {
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
 const MAX_FILE_DATA_URL_LENGTH = 16_000_000
 
-const ALLOWED_EXTENSIONS = ['.docx', '.pdf']
 
 function materialsStore() {
   return getStore({ name: 'student-materials', consistency: 'strong' })
@@ -91,7 +93,7 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 // Busca o arquivo de um material específico (só quando o aluno clica em baixar).
 // O arquivo é carimbado na hora com o nome e o CPF de quem está baixando.
 export const getMaterialFile = createServerFn({ method: 'GET' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -113,29 +115,26 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
   })
 
 export const addMaterial = createServerFn({ method: 'POST' })
-  .inputValidator((data: {
-    title: string
-    description: string
-    tag: string
-    accent: string
-    fileName: string
-    fileDataUrl: string
-    classDate?: string
-  }) => data)
+  .validator(
+    z.object({
+      title: boundedText(300),
+      description: z.string().trim().max(2000),
+      tag: z.string().trim().max(60),
+      accent: z.string().trim().max(20),
+      fileName: fileNameSchema,
+      fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
+      classDate: z.union([isoDate, z.literal('')]).optional(),
+    }),
+  )
   .handler(async ({ data }) => {
     await requireAdmin()
 
-    if (!data.title.trim()) throw new Error('Dê um título para o material.')
-    if (!data.fileDataUrl || !data.fileName) throw new Error('Escolha um arquivo para enviar.')
-
-    const extension = data.fileName.toLowerCase().slice(data.fileName.lastIndexOf('.'))
-    if (!ALLOWED_EXTENSIONS.includes(extension)) {
-      throw new Error('Envie um arquivo Word (.docx) ou PDF.')
-    }
-
-    if (data.fileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {
-      throw new Error('Esse arquivo é muito grande. Envie um arquivo de até 12MB.')
-    }
+    validateUpload({
+      dataUrl: data.fileDataUrl,
+      fileName: data.fileName,
+      allowed: ['pdf', 'docx'],
+      maxDecodedBytes: 12 * 1024 * 1024,
+    })
 
     const store = materialsStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -157,7 +156,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
   })
 
 export const deleteMaterial = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const store = materialsStore()

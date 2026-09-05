@@ -120,10 +120,18 @@ export default async function handler() {
   for (const alvo of pendentes) {
     const chave = chaveLembrete(alvo.slotId, alvo.email)
 
-    // Idempotência: se já existe registro, esse aluno já recebeu o lembrete
-    // desta mentoria. Sem isso, a execução de hora em hora reenviaria sempre.
-    const existente = (await store.get(chave, { type: 'json' })) as RegistroLembrete | null
-    if (existente) {
+    // Idempotência atômica: reserva a chave ANTES de mandar o e-mail, com
+    // `onlyIfNew`. Se já existe (esse aluno já recebeu, OU outra execução
+    // concorrente acabou de reservar), pula. Sem o `onlyIfNew`, duas
+    // execuções quase simultâneas (retry do Netlify, disparo manual junto
+    // do cron) fariam ambas lerem "não existe" e mandarem o mesmo lembrete
+    // duas vezes.
+    const claimResult = await store.setJSON(
+      chave,
+      { chave, slotId: alvo.slotId, email: alvo.email, token: '', enviadoEm: agora.toISOString(), confirmadoEm: null } satisfies RegistroLembrete,
+      { onlyIfNew: true },
+    )
+    if (!claimResult?.modified) {
       jaEnviados += 1
       continue
     }
@@ -151,14 +159,17 @@ export default async function handler() {
     const resultado = await enviarEmail({ para: alvo.email, assunto, html, texto })
 
     if (resultado.status === 'nao-configurado') {
-      // Sem RESEND_API_KEY não grava registro nenhum: quando a chave for
-      // configurada, os lembretes pendentes saem na execução seguinte em vez
-      // de terem sido perdidos silenciosamente.
+      // Sem RESEND_API_KEY o e-mail não saiu: libera a chave reservada pra
+      // que, quando a chave for configurada, o lembrete saia na execução
+      // seguinte em vez de ter sido perdido silenciosamente.
+      await store.delete(chave)
       semChave += 1
       continue
     }
 
     if (resultado.status === 'erro') {
+      // Falha no envio: libera a chave pra tentar de novo na próxima execução.
+      await store.delete(chave)
       erros.push(`${alvo.email}: ${resultado.motivo}`)
       continue
     }
@@ -171,6 +182,7 @@ export default async function handler() {
       enviadoEm: agora.toISOString(),
       confirmadoEm: null,
     }
+    // Atualiza a chave já reservada com o token real do envio.
     await store.setJSON(chave, registro)
     // Índice por token, pra tela de confirmação achar o registro sem varrer tudo.
     await store.setJSON(`token__${token}`, registro)
