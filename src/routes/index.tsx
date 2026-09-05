@@ -166,7 +166,7 @@ function HomePage() {
       </header>
 
       <section className="hero" id="inicio">
-        <div className="hero-orb orb-one" /><div className="hero-orb orb-two" />
+        <div className="hero-orb orb-one" />
         <motion.div className="hero-copy" initial={{ opacity: 0, x: -35 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .8 }}>
           <div className="eyebrow"><span /> Estratégia que transforma resultados</div>
           <h1>Sua aprovação começa por uma <em>redação de excelência.</em></h1>

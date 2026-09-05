@@ -91,7 +91,6 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .stats-strip span { color: #7a8290; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .hero-orb { position: absolute; border-radius: 50%; border: 1px solid rgba(109,40,217,.12); }
 .orb-one { width: 300px; height: 300px; right: -150px; top: 110px; }
-.orb-two { width: 105px; height: 105px; left: 49%; bottom: 85px; }
 
 .section { max-width: 1220px; margin: auto; padding: 150px 28px; }
 .section-full { padding: 125px clamp(24px, 7vw, 110px); }
