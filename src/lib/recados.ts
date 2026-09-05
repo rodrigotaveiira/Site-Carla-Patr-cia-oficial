@@ -10,6 +10,8 @@ export type Recado = {
   message: string
   createdAt: string
   read: boolean
+  reply: string | null
+  repliedAt: string | null
 }
 
 function recadosStore() {
@@ -40,6 +42,8 @@ export const sendRecado = createServerFn({ method: 'POST' })
       message: data.message.trim(),
       createdAt: new Date().toISOString(),
       read: false,
+      reply: null,
+      repliedAt: null,
     }
     await store.setJSON(id, recado)
     return recado
@@ -87,4 +91,29 @@ export const markRecadoRead = createServerFn({ method: 'POST' })
 
     await store.setJSON(data.id, { ...existing, read: true })
     return { ok: true }
+  })
+
+// Recado deixa de ser via só de mão única — a professora responde e o aluno
+// vê a resposta na página dele. Responder já marca como lido (não faz sentido
+// responder sem ter lido).
+export const replyRecado = createServerFn({ method: 'POST' })
+  .inputValidator((data: { id: string; reply: string }) => data)
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
+    if (!data.reply.trim()) throw new Error('Escreva uma resposta antes de enviar.')
+    if (data.reply.length > 2000) throw new Error('Resposta muito longa (máximo 2000 caracteres).')
+
+    const store = recadosStore()
+    const existing = await store.get(data.id, { type: 'json' }) as Recado | null
+    if (!existing) throw new Error('Recado não encontrado.')
+
+    const updated: Recado = {
+      ...existing,
+      read: true,
+      reply: data.reply.trim(),
+      repliedAt: new Date().toISOString(),
+    }
+    await store.setJSON(data.id, updated)
+    return updated
   })
