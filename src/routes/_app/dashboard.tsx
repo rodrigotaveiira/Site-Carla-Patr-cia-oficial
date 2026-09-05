@@ -199,7 +199,7 @@ function DashboardPage() {
     getLiveClass().then(setLiveClass).catch(() => setLiveClass(null))
   }, [])
 
-  const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl'> | null | undefined>(undefined)
+  const [latestCorrection, setLatestCorrection] = useState<Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'> | null | undefined>(undefined)
   const [excellenceBadge, setExcellenceBadge] = useState(false)
   useEffect(() => {
     listMyRedacoes()

@@ -24,7 +24,7 @@ export const Route = createFileRoute('/_app/redacoes')({
   component: RedacoesPage,
 })
 
-type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl'>
+type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'>
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -44,6 +44,7 @@ function RedacoesPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [downloadingCorrectionId, setDownloadingCorrectionId] = useState<string | null>(null)
   const [temas, setTemas] = useState<TemaRedacao[]>([])
   const [deliveryMode, setDeliveryMode] = useState<'upload' | 'presencial'>('upload')
   const [presencialConfirmed, setPresencialConfirmed] = useState(false)
@@ -111,6 +112,19 @@ function RedacoesPage() {
       link.click()
     } finally {
       setDownloadingId(null)
+    }
+  }
+
+  async function handleDownloadCorrection(id: string) {
+    setDownloadingCorrectionId(id)
+    try {
+      const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id, kind: 'correction' } })
+      const link = document.createElement('a')
+      link.download = fileName
+      link.href = fileDataUrl
+      link.click()
+    } finally {
+      setDownloadingCorrectionId(null)
     }
   }
 
@@ -312,6 +326,16 @@ function RedacoesPage() {
                     </div>
                   )}
                   {submission.feedback && <p style={{ color: '#4b5563', fontSize: 14, margin: '10px 0 0' }}>{submission.feedback}</p>}
+                  {submission.correctedFileName && (
+                    <button
+                      onClick={() => handleDownloadCorrection(submission.id)}
+                      disabled={downloadingCorrectionId === submission.id}
+                      className="btn btn-ghost btn-sm"
+                      style={{ marginTop: 10 }}
+                    >
+                      <Download size={14} /> {downloadingCorrectionId === submission.id ? 'Abrindo...' : 'Ver foto da correção'}
+                    </button>
+                  )}
                 </div>
               )}
 

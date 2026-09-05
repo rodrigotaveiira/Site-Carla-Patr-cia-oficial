@@ -20,6 +20,8 @@ export type RedacaoSubmission = {
   competencyScores: CompetencyScore[] | null
   feedback: string | null
   correctedAt: string | null
+  correctedFileName: string | null
+  correctedFileDataUrl: string | null
 }
 
 const MAX_FILE_DATA_URL_LENGTH = 10_000_000
@@ -67,6 +69,8 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       competencyScores: null,
       feedback: null,
       correctedAt: null,
+      correctedFileName: null,
+      correctedFileDataUrl: null,
     }
     await store.setJSON(id, submission)
     const { fileDataUrl: _omit, ...meta } = submission
@@ -99,6 +103,8 @@ export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
       competencyScores: null,
       feedback: null,
       correctedAt: null,
+      correctedFileName: null,
+      correctedFileDataUrl: null,
     }
     await store.setJSON(id, submission)
     const { fileDataUrl: _omit, ...meta } = submission
@@ -112,11 +118,11 @@ export const listMyRedacoes = createServerFn({ method: 'GET' }).handler(async ()
   }
   const store = redacoesStore()
   const { blobs } = await store.list()
-  const mine: Omit<RedacaoSubmission, 'fileDataUrl'>[] = []
+  const mine: Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'>[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
     if (value && (value as RedacaoSubmission).studentEmail === user.email) {
-      const { fileDataUrl: _omit, ...meta } = value as RedacaoSubmission
+      const { fileDataUrl: _omit, correctedFileDataUrl: _omit2, ...meta } = value as RedacaoSubmission
       mine.push(meta)
     }
   }
@@ -130,11 +136,11 @@ export const listAllRedacoes = createServerFn({ method: 'GET' }).handler(async (
 
   const store = redacoesStore()
   const { blobs } = await store.list()
-  const all: Omit<RedacaoSubmission, 'fileDataUrl'>[] = []
+  const all: Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'>[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
     if (value) {
-      const { fileDataUrl: _omit, ...meta } = value as RedacaoSubmission
+      const { fileDataUrl: _omit, correctedFileDataUrl: _omit2, ...meta } = value as RedacaoSubmission
       all.push(meta)
     }
   }
@@ -143,7 +149,7 @@ export const listAllRedacoes = createServerFn({ method: 'GET' }).handler(async (
 })
 
 export const getRedacaoFile = createServerFn({ method: 'GET' })
-  .inputValidator((data: { id: string }) => data)
+  .inputValidator((data: { id: string; kind?: 'original' | 'correction' }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
@@ -154,13 +160,24 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
 
     const isOwner = submission.studentEmail === user.email
     if (!isOwner && !isStaff(user)) throw new Error('Acesso negado.')
-    if (submission.deliveryMethod === 'presencial') throw new Error('Essa redação foi entregue presencialmente, não há arquivo.')
 
+    if (data.kind === 'correction') {
+      if (!submission.correctedFileDataUrl) throw new Error('Essa correção não tem foto anexada.')
+      return { fileName: submission.correctedFileName ?? 'correcao', fileDataUrl: submission.correctedFileDataUrl }
+    }
+
+    if (submission.deliveryMethod === 'presencial') throw new Error('Essa redação foi entregue presencialmente, não há arquivo.')
     return { fileName: submission.fileName, fileDataUrl: submission.fileDataUrl }
   })
 
 export const correctRedacao = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; scores: CompetencyScore[]; feedback: string }) => data)
+  .inputValidator((data: {
+    id: string
+    scores: CompetencyScore[]
+    feedback: string
+    correctionFileName?: string
+    correctionFileDataUrl?: string
+  }) => data)
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
@@ -171,6 +188,17 @@ export const correctRedacao = createServerFn({ method: 'POST' })
     for (const score of data.scores) {
       if (score.value < 0 || score.value > score.maxValue) {
         throw new Error(`A nota de "${score.label}" deve estar entre 0 e ${score.maxValue}.`)
+      }
+    }
+
+    if (data.correctionFileDataUrl) {
+      if (!data.correctionFileName) throw new Error('Arquivo de correção inválido.')
+      const extension = data.correctionFileName.toLowerCase().slice(data.correctionFileName.lastIndexOf('.'))
+      if (!ALLOWED_EXTENSIONS.includes(extension)) {
+        throw new Error('Envie uma foto (JPG, PNG, WEBP) ou um arquivo (PDF, DOC, DOCX) para a correção.')
+      }
+      if (data.correctionFileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {
+        throw new Error('Esse arquivo é muito grande. Envie um arquivo de até 8MB.')
       }
     }
 
@@ -193,8 +221,11 @@ export const correctRedacao = createServerFn({ method: 'POST' })
       competencyScores: cleanScores,
       feedback: data.feedback.trim(),
       correctedAt: new Date().toISOString(),
+      // Se a professora não anexou uma foto nova nesta edição, mantém a que já existia.
+      correctedFileName: data.correctionFileDataUrl ? data.correctionFileName! : submission.correctedFileName,
+      correctedFileDataUrl: data.correctionFileDataUrl ?? submission.correctedFileDataUrl,
     }
     await store.setJSON(data.id, updated)
-    const { fileDataUrl: _omit, ...meta } = updated
+    const { fileDataUrl: _omit, correctedFileDataUrl: _omit2, ...meta } = updated
     return meta
   })

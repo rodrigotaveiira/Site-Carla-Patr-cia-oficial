@@ -21,7 +21,7 @@ export const Route = createFileRoute('/notas-admin')({
   component: NotasAdminPage,
 })
 
-type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl'>
+type SubmissionMeta = Omit<RedacaoSubmission, 'fileDataUrl' | 'correctedFileDataUrl'>
 
 type StudentGroup = {
   email: string
