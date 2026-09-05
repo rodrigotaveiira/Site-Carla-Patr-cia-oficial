@@ -164,7 +164,7 @@ function PerfilPage() {
 
       <section className="panel-card plain">
         <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}><MessageCircleHeart size={17} color="var(--purple)" /> Mandar um recado para a Carlinha</h2>
-        <p className="panel-card-hint">Uma dúvida, um pedido, um "oi" — sua mensagem chega direto pra ela.</p>
+        <p className="panel-card-hint">Uma dúvida, um pedido, um "oi" — sua mensagem chega direto para a Carlinha.</p>
         <form onSubmit={handleSendRecado} style={{ display: 'grid', gap: 10 }}>
           <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Escreva sua mensagem..." rows={4} />
           <button type="submit" className="btn btn-primary" disabled={sending} style={{ width: 'fit-content' }}>
