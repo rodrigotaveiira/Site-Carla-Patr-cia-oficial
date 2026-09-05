@@ -77,7 +77,7 @@ export function ProgressRing({ progress }: { progress: StudentProgress | null })
       >
         <div>
           <b>{progress ? `${progress.overallPercent}%` : '...'}</b>
-          <span>progresso geral</span>
+          <span>Progresso geral</span>
         </div>
       </button>
 

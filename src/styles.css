@@ -490,7 +490,7 @@ footer .brand b { color: white; }
    ele quebra em duas linhas centradas e respira dentro do circulo. */
 .hero-ring div { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; max-width: calc(var(--ring-size) * 0.64); font-family: inherit; text-align: center; }
 .hero-ring b { font-family: var(--serif); font-size: calc(var(--ring-size) * 0.23); line-height: 1.05; font-weight: 400; color: #fff; font-variant-numeric: tabular-nums; }
-.hero-ring span { color: #e2d8f5; font-size: clamp(9.5px, calc(var(--ring-size) * 0.082), 11px); line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; }
+.hero-ring span { color: #e2d8f5; font-size: clamp(10px, calc(var(--ring-size) * 0.086), 11.5px); line-height: 1.2; letter-spacing: 0; }
 
 .hero-ring-panel {
   position: absolute; z-index: 100; width: 240px; padding: 16px;
@@ -536,7 +536,9 @@ footer .brand b { color: white; }
 }
 .card-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .card-title > div { display: flex; flex-direction: column; min-width: 0; }
-.card-title span { color: #929ba8; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+/* Rótulo em minúsculas normais, não em versalete rastreado — "Meu progresso"
+   lido como uma frase de verdade acima do título, não uma legenda genérica. */
+.card-title span { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .card-title h3 { margin: 4px 0 0; color: var(--navy); font-family: var(--serif); font-size: 17px; font-weight: 400; }
 .card-title button { color: #9ca3af; background: none; border: 0; border-radius: 50%; padding: 5px; cursor: pointer; transition: background .15s, color .15s; }
 .card-title button:hover { color: var(--purple); background: var(--lilac-tint); }
