@@ -1,7 +1,11 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole, isStaff } from './roles'
+import { assertActiveSession } from './session-guard.server'
+import { enforceRateLimit } from './rate-limit'
+import { boundedText, id as idSchema } from './schemas'
 
 export type Recado = {
   id: string
@@ -21,15 +25,17 @@ function studentDisplayName(user: unknown) {
   return u?.name || u?.user_metadata?.full_name || u?.userMetadata?.full_name || 'Aluno'
 }
 
+const RECADO_RATE_LIMIT = { action: 'recado', windowMs: 24 * 60 * 60 * 1000, max: 10 } as const
+
 export const sendRecado = createServerFn({ method: 'POST' })
-  .inputValidator((data: { message: string }) => data)
+  .validator(z.object({ message: boundedText(2000) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
       throw new Error('Acesso negado.')
     }
-    if (!data.message.trim()) throw new Error('Escreva sua mensagem antes de enviar.')
-    if (data.message.length > 2000) throw new Error('Mensagem muito longa (máximo 2000 caracteres).')
+    await assertActiveSession(user)
+    await enforceRateLimit(RECADO_RATE_LIMIT, user.email ?? '')
 
     const store = recadosStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -37,7 +43,7 @@ export const sendRecado = createServerFn({ method: 'POST' })
       id,
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
-      message: data.message.trim(),
+      message: data.message,
       createdAt: new Date().toISOString(),
       read: false,
     }
@@ -76,7 +82,7 @@ export const listAllRecados = createServerFn({ method: 'GET' }).handler(async ()
 })
 
 export const markRecadoRead = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')

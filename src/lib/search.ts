@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole, isStaff } from './roles'
 import { listLessons } from './aulas'
@@ -33,7 +34,7 @@ function matches(query: string, ...fields: Array<string | undefined | null>): bo
 // Busca em todo o conteúdo real da plataforma (aulas, materiais, temas de redação,
 // simulados e as bibliotecas de PDF) para alimentar a busca da topbar do dashboard.
 export const searchContent = createServerFn({ method: 'GET' })
-  .inputValidator((data: { query: string }) => data)
+  .validator(z.object({ query: z.string().trim().max(200) }))
   .handler(async ({ data }): Promise<SearchResult[]> => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !isStaff(user))) return []
