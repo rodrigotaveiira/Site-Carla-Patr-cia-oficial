@@ -1,13 +1,14 @@
 import { createServerFn } from '@tanstack/react-start'
-import { durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
-import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
 import { assertActiveSession } from './session-guard.server'
+import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
+import { durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
 
 export type MentoriaSlot = {
   id: string
@@ -109,7 +110,10 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
 
     const isAdmin = userHasRole(user, 'admin')
     const email = user.email ?? ''
-    if (!isAdmin) await enforceRateLimit(AGENDAMENTO_RATE_LIMIT, email)
+    if (!isAdmin) {
+      await assertRecentAuth(user)
+      await enforceRateLimit(AGENDAMENTO_RATE_LIMIT, email)
+    }
 
     const store = slotsStore()
     const claimStore = activeBookingStore()

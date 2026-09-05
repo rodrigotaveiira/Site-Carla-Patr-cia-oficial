@@ -1,54 +1,67 @@
-import { AuthError, login } from '@netlify/identity'
-import { readLocalUsers } from './identity-context'
+import { createServerFn } from '@tanstack/react-start'
+import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
+import { getServerUser } from './auth'
 
-// Confere a senha da conta que JA esta logada, antes de uma acao que compromete
-// a agenda da Carla. Serve pro caso pratico de aparelho logado deixado aberto ou
-// conta emprestada — nao e barreira de servidor: quem chamar a server function
-// direto continua marcando sem senha (ver README da issue #11).
+// Comprovação de autenticação recente pra marcar mentoria — no servidor.
+//
+// Antes, a senha pedida antes de agendar era conferida só no cliente
+// (`reauth.ts` chamava `login()` do @netlify/identity e seguia): quem
+// chamasse a server function de agendamento direto marcava sem senha nenhuma.
+// Agora a senha é verificada AQUI, contra o Netlify Identity (GoTrue), e o
+// resultado vira um marcador de "auth recente" com validade curta. A senha
+// só vai pro endpoint de auth e é descartada — nada é armazenado.
 
-type LocalUserWithPasswordHash = { email?: string; passwordHash?: string }
+const RECENT_AUTH_TTL_MS = 5 * 60 * 1000
 
-// Mesmo criterio de ambiente usado na tela de login: só é `true` numa build
-// de desenvolvimento (`vite dev`); qualquer deploy do Netlify (produção ou
-// preview) é `vite build`, que resolve `import.meta.env.DEV` pra `false`.
-function isLocalDemoMode() {
-  return import.meta.env.DEV && typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)
+function recentAuthStore() {
+  return getStore({ name: 'recent-auth', consistency: 'strong' })
 }
 
-async function hashPassword(password: string): Promise<string> {
-  const bytes = new TextEncoder().encode(password)
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
+function identityTokenUrl(): string | null {
+  const base = process.env.URL || process.env.DEPLOY_PRIME_URL || process.env.DEPLOY_URL
+  if (!base) return null
+  return `${base.replace(/\/+$/, '')}/.netlify/identity/token`
 }
+
+export const confirmSchedulingAuth = createServerFn({ method: 'POST' })
+  .validator(z.object({ password: z.string().min(1).max(200) }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user?.email) throw new Error('Você precisa estar logado.')
+
+    const url = identityTokenUrl()
+    if (!url) {
+      // Ambiente sem Netlify Identity (dev local): não dá pra verificar de
+      // verdade, então não marca nada — o agendamento vai continuar pedindo
+      // a confirmação. Em produção `URL` sempre existe.
+      throw new Error('A confirmação de senha não está disponível neste ambiente.')
+    }
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'password',
+        username: user.email,
+        password: data.password,
+      }),
+    })
+    if (!res.ok) throw new Error('Senha incorreta. Tente de novo.')
+
+    await recentAuthStore().setJSON(user.email, { at: Date.now() })
+    return { ok: true }
+  })
 
 /**
- * `true` se a senha confere, `false` se nao confere.
- * Erros de rede/servidor sobem como excecao, pra tela nao dizer "senha errada"
- * quando na verdade a internet caiu.
+ * Exige que o aluno tenha confirmado a senha há pouco (via
+ * `confirmSchedulingAuth`). Chamado dentro das server functions de
+ * agendamento — fecha a brecha de marcar chamando o endpoint direto.
  */
-export async function verifyPassword(email: string, password: string): Promise<boolean> {
-  if (!email) throw new Error('Não foi possível identificar sua conta. Entre novamente.')
-  if (!password) return false
-
-  if (isLocalDemoMode()) {
-    const users = readLocalUsers() as LocalUserWithPasswordHash[]
-    const hash = await hashPassword(password)
-    return users.some(
-      (user) => user.email?.toLowerCase() === email.toLowerCase() && user.passwordHash === hash,
-    )
-  }
-
-  try {
-    // Revalida no proprio Netlify Identity. A senha vai pro endpoint de auth,
-    // que e onde ela deve ir — nao pro endpoint de agendamento.
-    //
-    // Isso NAO derruba a sessao deste aparelho: `ensureSessionTracked` so
-    // registra login novo quando nao existe sessao salva no localStorage, e
-    // aqui ela existe (o aluno ja esta logado).
-    await login(email, password)
-    return true
-  } catch (error) {
-    if (error instanceof AuthError) return false
-    throw error
+export async function assertRecentAuth(user: { email?: string | null } | null | undefined): Promise<void> {
+  if (!user?.email) throw new Error('Você precisa estar logado.')
+  const record = (await recentAuthStore().get(user.email, { type: 'json' })) as { at: number } | null
+  if (!record || Date.now() - record.at > RECENT_AUTH_TTL_MS) {
+    throw new Error('Confirme sua senha para marcar o horário.')
   }
 }

@@ -5,7 +5,7 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
-import { verifyPassword } from '@/lib/reauth'
+import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
@@ -77,8 +77,10 @@ function MentoriasPage() {
 
     setActionError('')
 
-    const valid = await verifyPassword(user?.email ?? '', password)
-    if (!valid) throw new Error('Senha incorreta. Tente de novo.')
+    // Confirma a senha NO SERVIDOR (verifica no Netlify Identity e grava um
+    // marcador de auth recente). O agendamento abaixo exige esse marcador —
+    // não dá mais pra marcar chamando a server function direto.
+    await confirmSchedulingAuth({ data: { password } })
 
     await bookMentoriaSlot({ data: { id: slot.id } })
     setPendingSlot(null)
