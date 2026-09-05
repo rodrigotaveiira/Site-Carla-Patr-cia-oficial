@@ -184,6 +184,17 @@ function PerfilPage() {
                     <span>{new Date(recado.createdAt).toLocaleDateString('pt-BR')} às {new Date(recado.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
                     <span className={recado.read ? 'badge badge-success' : 'badge badge-warning'}>{recado.read ? 'Lido pela professora' : 'Ainda não lido'}</span>
                   </div>
+                  {recado.reply && (
+                    <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--line)' }}>
+                      <b style={{ fontSize: 11, color: 'var(--purple)' }}>Resposta da Carlinha</b>
+                      <p style={{ margin: '4px 0 0', color: '#374151', fontSize: 13, whiteSpace: 'pre-wrap' }}>{recado.reply}</p>
+                      {recado.repliedAt && (
+                        <span style={{ fontSize: 11, color: '#9ca3af' }}>
+                          {new Date(recado.repliedAt).toLocaleDateString('pt-BR')} às {new Date(recado.repliedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
