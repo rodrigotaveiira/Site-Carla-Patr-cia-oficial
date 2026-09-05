@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, CheckCircle2, ChevronRight, CircleHelp, CirclePlay,
-  Clock3, Download, FileCheck2, Files, Library, LogOut,
+  Clock3, Download, FileCheck2, Files, Library, LogOut, MessageCircleHeart,
   MoreHorizontal, PenLine, Search, Target, Trophy, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -666,6 +666,12 @@ function DashboardPage() {
               <Link to="/redacoes">{latestCorrection ? 'Ver correção detalhada' : 'Enviar redação'} <ChevronRight /></Link>
             </section>
           )}
+
+          <section className="dashboard-card message-card">
+            <div className="card-title"><div><span>Fale com a professora</span><h3>Mensagem para Carlinha</h3></div></div>
+            <p>Uma dúvida, um pedido, um "oi" — sua mensagem chega direto para a Carlinha.</p>
+            <Link to="/perfil">Mandar mensagem <MessageCircleHeart size={14} /></Link>
+          </section>
         </div>
       </div>
     </>
