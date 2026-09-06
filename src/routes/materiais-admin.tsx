@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { addMaterial, deleteMaterial, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { addMaterial, deleteMaterial, listMaterials, type MaterialCategory, type MaterialListItem } from '@/lib/materials'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/materiais-admin')({
@@ -28,6 +28,11 @@ const ACCENT_OPTIONS = [
   { label: 'Dourado', value: '#c8a24d' },
 ]
 
+const CATEGORY_OPTIONS: { label: string; value: MaterialCategory; hint: string }[] = [
+  { label: 'Material comum', value: 'geral', hint: 'Aparece em "Materiais". Cada download leva o nome e o CPF do aluno.' },
+  { label: 'Folha de redação', value: 'folha_redacao', hint: 'Aparece em "Folha de redação", separada dos demais. Sem marca d’água — é um modelo em branco pra imprimir.' },
+]
+
 type MaterialMeta = MaterialListItem
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -48,6 +53,7 @@ function MateriaisAdminPage() {
   const [tag, setTag] = useState('Material')
   const [accent, setAccent] = useState(ACCENT_OPTIONS[0].value)
   const [classDate, setClassDate] = useState('')
+  const [category, setCategory] = useState<MaterialCategory>('geral')
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -84,12 +90,13 @@ function MateriaisAdminPage() {
     try {
       const fileDataUrl = await readFileAsDataUrl(file)
       await addMaterial({
-        data: { title, description, tag, accent, fileName: file.name, fileDataUrl, classDate: classDate || undefined },
+        data: { title, description, tag, accent, fileName: file.name, fileDataUrl, classDate: classDate || undefined, category },
       })
       setTitle('')
       setDescription('')
       setTag('Material')
       setClassDate('')
+      setCategory('geral')
       setFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
@@ -129,6 +136,33 @@ function MateriaisAdminPage() {
         <div className="field">
           <label>Descrição</label>
           <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Breve descrição do conteúdo do material" rows={3} />
+        </div>
+        <div className="field">
+          <label>Tipo de material</label>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {CATEGORY_OPTIONS.map((option) => (
+              <label
+                key={option.value}
+                style={{
+                  display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px',
+                  border: `2px solid ${category === option.value ? 'var(--purple)' : '#e5e0f7'}`,
+                  borderRadius: 8, cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="radio"
+                  name="category"
+                  checked={category === option.value}
+                  onChange={() => setCategory(option.value)}
+                  style={{ marginTop: 3 }}
+                />
+                <span>
+                  <b style={{ display: 'block', color: 'var(--navy)' }}>{option.label}</b>
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>{option.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
         <div className="field">
           <label>Data da aula (opcional)</label>
@@ -183,6 +217,11 @@ function MateriaisAdminPage() {
             <div key={material.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b style={{ color: 'var(--navy)' }}>{material.title}</b>
+                {material.category === 'folha_redacao' && (
+                  <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: '#0f7890', background: '#0f78901a', padding: '2px 8px', borderRadius: 20 }}>
+                    Folha de redação · sem marca d'água
+                  </span>
+                )}
                 <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>
                 {material.classDate && (
                   <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: material.released ? '#15803d' : '#a16207' }}>
