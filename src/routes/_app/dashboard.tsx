@@ -314,15 +314,44 @@ function DashboardPage() {
   const [monthly, setMonthly] = useState<MonthlyActivity | null>(null)
   const [monthOpen, setMonthOpen] = useState(false)
   const [monthLoading, setMonthLoading] = useState(false)
+  const [monthNavigating, setMonthNavigating] = useState(false)
+  // Guarda os meses já buscados (chave "ano-mês") pra ir e voltar entre eles
+  // sem precisar recarregar do servidor toda vez.
+  const monthCacheRef = useRef<Map<string, MonthlyActivity>>(new Map())
 
   function openMonthReview() {
     setMonthOpen(true)
     if (monthly) return
     setMonthLoading(true)
-    getMonthlyActivity()
-      .then((result) => { if (result) setMonthly(result) })
+    getMonthlyActivity({ data: {} })
+      .then((result) => {
+        if (!result) return
+        monthCacheRef.current.set(`${result.year}-${result.month}`, result)
+        setMonthly(result)
+      })
       .catch(() => { /* sem conexão com o servidor, o modal mostra um aviso */ })
       .finally(() => setMonthLoading(false))
+  }
+
+  function navigateMonth(direction: -1 | 1) {
+    if (!monthly) return
+    // Desliza o mês atual em até 11 posições pra frente/trás, sem se preocupar
+    // com o range de dias de cada mês — Date normaliza sozinho.
+    const shifted = new Date(monthly.year, monthly.month - 1 + direction, 1)
+    const key = `${shifted.getFullYear()}-${shifted.getMonth() + 1}`
+
+    const cached = monthCacheRef.current.get(key)
+    if (cached) { setMonthly(cached); return }
+
+    setMonthNavigating(true)
+    getMonthlyActivity({ data: { year: shifted.getFullYear(), month: shifted.getMonth() + 1 } })
+      .then((result) => {
+        if (!result) return
+        monthCacheRef.current.set(`${result.year}-${result.month}`, result)
+        setMonthly(result)
+      })
+      .catch(() => { /* sem conexão com o servidor, mantém o mês que já estava exibido */ })
+      .finally(() => setMonthNavigating(false))
   }
 
   // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
@@ -445,7 +474,9 @@ function DashboardPage() {
   return (
     <>
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
-      {monthOpen && monthly && <MonthReviewModal monthly={monthly} onClose={() => setMonthOpen(false)} />}
+      {monthOpen && monthly && (
+        <MonthReviewModal monthly={monthly} onClose={() => setMonthOpen(false)} onNavigate={navigateMonth} navigating={monthNavigating} />
+      )}
       {monthOpen && !monthly && monthLoading && (
         <div className="onboarding-overlay" role="dialog" aria-modal="true" onClick={() => setMonthOpen(false)}>
           <div className="month-review-modal month-review-loading" onClick={(event) => event.stopPropagation()}>
