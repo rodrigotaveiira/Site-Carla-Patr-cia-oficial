@@ -607,9 +607,14 @@ footer .brand b { color: white; }
 .month-review-close:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
 .month-review-header { padding: 28px 24px 20px; background: linear-gradient(135deg, var(--navy-dark), var(--purple)); color: #fff; text-align: center; }
 .month-review-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.4); }
-.month-review-header h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 20px; text-transform: capitalize; }
+.month-review-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.month-review-nav h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 20px; text-transform: capitalize; }
+.month-review-nav button { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; color: #fff; background: rgba(255,255,255,.14); border: 0; border-radius: 50%; cursor: pointer; transition: background .15s, opacity .15s; }
+.month-review-nav button:hover:not(:disabled) { background: rgba(255,255,255,.24); }
+.month-review-nav button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
+.month-review-nav button:disabled { opacity: .3; cursor: default; }
 .month-review-header p { margin: 0; color: rgba(255,255,255,.85); font-size: 13px; font-variant-numeric: tabular-nums; }
-.month-review-body { padding: 22px 22px 26px; }
+.month-review-body { padding: 22px 22px 26px; transition: opacity .15s; }
 .month-review-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
 .month-review-weekdays span { text-align: center; color: #a0a7b0; font-size: 11px; font-weight: 700; }
 .month-review-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
