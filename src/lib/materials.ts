@@ -13,19 +13,28 @@ export type Material = {
   fileName: string
   fileDataUrl: string // base64 (data:application/...;base64,....)
   createdAt: string
-  classDate: string | null // data da aula (YYYY-MM-DD); material libera 1 dia antes. null = sem restrição.
+  classDate: string | null // data da aula (YYYY-MM-DD). null = sem restrição.
+  classTime: string | null // horário de início da aula (HH:MM, horário de Brasília). material libera 15min antes.
 }
 
 // Formato devolvido pela listagem: sem o arquivo (pesado), com o status de liberação calculado.
 export type MaterialListItem = Omit<Material, 'fileDataUrl'> & {
   released: boolean
-  releaseDate: string | null
+  releaseAt: string | null // instante (ISO) em que o material libera
 }
 
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
 const MAX_FILE_DATA_URL_LENGTH = 16_000_000
 
 const ALLOWED_EXTENSIONS = ['.docx', '.pdf']
+
+// Quanto antes do início da aula o material já fica disponível pra download.
+const RELEASE_LEAD_MS = 15 * 60 * 1000
+
+// América/São_Paulo é UTC-3 o ano todo (sem horário de verão desde 2019).
+const BRASILIA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000
+
+const HHMM_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
 
 function materialsStore() {
   return getStore({ name: 'student-materials', consistency: 'strong' })
@@ -37,28 +46,26 @@ async function requireAdmin() {
   return user
 }
 
-// Data (YYYY-MM-DD) em que o material libera: um dia antes da data da aula.
-// Sem data da aula definida, o material já nasce liberado.
-function releaseDateFor(classDate: string | null): string | null {
+// Instante (epoch ms) em que o material libera: 15 minutos antes do início da aula,
+// considerando data+horário informados no horário de Brasília. Sem data da aula
+// definida, o material já nasce liberado (retorna null).
+export function releaseInstantMs(classDate: string | null, classTime: string | null): number | null {
   if (!classDate) return null
-  const date = new Date(`${classDate}T00:00:00`)
-  date.setDate(date.getDate() - 1)
-  return date.toISOString().slice(0, 10)
+  const [year, month, day] = classDate.split('-').map(Number)
+  const [hour, minute] = (classTime || '00:00').split(':').map(Number)
+  const classStartUtcMs = Date.UTC(year, month - 1, day, hour, minute) + BRASILIA_UTC_OFFSET_MS
+  return classStartUtcMs - RELEASE_LEAD_MS
 }
 
-function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-function isReleased(material: Material): boolean {
-  const releaseDate = releaseDateFor(material.classDate)
-  if (!releaseDate) return true
-  return todayDateString() >= releaseDate
+function isReleased(material: Pick<Material, 'classDate' | 'classTime'>): boolean {
+  const releaseAt = releaseInstantMs(material.classDate, material.classTime)
+  if (releaseAt === null) return true
+  return Date.now() >= releaseAt
 }
 
 // Lista visível para qualquer aluno logado (aprovado ou admin) — usada no dashboard.
 // Admin vê todos os materiais (mesmo os que ainda não liberaram, pra gerenciar).
-// Aluno só vê os materiais sem data de aula, ou os que já liberaram (1 dia antes da aula).
+// Aluno só vê os materiais sem data de aula, ou os que já liberaram (15min antes da aula).
 export const listMaterials = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -81,11 +88,14 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 
   // Não manda o arquivo inteiro na listagem (pesado) — só os metadados,
   // com o status de liberação calculado pra exibir na tela.
-  return visible.map(({ fileDataUrl: _omit, ...meta }) => ({
-    ...meta,
-    released: isReleased(meta as Material),
-    releaseDate: releaseDateFor(meta.classDate),
-  }))
+  return visible.map(({ fileDataUrl: _omit, ...meta }) => {
+    const releaseAt = releaseInstantMs(meta.classDate, meta.classTime)
+    return {
+      ...meta,
+      released: isReleased(meta),
+      releaseAt: releaseAt === null ? null : new Date(releaseAt).toISOString(),
+    }
+  })
 })
 
 // Busca o arquivo de um material específico (só quando o aluno clica em baixar).
@@ -121,6 +131,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
     fileName: string
     fileDataUrl: string
     classDate?: string
+    classTime?: string
   }) => data)
   .handler(async ({ data }) => {
     await requireAdmin()
@@ -137,6 +148,11 @@ export const addMaterial = createServerFn({ method: 'POST' })
       throw new Error('Esse arquivo é muito grande. Envie um arquivo de até 12MB.')
     }
 
+    const classTime = data.classTime?.trim() || ''
+    if (classTime && !HHMM_PATTERN.test(classTime)) {
+      throw new Error('Horário da aula inválido.')
+    }
+
     const store = materialsStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const material: Material = {
@@ -149,6 +165,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       fileDataUrl: data.fileDataUrl,
       createdAt: new Date().toISOString(),
       classDate: data.classDate?.trim() || null,
+      classTime: classTime || null,
     }
 
     await store.setJSON(id, material)

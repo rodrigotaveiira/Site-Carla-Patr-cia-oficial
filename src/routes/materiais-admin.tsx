@@ -30,6 +30,18 @@ const ACCENT_OPTIONS = [
 
 type MaterialMeta = MaterialListItem
 
+// Formata a data da aula (YYYY-MM-DD) direto pelos componentes da string, sem
+// passar por Date — evita qualquer deslocamento de fuso horário na exibição.
+function formatClassDateTime(classDate: string, classTime: string | null): string {
+  const [year, month, day] = classDate.split('-')
+  const datePart = `${day}/${month}/${year}`
+  return classTime ? `${datePart} às ${classTime}` : datePart
+}
+
+function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -48,6 +60,7 @@ function MateriaisAdminPage() {
   const [tag, setTag] = useState('Material')
   const [accent, setAccent] = useState(ACCENT_OPTIONS[0].value)
   const [classDate, setClassDate] = useState('')
+  const [classTime, setClassTime] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -79,17 +92,26 @@ function MateriaisAdminPage() {
       setError('Escolha um arquivo Word (.docx) ou PDF para enviar.')
       return
     }
+    if (classDate && !classTime) {
+      setError('Informe também o horário da aula, pra liberar o material 15 minutos antes.')
+      return
+    }
 
     setSaving(true)
     try {
       const fileDataUrl = await readFileAsDataUrl(file)
       await addMaterial({
-        data: { title, description, tag, accent, fileName: file.name, fileDataUrl, classDate: classDate || undefined },
+        data: {
+          title, description, tag, accent, fileName: file.name, fileDataUrl,
+          classDate: classDate || undefined,
+          classTime: classTime || undefined,
+        },
       })
       setTitle('')
       setDescription('')
       setTag('Material')
       setClassDate('')
+      setClassTime('')
       setFile(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await load()
@@ -130,14 +152,20 @@ function MateriaisAdminPage() {
           <label>Descrição</label>
           <textarea value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Breve descrição do conteúdo do material" rows={3} />
         </div>
-        <div className="field">
-          <label>Data da aula (opcional)</label>
-          <input type="date" value={classDate} onChange={(event) => setClassDate(event.target.value)} />
-          <p className="panel-card-hint" style={{ margin: 0 }}>
-            Se preenchida, o material só fica disponível para download 1 dia antes dessa data. Depois disso, fica
-            liberado para sempre. Deixe em branco pra liberar o material imediatamente.
-          </p>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div className="field" style={{ flex: 1, minWidth: 140 }}>
+            <label>Data da aula (opcional)</label>
+            <input type="date" value={classDate} onChange={(event) => setClassDate(event.target.value)} />
+          </div>
+          <div className="field" style={{ flex: 1, minWidth: 140 }}>
+            <label>Horário da aula</label>
+            <input type="time" value={classTime} onChange={(event) => setClassTime(event.target.value)} disabled={!classDate} />
+          </div>
         </div>
+        <p className="panel-card-hint" style={{ margin: '-8px 0 0' }}>
+          Se preenchida, o material só fica disponível para download 15 minutos antes do horário da aula. Depois
+          disso, fica liberado para sempre. Deixe em branco pra liberar o material imediatamente.
+        </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div className="field" style={{ flex: 1, minWidth: 140 }}>
             <label>Etiqueta</label>
@@ -187,8 +215,8 @@ function MateriaisAdminPage() {
                 {material.classDate && (
                   <div style={{ fontSize: 12, marginTop: 4, fontWeight: 600, color: material.released ? '#15803d' : '#a16207' }}>
                     {material.released
-                      ? `Liberado (aula em ${new Date(`${material.classDate}T00:00:00`).toLocaleDateString('pt-BR')})`
-                      : `Libera em ${material.releaseDate ? new Date(`${material.releaseDate}T00:00:00`).toLocaleDateString('pt-BR') : ''} (1 dia antes da aula de ${new Date(`${material.classDate}T00:00:00`).toLocaleDateString('pt-BR')})`}
+                      ? `Liberado (aula em ${formatClassDateTime(material.classDate, material.classTime)})`
+                      : `Libera em ${material.releaseAt ? formatDateTime(material.releaseAt) : ''} (15min antes da aula de ${formatClassDateTime(material.classDate, material.classTime)})`}
                   </div>
                 )}
               </div>
