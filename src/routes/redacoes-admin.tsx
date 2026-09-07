@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
 import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
+import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/redacoes-admin')({
@@ -132,10 +133,7 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
     setDownloadingCorrection(true)
     try {
       const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id: submission.id, kind: 'correction' } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível abrir a foto da correção.')
     } finally {
@@ -264,10 +262,7 @@ function RedacoesAdminPage() {
     setDownloadingId(id)
     try {
       const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } finally {
       setDownloadingId(null)
     }

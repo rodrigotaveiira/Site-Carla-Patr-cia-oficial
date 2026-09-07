@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -41,10 +42,7 @@ function MateriaisPage() {
     setError('')
     try {
       const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível baixar o material.')
     } finally {

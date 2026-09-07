@@ -22,6 +22,7 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
+import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
@@ -65,10 +66,7 @@ export const Route = createFileRoute('/_app/dashboard')({
 
 async function downloadMaterial(id: string) {
   const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-  const link = document.createElement('a')
-  link.download = fileName
-  link.href = fileDataUrl
-  link.click()
+  downloadDataUrl(fileName, fileDataUrl)
 }
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'
