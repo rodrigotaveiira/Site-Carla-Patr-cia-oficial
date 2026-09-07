@@ -9,141 +9,52 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermosRouteImport } from './routes/termos'
-import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
-import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
-import { Route as SessoesAdminRouteImport } from './routes/sessoes-admin'
-import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
-import { Route as RecadosAdminRouteImport } from './routes/recados-admin'
-import { Route as ProfessorRouteImport } from './routes/professor'
-import { Route as PrivacidadeRouteImport } from './routes/privacidade'
-import { Route as NotasAdminRouteImport } from './routes/notas-admin'
-import { Route as MentoriasGrupoAdminRouteImport } from './routes/mentorias-grupo-admin'
-import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
-import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as LgpdRouteImport } from './routes/lgpd'
-import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
-import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
-import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
-import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
-import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
-import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EmBreveSecaoRouteImport } from './routes/em-breve.$secao'
-import { Route as ConteudoAdminSecaoRouteImport } from './routes/conteudo-admin.$secao'
-import { Route as AppSimuladosRouteImport } from './routes/_app/simulados'
-import { Route as AppRedacoesRouteImport } from './routes/_app/redacoes'
-import { Route as AppProgressoRouteImport } from './routes/_app/progresso'
-import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
-import { Route as AppMentoriasGrupoRouteImport } from './routes/_app/mentorias-grupo'
-import { Route as AppMentoriasRouteImport } from './routes/_app/mentorias'
-import { Route as AppMateriaisRouteImport } from './routes/_app/materiais'
-import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
-import { Route as AppCalendarioRouteImport } from './routes/_app/calendario'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as AprovadosAdminRouteImport } from './routes/aprovados-admin'
+import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
+import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
+import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
+import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
+import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
+import { Route as LgpdRouteImport } from './routes/lgpd'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
+import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
+import { Route as MentoriasGrupoAdminRouteImport } from './routes/mentorias-grupo-admin'
+import { Route as NotasAdminRouteImport } from './routes/notas-admin'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as ProfessorRouteImport } from './routes/professor'
+import { Route as RecadosAdminRouteImport } from './routes/recados-admin'
+import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
+import { Route as SessoesAdminRouteImport } from './routes/sessoes-admin'
+import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
+import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
+import { Route as TermosRouteImport } from './routes/termos'
+import { Route as AppAprovadosRouteImport } from './routes/_app/aprovados'
 import { Route as AppAulasRouteImport } from './routes/_app/aulas'
+import { Route as AppCalendarioRouteImport } from './routes/_app/calendario'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppMateriaisRouteImport } from './routes/_app/materiais'
+import { Route as AppMentoriasRouteImport } from './routes/_app/mentorias'
+import { Route as AppMentoriasGrupoRouteImport } from './routes/_app/mentorias-grupo'
+import { Route as AppPerfilRouteImport } from './routes/_app/perfil'
+import { Route as AppProgressoRouteImport } from './routes/_app/progresso'
+import { Route as AppRedacoesRouteImport } from './routes/_app/redacoes'
+import { Route as AppSimuladosRouteImport } from './routes/_app/simulados'
+import { Route as ConteudoAdminSecaoRouteImport } from './routes/conteudo-admin.$secao'
+import { Route as EmBreveSecaoRouteImport } from './routes/em-breve.$secao'
 import { Route as AppConteudoSecaoRouteImport } from './routes/_app/conteudo.$secao'
 
-const TermosRoute = TermosRouteImport.update({
-  id: '/termos',
-  path: '/termos',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TemasRedacaoAdminRoute = TemasRedacaoAdminRouteImport.update({
-  id: '/temas-redacao-admin',
-  path: '/temas-redacao-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SimuladosAdminRoute = SimuladosAdminRouteImport.update({
-  id: '/simulados-admin',
-  path: '/simulados-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessoesAdminRoute = SessoesAdminRouteImport.update({
-  id: '/sessoes-admin',
-  path: '/sessoes-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
-  id: '/redacoes-admin',
-  path: '/redacoes-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecadosAdminRoute = RecadosAdminRouteImport.update({
-  id: '/recados-admin',
-  path: '/recados-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfessorRoute = ProfessorRouteImport.update({
-  id: '/professor',
-  path: '/professor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacidadeRoute = PrivacidadeRouteImport.update({
-  id: '/privacidade',
-  path: '/privacidade',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotasAdminRoute = NotasAdminRouteImport.update({
-  id: '/notas-admin',
-  path: '/notas-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MentoriasGrupoAdminRoute = MentoriasGrupoAdminRouteImport.update({
-  id: '/mentorias-grupo-admin',
-  path: '/mentorias-grupo-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
-  id: '/mentorias-admin',
-  path: '/mentorias-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MateriaisAdminRoute = MateriaisAdminRouteImport.update({
-  id: '/materiais-admin',
-  path: '/materiais-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LgpdRoute = LgpdRouteImport.update({
-  id: '/lgpd',
-  path: '/lgpd',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LembretesAdminRoute = LembretesAdminRouteImport.update({
-  id: '/lembretes-admin',
-  path: '/lembretes-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
-  id: '/confirmar-presenca',
-  path: '/confirmar-presenca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
-  id: '/calendario-admin',
-  path: '/calendario-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AulasAdminRoute = AulasAdminRouteImport.update({
-  id: '/aulas-admin',
-  path: '/aulas-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AulaAoVivoAdminRoute = AulaAoVivoAdminRouteImport.update({
-  id: '/aula-ao-vivo-admin',
-  path: '/aula-ao-vivo-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
-  id: '/aguardando-aprovacao',
-  path: '/aguardando-aprovacao',
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -151,63 +62,119 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
+const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
+  id: '/aguardando-aprovacao',
+  path: '/aguardando-aprovacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AprovadosAdminRoute = AprovadosAdminRouteImport.update({
+  id: '/aprovados-admin',
+  path: '/aprovados-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmBreveSecaoRoute = EmBreveSecaoRouteImport.update({
-  id: '/em-breve/$secao',
-  path: '/em-breve/$secao',
+const AulaAoVivoAdminRoute = AulaAoVivoAdminRouteImport.update({
+  id: '/aula-ao-vivo-admin',
+  path: '/aula-ao-vivo-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConteudoAdminSecaoRoute = ConteudoAdminSecaoRouteImport.update({
-  id: '/conteudo-admin/$secao',
-  path: '/conteudo-admin/$secao',
+const AulasAdminRoute = AulasAdminRouteImport.update({
+  id: '/aulas-admin',
+  path: '/aulas-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSimuladosRoute = AppSimuladosRouteImport.update({
-  id: '/simulados',
-  path: '/simulados',
+const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
+  id: '/calendario-admin',
+  path: '/calendario-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
+  id: '/confirmar-presenca',
+  path: '/confirmar-presenca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LembretesAdminRoute = LembretesAdminRouteImport.update({
+  id: '/lembretes-admin',
+  path: '/lembretes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LgpdRoute = LgpdRouteImport.update({
+  id: '/lgpd',
+  path: '/lgpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MateriaisAdminRoute = MateriaisAdminRouteImport.update({
+  id: '/materiais-admin',
+  path: '/materiais-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
+  id: '/mentorias-admin',
+  path: '/mentorias-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MentoriasGrupoAdminRoute = MentoriasGrupoAdminRouteImport.update({
+  id: '/mentorias-grupo-admin',
+  path: '/mentorias-grupo-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotasAdminRoute = NotasAdminRouteImport.update({
+  id: '/notas-admin',
+  path: '/notas-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfessorRoute = ProfessorRouteImport.update({
+  id: '/professor',
+  path: '/professor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecadosAdminRoute = RecadosAdminRouteImport.update({
+  id: '/recados-admin',
+  path: '/recados-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
+  id: '/redacoes-admin',
+  path: '/redacoes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessoesAdminRoute = SessoesAdminRouteImport.update({
+  id: '/sessoes-admin',
+  path: '/sessoes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimuladosAdminRoute = SimuladosAdminRouteImport.update({
+  id: '/simulados-admin',
+  path: '/simulados-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemasRedacaoAdminRoute = TemasRedacaoAdminRouteImport.update({
+  id: '/temas-redacao-admin',
+  path: '/temas-redacao-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAprovadosRoute = AppAprovadosRouteImport.update({
+  id: '/aprovados',
+  path: '/aprovados',
   getParentRoute: () => AppRoute,
 } as any)
-const AppRedacoesRoute = AppRedacoesRouteImport.update({
-  id: '/redacoes',
-  path: '/redacoes',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProgressoRoute = AppProgressoRouteImport.update({
-  id: '/progresso',
-  path: '/progresso',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppPerfilRoute = AppPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMentoriasGrupoRoute = AppMentoriasGrupoRouteImport.update({
-  id: '/mentorias-grupo',
-  path: '/mentorias-grupo',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMentoriasRoute = AppMentoriasRouteImport.update({
-  id: '/mentorias',
-  path: '/mentorias',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMateriaisRoute = AppMateriaisRouteImport.update({
-  id: '/materiais',
-  path: '/materiais',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AppAulasRoute = AppAulasRouteImport.update({
+  id: '/aulas',
+  path: '/aulas',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCalendarioRoute = AppCalendarioRouteImport.update({
@@ -215,10 +182,55 @@ const AppCalendarioRoute = AppCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAulasRoute = AppAulasRouteImport.update({
-  id: '/aulas',
-  path: '/aulas',
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppRoute,
+} as any)
+const AppMateriaisRoute = AppMateriaisRouteImport.update({
+  id: '/materiais',
+  path: '/materiais',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMentoriasRoute = AppMentoriasRouteImport.update({
+  id: '/mentorias',
+  path: '/mentorias',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMentoriasGrupoRoute = AppMentoriasGrupoRouteImport.update({
+  id: '/mentorias-grupo',
+  path: '/mentorias-grupo',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPerfilRoute = AppPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgressoRoute = AppProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRedacoesRoute = AppRedacoesRouteImport.update({
+  id: '/redacoes',
+  path: '/redacoes',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSimuladosRoute = AppSimuladosRouteImport.update({
+  id: '/simulados',
+  path: '/simulados',
+  getParentRoute: () => AppRoute,
+} as any)
+const ConteudoAdminSecaoRoute = ConteudoAdminSecaoRouteImport.update({
+  id: '/conteudo-admin/$secao',
+  path: '/conteudo-admin/$secao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmBreveSecaoRoute = EmBreveSecaoRouteImport.update({
+  id: '/em-breve/$secao',
+  path: '/em-breve/$secao',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppConteudoSecaoRoute = AppConteudoSecaoRouteImport.update({
   id: '/conteudo/$secao',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -249,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -267,6 +281,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -286,6 +301,7 @@ export interface FileRoutesByTo {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -306,6 +322,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -325,6 +342,7 @@ export interface FileRoutesById {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/_app/aprovados': typeof AppAprovadosRoute
   '/_app/aulas': typeof AppAulasRoute
   '/_app/calendario': typeof AppCalendarioRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -345,6 +363,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -364,6 +383,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -382,6 +402,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -401,6 +422,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -420,6 +442,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -439,6 +462,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/_app/aprovados'
     | '/_app/aulas'
     | '/_app/calendario'
     | '/_app/dashboard'
@@ -459,6 +483,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AdminRoute: typeof AdminRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AprovadosAdminRoute: typeof AprovadosAdminRoute
   AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
@@ -484,151 +509,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/termos': {
-      id: '/termos'
-      path: '/termos'
-      fullPath: '/termos'
-      preLoaderRoute: typeof TermosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/temas-redacao-admin': {
-      id: '/temas-redacao-admin'
-      path: '/temas-redacao-admin'
-      fullPath: '/temas-redacao-admin'
-      preLoaderRoute: typeof TemasRedacaoAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/simulados-admin': {
-      id: '/simulados-admin'
-      path: '/simulados-admin'
-      fullPath: '/simulados-admin'
-      preLoaderRoute: typeof SimuladosAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sessoes-admin': {
-      id: '/sessoes-admin'
-      path: '/sessoes-admin'
-      fullPath: '/sessoes-admin'
-      preLoaderRoute: typeof SessoesAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/redacoes-admin': {
-      id: '/redacoes-admin'
-      path: '/redacoes-admin'
-      fullPath: '/redacoes-admin'
-      preLoaderRoute: typeof RedacoesAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recados-admin': {
-      id: '/recados-admin'
-      path: '/recados-admin'
-      fullPath: '/recados-admin'
-      preLoaderRoute: typeof RecadosAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/professor': {
-      id: '/professor'
-      path: '/professor'
-      fullPath: '/professor'
-      preLoaderRoute: typeof ProfessorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacidade': {
-      id: '/privacidade'
-      path: '/privacidade'
-      fullPath: '/privacidade'
-      preLoaderRoute: typeof PrivacidadeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notas-admin': {
-      id: '/notas-admin'
-      path: '/notas-admin'
-      fullPath: '/notas-admin'
-      preLoaderRoute: typeof NotasAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mentorias-grupo-admin': {
-      id: '/mentorias-grupo-admin'
-      path: '/mentorias-grupo-admin'
-      fullPath: '/mentorias-grupo-admin'
-      preLoaderRoute: typeof MentoriasGrupoAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mentorias-admin': {
-      id: '/mentorias-admin'
-      path: '/mentorias-admin'
-      fullPath: '/mentorias-admin'
-      preLoaderRoute: typeof MentoriasAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/materiais-admin': {
-      id: '/materiais-admin'
-      path: '/materiais-admin'
-      fullPath: '/materiais-admin'
-      preLoaderRoute: typeof MateriaisAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lgpd': {
-      id: '/lgpd'
-      path: '/lgpd'
-      fullPath: '/lgpd'
-      preLoaderRoute: typeof LgpdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lembretes-admin': {
-      id: '/lembretes-admin'
-      path: '/lembretes-admin'
-      fullPath: '/lembretes-admin'
-      preLoaderRoute: typeof LembretesAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/confirmar-presenca': {
-      id: '/confirmar-presenca'
-      path: '/confirmar-presenca'
-      fullPath: '/confirmar-presenca'
-      preLoaderRoute: typeof ConfirmarPresencaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calendario-admin': {
-      id: '/calendario-admin'
-      path: '/calendario-admin'
-      fullPath: '/calendario-admin'
-      preLoaderRoute: typeof CalendarioAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/aulas-admin': {
-      id: '/aulas-admin'
-      path: '/aulas-admin'
-      fullPath: '/aulas-admin'
-      preLoaderRoute: typeof AulasAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/aula-ao-vivo-admin': {
-      id: '/aula-ao-vivo-admin'
-      path: '/aula-ao-vivo-admin'
-      fullPath: '/aula-ao-vivo-admin'
-      preLoaderRoute: typeof AulaAoVivoAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/aguardando-aprovacao': {
-      id: '/aguardando-aprovacao'
-      path: '/aguardando-aprovacao'
-      fullPath: '/aguardando-aprovacao'
-      preLoaderRoute: typeof AguardandoAprovacaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -638,81 +523,172 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/em-breve/$secao': {
-      id: '/em-breve/$secao'
-      path: '/em-breve/$secao'
-      fullPath: '/em-breve/$secao'
-      preLoaderRoute: typeof EmBreveSecaoRouteImport
+    '/aguardando-aprovacao': {
+      id: '/aguardando-aprovacao'
+      path: '/aguardando-aprovacao'
+      fullPath: '/aguardando-aprovacao'
+      preLoaderRoute: typeof AguardandoAprovacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/conteudo-admin/$secao': {
-      id: '/conteudo-admin/$secao'
-      path: '/conteudo-admin/$secao'
-      fullPath: '/conteudo-admin/$secao'
-      preLoaderRoute: typeof ConteudoAdminSecaoRouteImport
+    '/aprovados-admin': {
+      id: '/aprovados-admin'
+      path: '/aprovados-admin'
+      fullPath: '/aprovados-admin'
+      preLoaderRoute: typeof AprovadosAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/simulados': {
-      id: '/_app/simulados'
-      path: '/simulados'
-      fullPath: '/simulados'
-      preLoaderRoute: typeof AppSimuladosRouteImport
+    '/aula-ao-vivo-admin': {
+      id: '/aula-ao-vivo-admin'
+      path: '/aula-ao-vivo-admin'
+      fullPath: '/aula-ao-vivo-admin'
+      preLoaderRoute: typeof AulaAoVivoAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aulas-admin': {
+      id: '/aulas-admin'
+      path: '/aulas-admin'
+      fullPath: '/aulas-admin'
+      preLoaderRoute: typeof AulasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario-admin': {
+      id: '/calendario-admin'
+      path: '/calendario-admin'
+      fullPath: '/calendario-admin'
+      preLoaderRoute: typeof CalendarioAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmar-presenca': {
+      id: '/confirmar-presenca'
+      path: '/confirmar-presenca'
+      fullPath: '/confirmar-presenca'
+      preLoaderRoute: typeof ConfirmarPresencaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lembretes-admin': {
+      id: '/lembretes-admin'
+      path: '/lembretes-admin'
+      fullPath: '/lembretes-admin'
+      preLoaderRoute: typeof LembretesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lgpd': {
+      id: '/lgpd'
+      path: '/lgpd'
+      fullPath: '/lgpd'
+      preLoaderRoute: typeof LgpdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/materiais-admin': {
+      id: '/materiais-admin'
+      path: '/materiais-admin'
+      fullPath: '/materiais-admin'
+      preLoaderRoute: typeof MateriaisAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorias-admin': {
+      id: '/mentorias-admin'
+      path: '/mentorias-admin'
+      fullPath: '/mentorias-admin'
+      preLoaderRoute: typeof MentoriasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mentorias-grupo-admin': {
+      id: '/mentorias-grupo-admin'
+      path: '/mentorias-grupo-admin'
+      fullPath: '/mentorias-grupo-admin'
+      preLoaderRoute: typeof MentoriasGrupoAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notas-admin': {
+      id: '/notas-admin'
+      path: '/notas-admin'
+      fullPath: '/notas-admin'
+      preLoaderRoute: typeof NotasAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/professor': {
+      id: '/professor'
+      path: '/professor'
+      fullPath: '/professor'
+      preLoaderRoute: typeof ProfessorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recados-admin': {
+      id: '/recados-admin'
+      path: '/recados-admin'
+      fullPath: '/recados-admin'
+      preLoaderRoute: typeof RecadosAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redacoes-admin': {
+      id: '/redacoes-admin'
+      path: '/redacoes-admin'
+      fullPath: '/redacoes-admin'
+      preLoaderRoute: typeof RedacoesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessoes-admin': {
+      id: '/sessoes-admin'
+      path: '/sessoes-admin'
+      fullPath: '/sessoes-admin'
+      preLoaderRoute: typeof SessoesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulados-admin': {
+      id: '/simulados-admin'
+      path: '/simulados-admin'
+      fullPath: '/simulados-admin'
+      preLoaderRoute: typeof SimuladosAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/temas-redacao-admin': {
+      id: '/temas-redacao-admin'
+      path: '/temas-redacao-admin'
+      fullPath: '/temas-redacao-admin'
+      preLoaderRoute: typeof TemasRedacaoAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/aprovados': {
+      id: '/_app/aprovados'
+      path: '/aprovados'
+      fullPath: '/aprovados'
+      preLoaderRoute: typeof AppAprovadosRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/redacoes': {
-      id: '/_app/redacoes'
-      path: '/redacoes'
-      fullPath: '/redacoes'
-      preLoaderRoute: typeof AppRedacoesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/progresso': {
-      id: '/_app/progresso'
-      path: '/progresso'
-      fullPath: '/progresso'
-      preLoaderRoute: typeof AppProgressoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/perfil': {
-      id: '/_app/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof AppPerfilRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/mentorias-grupo': {
-      id: '/_app/mentorias-grupo'
-      path: '/mentorias-grupo'
-      fullPath: '/mentorias-grupo'
-      preLoaderRoute: typeof AppMentoriasGrupoRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/mentorias': {
-      id: '/_app/mentorias'
-      path: '/mentorias'
-      fullPath: '/mentorias'
-      preLoaderRoute: typeof AppMentoriasRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/materiais': {
-      id: '/_app/materiais'
-      path: '/materiais'
-      fullPath: '/materiais'
-      preLoaderRoute: typeof AppMateriaisRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/_app/dashboard': {
-      id: '/_app/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
+    '/_app/aulas': {
+      id: '/_app/aulas'
+      path: '/aulas'
+      fullPath: '/aulas'
+      preLoaderRoute: typeof AppAulasRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/calendario': {
@@ -722,12 +698,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCalendarioRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/aulas': {
-      id: '/_app/aulas'
-      path: '/aulas'
-      fullPath: '/aulas'
-      preLoaderRoute: typeof AppAulasRouteImport
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/_app/materiais': {
+      id: '/_app/materiais'
+      path: '/materiais'
+      fullPath: '/materiais'
+      preLoaderRoute: typeof AppMateriaisRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mentorias': {
+      id: '/_app/mentorias'
+      path: '/mentorias'
+      fullPath: '/mentorias'
+      preLoaderRoute: typeof AppMentoriasRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/mentorias-grupo': {
+      id: '/_app/mentorias-grupo'
+      path: '/mentorias-grupo'
+      fullPath: '/mentorias-grupo'
+      preLoaderRoute: typeof AppMentoriasGrupoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/perfil': {
+      id: '/_app/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AppPerfilRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/progresso': {
+      id: '/_app/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof AppProgressoRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/redacoes': {
+      id: '/_app/redacoes'
+      path: '/redacoes'
+      fullPath: '/redacoes'
+      preLoaderRoute: typeof AppRedacoesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/simulados': {
+      id: '/_app/simulados'
+      path: '/simulados'
+      fullPath: '/simulados'
+      preLoaderRoute: typeof AppSimuladosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/conteudo-admin/$secao': {
+      id: '/conteudo-admin/$secao'
+      path: '/conteudo-admin/$secao'
+      fullPath: '/conteudo-admin/$secao'
+      preLoaderRoute: typeof ConteudoAdminSecaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/em-breve/$secao': {
+      id: '/em-breve/$secao'
+      path: '/em-breve/$secao'
+      fullPath: '/em-breve/$secao'
+      preLoaderRoute: typeof EmBreveSecaoRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/conteudo/$secao': {
       id: '/_app/conteudo/$secao'
@@ -740,6 +779,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAprovadosRoute: typeof AppAprovadosRoute
   AppAulasRoute: typeof AppAulasRoute
   AppCalendarioRoute: typeof AppCalendarioRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -754,6 +794,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAprovadosRoute: AppAprovadosRoute,
   AppAulasRoute: AppAulasRoute,
   AppCalendarioRoute: AppCalendarioRoute,
   AppDashboardRoute: AppDashboardRoute,
@@ -774,6 +815,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AdminRoute: AdminRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AprovadosAdminRoute: AprovadosAdminRoute,
   AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,

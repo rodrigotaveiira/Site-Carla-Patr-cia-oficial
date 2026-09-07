@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Library, MessageCircleHeart, Monitor, PencilLine, PenLine, Target, Users, Video, Zap,
+  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, Monitor, PencilLine, PenLine, Target, Users, Video, Zap,
 } from 'lucide-react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -27,6 +27,7 @@ const links = [
   { icon: Video, label: 'Próxima aula ao vivo', to: '/aula-ao-vivo-admin', description: 'Configure data, horário e link do Zoom.' },
   { icon: FileCheck2, label: 'Correção de redações', to: '/redacoes-admin', description: 'Veja e corrija as redações enviadas pelos alunos.' },
   { icon: GraduationCap, label: 'Notas dos alunos', to: '/notas-admin', description: 'Todas as notas organizadas por aluno.' },
+  { icon: Images, label: 'Galeria dos Aprovados', to: '/aprovados-admin', description: 'Cadastre os alunos aprovados na faculdade, com foto.' },
   { icon: Monitor, label: 'Aparelhos conectados', to: '/sessoes-admin', description: 'Histórico de logins de cada aluno, um aparelho por vez.' },
   { icon: MessageCircleHeart, label: 'Recados dos alunos', to: '/recados-admin', description: 'Mensagens que os alunos mandaram pelo perfil deles.' },
   { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.' },

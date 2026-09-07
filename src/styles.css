@@ -1103,3 +1103,44 @@ footer .brand b { color: white; }
   .calendar-month { font-size: 17px; min-width: 150px; }
   .calendar-admin-form { grid-template-columns: 1fr; }
 }
+
+/* Galeria dos Aprovados — mural de conquistas: cada card é um retrato com o
+   nome/faculdade em legenda sobre a foto (estilo quadro de formatura), o
+   dourado reservado pro selo do ano (mesmo acento usado nas conquistas do
+   dashboard), curso e depoimento abaixo, sem cara de lista genérica. */
+.aprovados-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 22px; margin-top: 24px; }
+.aprovado-card {
+  display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 14px 30px -22px rgba(15,35,66,.3);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.aprovado-card:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px rgba(109,40,217,.16), 0 22px 40px -20px rgba(15,35,66,.36); }
+.aprovado-photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--lilac-tint); }
+.aprovado-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+.aprovado-card:hover .aprovado-photo img { transform: scale(1.05); }
+.aprovado-photo::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 52%, rgba(9,30,57,.82) 100%);
+}
+.aprovado-year {
+  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: #fff;
+  background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 20px;
+  font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
+  box-shadow: 0 6px 14px rgba(200,162,77,.4);
+}
+.aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; }
+.aprovado-name-overlay b { display: block; font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.18; }
+.aprovado-name-overlay span { display: block; margin-top: 2px; color: rgba(255,255,255,.86); font-size: 12px; }
+.aprovado-body { padding: 13px 16px 17px; }
+.aprovado-course { display: inline-flex; align-items: center; gap: 5px; color: var(--purple); font-size: 11.5px; font-weight: 700; }
+.aprovado-quote {
+  display: flex; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line);
+  color: #667085; font-family: var(--serif); font-style: italic; font-size: 13px; line-height: 1.55;
+}
+.aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
+.aprovado-card-skeleton { box-shadow: 0 0 0 1px rgba(15,35,66,.06); }
+
+@media (max-width: 480px) {
+  .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .aprovado-name-overlay b { font-size: 15px; }
+}
