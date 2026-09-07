@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
-  BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
+  BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, GraduationCap, Home, Library,
   LogOut, Menu, MessageCircleHeart, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
@@ -20,7 +20,10 @@ export const Route = createFileRoute('/_app')({
 const sidebarGroups = [
   {
     title: null,
-    items: [{ icon: Home, label: 'Dashboard', href: '/dashboard' }],
+    items: [
+      { icon: Home, label: 'Dashboard', href: '/dashboard' },
+      { icon: GraduationCap, label: 'Galeria dos Aprovados', href: '/aprovados' },
+    ],
   },
   {
     title: 'Conteúdo',
