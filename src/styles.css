@@ -245,6 +245,17 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .form-message.success { color: #166534; background: #dcfce7; }
 .form-message.error { color: #991b1b; background: #fee2e2; }
 
+/* Caixinha de aceite dos termos (cadastro e formulário de contato) — sobrescreve
+   o estilo padrão de <label> dos dois formulários (uppercase, grid), que não
+   funciona pra uma frase corrida com links. */
+.contact-form label.terms-check, .login-form label.terms-check {
+  display: flex; align-items: flex-start; gap: 9px;
+  color: #707987; font-size: 11px; font-weight: 400; line-height: 1.55; text-transform: none; letter-spacing: normal;
+}
+.terms-check input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--purple); cursor: pointer; }
+.terms-check a { color: var(--purple); font-weight: 700; }
+.terms-check a:hover { text-decoration: underline; }
+
 footer { color: #d4dbea; background: var(--navy-dark); }
 .footer-main { max-width: 1240px; display: grid; grid-template-columns: 1.7fr repeat(3, 1fr); gap: 70px; margin: auto; padding: 70px 30px; }
 footer .brand b { color: white; }
@@ -813,6 +824,7 @@ footer .brand b { color: white; }
   .faq-item p { font-size: 14px; }
   .contact-channels a { font-size: 14px; }
   .contact-form label, .login-form > label { font-size: 13px; }
+  .contact-form label.terms-check, .login-form label.terms-check { font-size: 13px; }
   .contact-form input, .contact-form textarea { font-size: 14px; }
   .form-message { font-size: 14px; }
   .footer-main > div > b { font-size: 14px; }
