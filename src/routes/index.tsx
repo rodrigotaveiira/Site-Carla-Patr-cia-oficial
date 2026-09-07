@@ -97,7 +97,7 @@ const courses = [
   },
   {
     tag: 'Experiência VIP',
-    title: 'Mentoria individual',
+    title: 'Mentorias individuais',
     text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento da redação.',
     image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85',
     items: ['Plano sob medida', 'Contato direto', 'Metas personalizadas'],

@@ -4,6 +4,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { createMentoriaSlot, deleteMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/mentorias-admin')({
@@ -107,7 +108,7 @@ function MentoriasAdminPage() {
           {sorted.map((slot) => (
             <div key={slot.id} className="list-row">
               <div>
-                <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{slot.time}</b> · {slot.duration} min
+                <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{formatarHora(slot.time)}</b> · {slot.duration} min
                 {slot.status === 'booked' && slot.student && (
                   <div style={{ color: 'var(--purple)', fontSize: 13, marginTop: 4 }}>
                     Reservado por {slot.student.name} ({slot.student.email})
