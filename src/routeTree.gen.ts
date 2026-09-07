@@ -33,7 +33,6 @@ import { Route as SessoesAdminRouteImport } from './routes/sessoes-admin'
 import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
 import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
 import { Route as TermosRouteImport } from './routes/termos'
-import { Route as AppAprovadosRouteImport } from './routes/_app/aprovados'
 import { Route as AppAulasRouteImport } from './routes/_app/aulas'
 import { Route as AppCalendarioRouteImport } from './routes/_app/calendario'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
@@ -167,11 +166,6 @@ const TermosRoute = TermosRouteImport.update({
   path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppAprovadosRoute = AppAprovadosRouteImport.update({
-  id: '/aprovados',
-  path: '/aprovados',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAulasRoute = AppAulasRouteImport.update({
   id: '/aulas',
   path: '/aulas',
@@ -262,7 +256,6 @@ export interface FileRoutesByFullPath {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
-  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -301,7 +294,6 @@ export interface FileRoutesByTo {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
-  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -342,7 +334,6 @@ export interface FileRoutesById {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
-  '/_app/aprovados': typeof AppAprovadosRoute
   '/_app/aulas': typeof AppAulasRoute
   '/_app/calendario': typeof AppCalendarioRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -383,7 +374,6 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
-    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -422,7 +412,6 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
-    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -462,7 +451,6 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
-    | '/_app/aprovados'
     | '/_app/aulas'
     | '/_app/calendario'
     | '/_app/dashboard'
@@ -677,13 +665,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/aprovados': {
-      id: '/_app/aprovados'
-      path: '/aprovados'
-      fullPath: '/aprovados'
-      preLoaderRoute: typeof AppAprovadosRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/aulas': {
       id: '/_app/aulas'
       path: '/aulas'
@@ -779,7 +760,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppAprovadosRoute: typeof AppAprovadosRoute
   AppAulasRoute: typeof AppAulasRoute
   AppCalendarioRoute: typeof AppCalendarioRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -794,7 +774,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAprovadosRoute: AppAprovadosRoute,
   AppAulasRoute: AppAulasRoute,
   AppCalendarioRoute: AppCalendarioRoute,
   AppDashboardRoute: AppDashboardRoute,

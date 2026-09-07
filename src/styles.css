@@ -1128,6 +1128,12 @@ footer .brand b { color: white; }
    e o text-shadow do nome são propositalmente fortes: a foto é enviada pela
    professora e pode vir clara (parede branca, dia ensolarado) — a legenda
    precisa continuar legível em cima de qualquer imagem, não só das de teste. */
+/* Fundo levemente tingido pra separar do branco puro dos Depoimentos logo
+   abaixo, e scroll-margin pra não ficar escondida atrás do header fixo
+   quando alguém chega direto pelo link do menu. */
+.aprovados-section { background: #fbfafc; scroll-margin-top: 82px; }
+.aprovados-section .section-heading > p { color: #667085; }
+.aprovados-section h2 { text-wrap: balance; }
 .aprovados-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 22px; margin-top: 24px; }
 .aprovado-card {
   display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
@@ -1158,15 +1164,15 @@ footer .brand b { color: white; }
   background: linear-gradient(180deg, transparent 38%, rgba(9,30,57,.55) 68%, rgba(9,30,57,.92) 100%);
 }
 .aprovado-year {
-  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: #fff;
+  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: var(--navy-dark);
   background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 20px;
   font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
   box-shadow: 0 6px 14px rgba(200,162,77,.4);
 }
 .aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 12px rgba(0,0,0,.25); }
-.aprovado-name-overlay b {
+.aprovado-name-overlay h3 {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
-  font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.2;
+  margin: 0; font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.2;
 }
 .aprovado-name-overlay span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.92); font-size: 12px; }
 .aprovado-body { padding: 13px 16px 17px; }
@@ -1176,17 +1182,22 @@ footer .brand b { color: white; }
 }
 .aprovado-course span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .aprovado-course svg { flex-shrink: 0; }
+/* Sem borda quando o depoimento é o primeiro elemento do corpo do card (sem
+   curso acima) — senão sobra uma régua flutuando sem nada em cima dela. */
 .aprovado-quote {
-  display: flex; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line);
-  color: #667085; font-family: var(--serif); font-style: italic; font-size: 13px; line-height: 1.55;
+  display: flex; gap: 6px; margin: 0; color: #667085; font-family: var(--serif);
+  font-style: italic; font-size: 13px; line-height: 1.55;
 }
+.aprovado-course + .aprovado-quote { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .aprovado-quote span {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
 }
 .aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
-.aprovado-card-skeleton { box-shadow: 0 0 0 1px rgba(15,35,66,.06); animation: none; }
+
+.aprovados-cta { margin-top: 40px; text-align: center; }
+.aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {
   .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-  .aprovado-name-overlay b { font-size: 15px; }
+  .aprovado-name-overlay h3 { font-size: 15px; }
 }

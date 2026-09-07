@@ -26,10 +26,23 @@ import {
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
+import { listAprovados } from '@/lib/aprovados'
+
+// Quantos aprovados aparecem na home — o cadastro pode crescer bem além disso
+// (é 300+ desde sempre), mas a home é uma amostra, não o catálogo completo:
+// evita que a página fique cada vez mais pesada (fotos em base64) conforme a
+// professora cadastra mais alunos. A lista completa de verdade só existe
+// mesmo no /aprovados-admin, pra gerenciar.
+const MAX_APROVADOS_HOME = 12
 
 // O SEO da home mora aqui, não no __root: canonical, og:url, título e descrição
 // são desta página. No root eles vazavam pra toda rota, e as páginas legais
 // acabavam se declarando duplicatas da home e herdando o título dela.
+//
+// A Galeria dos Aprovados busca no loader (SSR), não em useEffect: é conteúdo
+// público de prova social — precisa estar no HTML inicial pra aparecer pra
+// quem visita sem JS e pra ser indexado, e pra não re-fluir o menu/a página
+// depois que o React já hidratou.
 export const Route = createFileRoute('/')({
   head: pageHead({
     path: '/',
@@ -38,6 +51,16 @@ export const Route = createFileRoute('/')({
       'Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.',
     robots: 'index, follow',
   }),
+  loader: async () => {
+    // Se a busca falhar, a home inteira não pode cair por causa de uma seção
+    // — mas a falha fica registrada no log do servidor, não desaparece.
+    try {
+      return { aprovados: (await listAprovados()).slice(0, MAX_APROVADOS_HOME) }
+    } catch (error) {
+      console.error('Não foi possível carregar a Galeria dos Aprovados na home:', error)
+      return { aprovados: [] }
+    }
+  },
   component: HomePage,
 })
 
@@ -117,6 +140,9 @@ function HomePage() {
   const [activeFaq, setActiveFaq] = useState(0)
   const [testimonial, setTestimonial] = useState(0)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  // Some da home enquanto não houver nenhum aprovado cadastrado, em vez de
+  // mostrar uma galeria vazia pra quem visita. Vem pronto do loader (SSR).
+  const { aprovados } = Route.useLoaderData()
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -151,7 +177,11 @@ function HomePage() {
           <span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
-          {['Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados', 'FAQ', 'Contato'].map((item) => (
+          {[
+            'Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados',
+            ...(aprovados.length > 0 ? ['Aprovados'] : []),
+            'FAQ', 'Contato',
+          ].map((item) => (
             <a key={item} href={`#${item.toLowerCase().replace('ç', 'c')}`} onClick={() => setMenuOpen(false)}>{item}</a>
           ))}
           <Link className="nav-student mobile-only" to="/login">Área do aluno</Link>
@@ -271,6 +301,42 @@ function HomePage() {
         </div>
       </section>
 
+      {aprovados.length > 0 && (
+        <section className="section aprovados-section" id="aprovados">
+          <motion.div className="section-heading centered" {...reveal}>
+            <div className="section-kicker">Prova, não promessa</div>
+            <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
+            <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
+          </motion.div>
+          <div className="aprovados-grid">
+            {aprovados.map((item) => (
+              <article className="aprovado-card" key={item.id}>
+                <div className="aprovado-photo">
+                  <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
+                  {item.year && <span className="aprovado-year">{item.year}</span>}
+                  <div className="aprovado-name-overlay">
+                    <h3 title={item.name}>{item.name}</h3>
+                    <span title={item.university}>{item.university}</span>
+                  </div>
+                </div>
+                <div className="aprovado-body">
+                  {item.course && (
+                    <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
+                  )}
+                  {item.quote && (
+                    <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+          <motion.div className="aprovados-cta" {...reveal}>
+            <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
+            <a className="button" href="#cursos">Quero começar <ArrowRight size={18} /></a>
+          </motion.div>
+        </section>
+      )}
+
       <section className="testimonials section-full">
         <div className="section-heading centered"><div className="section-kicker">Histórias reais</div><h2>Quem viveu a transformação <em>conta melhor.</em></h2></div>
         <div className="testimonial-wrap">
@@ -331,7 +397,7 @@ function HomePage() {
 
       <footer>
         <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
-          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a></div>
+          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a>{aprovados.length > 0 && <a href="#aprovados">Aprovados</a>}</div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
           <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
