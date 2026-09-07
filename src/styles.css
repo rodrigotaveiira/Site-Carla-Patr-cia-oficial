@@ -1164,10 +1164,10 @@ footer .brand b { color: white; }
   background: linear-gradient(180deg, transparent 38%, rgba(9,30,57,.55) 68%, rgba(9,30,57,.92) 100%);
 }
 .aprovado-year {
-  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: var(--navy-dark);
-  background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 20px;
+  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: #fff;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border-radius: 20px;
   font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
-  box-shadow: 0 6px 14px rgba(200,162,77,.4);
+  box-shadow: 0 6px 14px rgba(109,40,217,.4);
 }
 .aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 12px rgba(0,0,0,.25); }
 .aprovado-name-overlay h3 {
@@ -1175,24 +1175,7 @@ footer .brand b { color: white; }
   margin: 0; font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.2;
 }
 .aprovado-name-overlay span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.92); font-size: 12px; }
-.aprovado-body { padding: 13px 16px 17px; }
-.aprovado-course {
-  display: inline-flex; max-width: 100%; align-items: center; gap: 5px; overflow: hidden;
-  color: var(--purple); font-size: 11.5px; font-weight: 700;
-}
-.aprovado-course span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.aprovado-course svg { flex-shrink: 0; }
-/* Sem borda quando o depoimento é o primeiro elemento do corpo do card (sem
-   curso acima) — senão sobra uma régua flutuando sem nada em cima dela. */
-.aprovado-quote {
-  display: flex; gap: 6px; margin: 0; color: #667085; font-family: var(--serif);
-  font-style: italic; font-size: 13px; line-height: 1.55;
-}
-.aprovado-course + .aprovado-quote { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-.aprovado-quote span {
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
-}
-.aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
+.aprovado-name-overlay .aprovado-meta { margin-top: 1px; color: rgba(255,255,255,.72); font-size: 11px; }
 
 .aprovados-cta { margin-top: 40px; text-align: center; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
