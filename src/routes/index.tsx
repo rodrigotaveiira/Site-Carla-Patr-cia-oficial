@@ -318,6 +318,10 @@ function HomePage() {
             <label>Seu nome<input name="nome" placeholder="Como podemos chamar você?" required /></label>
             <div className="form-row"><label>E-mail<input type="email" name="email" placeholder="voce@email.com" required /></label><label>WhatsApp<input name="telefone" placeholder="(00) 00000-0000" /></label></div>
             <label>Como podemos ajudar?<textarea name="mensagem" placeholder="Conte um pouco sobre seu objetivo..." rows={4} required /></label>
+            <label className="terms-check">
+              <input type="checkbox" name="aceite" value="sim" required />
+              <span>Li e concordo com os <a href="/termos">Termos de Uso</a> e a <a href="/privacidade">Política de Privacidade</a>.</span>
+            </label>
             <button className="button" disabled={formState === 'sending'}>{formState === 'sending' ? 'Enviando...' : 'Enviar mensagem'} <Send size={17} /></button>
             {formState === 'success' && <p className="form-message success">Mensagem enviada. Em breve entraremos em contato!</p>}
             {formState === 'error' && <p className="form-message error">Não foi possível enviar. Tente novamente.</p>}
