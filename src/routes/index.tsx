@@ -24,13 +24,25 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
-import { listAprovados, type ApprovedStudent } from '@/lib/aprovados'
+import { listAprovados } from '@/lib/aprovados'
+
+// Quantos aprovados aparecem na home — o cadastro pode crescer bem além disso
+// (é 300+ desde sempre), mas a home é uma amostra, não o catálogo completo:
+// evita que a página fique cada vez mais pesada (fotos em base64) conforme a
+// professora cadastra mais alunos. A lista completa de verdade só existe
+// mesmo no /aprovados-admin, pra gerenciar.
+const MAX_APROVADOS_HOME = 12
 
 // O SEO da home mora aqui, não no __root: canonical, og:url, título e descrição
 // são desta página. No root eles vazavam pra toda rota, e as páginas legais
 // acabavam se declarando duplicatas da home e herdando o título dela.
+//
+// A Galeria dos Aprovados busca no loader (SSR), não em useEffect: é conteúdo
+// público de prova social — precisa estar no HTML inicial pra aparecer pra
+// quem visita sem JS e pra ser indexado, e pra não re-fluir o menu/a página
+// depois que o React já hidratou.
 export const Route = createFileRoute('/')({
   head: pageHead({
     path: '/',
@@ -39,6 +51,16 @@ export const Route = createFileRoute('/')({
       'Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.',
     robots: 'index, follow',
   }),
+  loader: async () => {
+    // Se a busca falhar, a home inteira não pode cair por causa de uma seção
+    // — mas a falha fica registrada no log do servidor, não desaparece.
+    try {
+      return { aprovados: (await listAprovados()).slice(0, MAX_APROVADOS_HOME) }
+    } catch (error) {
+      console.error('Não foi possível carregar a Galeria dos Aprovados na home:', error)
+      return { aprovados: [] }
+    }
+  },
   component: HomePage,
 })
 
@@ -118,13 +140,9 @@ function HomePage() {
   const [activeFaq, setActiveFaq] = useState(0)
   const [testimonial, setTestimonial] = useState(0)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
-  const [aprovados, setAprovados] = useState<ApprovedStudent[]>([])
-
-  // Seção pública de prova social — some da home enquanto não houver nenhum
-  // aprovado cadastrado, em vez de mostrar uma galeria vazia pra quem visita.
-  useEffect(() => {
-    listAprovados().then(setAprovados).catch(() => { /* seção some silenciosamente sem dado */ })
-  }, [])
+  // Some da home enquanto não houver nenhum aprovado cadastrado, em vez de
+  // mostrar uma galeria vazia pra quem visita. Vem pronto do loader (SSR).
+  const { aprovados } = Route.useLoaderData()
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -294,10 +312,10 @@ function HomePage() {
             {aprovados.map((item) => (
               <article className="aprovado-card" key={item.id}>
                 <div className="aprovado-photo">
-                  <img src={item.photoDataUrl} alt={`Foto de ${item.name}`} loading="lazy" />
+                  <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
                   {item.year && <span className="aprovado-year">{item.year}</span>}
                   <div className="aprovado-name-overlay">
-                    <b title={item.name}>{item.name}</b>
+                    <h3 title={item.name}>{item.name}</h3>
                     <span title={item.university}>{item.university}</span>
                   </div>
                 </div>
@@ -312,6 +330,10 @@ function HomePage() {
               </article>
             ))}
           </div>
+          <motion.div className="aprovados-cta" {...reveal}>
+            <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
+            <a className="button" href="#cursos">Quero começar <ArrowRight size={18} /></a>
+          </motion.div>
         </section>
       )}
 
