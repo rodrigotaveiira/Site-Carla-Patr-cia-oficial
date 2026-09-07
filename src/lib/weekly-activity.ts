@@ -91,22 +91,47 @@ export type MonthlyActivity = {
   completedDates: string[] // datas do mês em que o aluno acessou a plataforma
   goal: number
   weeks: { completedCount: number; goalMet: boolean }[] // uma entrada por semana (seg–dom) que passa pelo mês
+  isCurrentMonth: boolean // false quando o aluno navegou pra um mês anterior
+  canGoBack: boolean // false quando já chegou no limite de navegação pro passado
 }
 
-// Resumo do mês atual pra tela de "como foi meu mês": quantos dias o aluno
+// Até quantos meses pro passado o aluno pode navegar no calendário.
+const MAX_MONTHS_BACK = 24
+
+// Resumo de um mês pra tela de "como foi meu mês": quantos dias o aluno
 // estudou e quantas semanas (segunda a domingo) bateram a meta semanal.
 // Semanas que cruzam a virada do mês só contam os dias que caem dentro deste
 // mês — por isso a primeira/última semana pode aparecer "incompleta" mesmo
 // que o aluno tenha estudado todos os dias que valem pra ela.
-export const getMonthlyActivity = createServerFn({ method: 'GET' }).handler(
-  async (): Promise<MonthlyActivity | null> => {
+//
+// Sem "year"/"month", devolve o mês atual. Com eles, deixa o aluno navegar
+// pra meses anteriores (até MAX_MONTHS_BACK) — nunca pra meses futuros.
+export const getMonthlyActivity = createServerFn({ method: 'GET' })
+  .inputValidator((data?: { year?: number; month?: number }) => data ?? {})
+  .handler(async ({ data }): Promise<MonthlyActivity | null> => {
     const user = await getServerUser()
     if (!user) return null
 
-    const store = activityStore()
     const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth() // 0-based
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() // 0-based
+
+    const earliest = new Date(currentYear, currentMonth - MAX_MONTHS_BACK, 1)
+    const requested = new Date(
+      data.year ?? currentYear,
+      data.month !== undefined ? data.month - 1 : currentMonth,
+      1,
+    )
+    // Nunca deixa navegar pro futuro nem além do limite de meses pro passado.
+    const clamped = requested > new Date(currentYear, currentMonth, 1)
+      ? new Date(currentYear, currentMonth, 1)
+      : requested < earliest
+        ? earliest
+        : requested
+    const year = clamped.getFullYear()
+    const month = clamped.getMonth() // 0-based
+
+    const store = activityStore()
     const daysInMonth = new Date(year, month + 1, 0).getDate()
 
     const completedDates: string[] = []
@@ -129,11 +154,20 @@ export const getMonthlyActivity = createServerFn({ method: 'GET' }).handler(
       goalMet: completedCount >= WEEKLY_GOAL,
     }))
 
-    const monthLabel = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    const monthLabel = clamped.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
 
-    return { year, month: month + 1, monthLabel, daysInMonth, completedDates, goal: WEEKLY_GOAL, weeks }
-  },
-)
+    return {
+      year,
+      month: month + 1,
+      monthLabel,
+      daysInMonth,
+      completedDates,
+      goal: WEEKLY_GOAL,
+      weeks,
+      isCurrentMonth: year === currentYear && month === currentMonth,
+      canGoBack: !(year === earliest.getFullYear() && month === earliest.getMonth()),
+    }
+  })
 
 // Marca "hoje" como um dia de acesso do aluno logado e devolve a semana inteira.
 // Chamado só depois que o aluno fica pelo menos 10 minutos com o dashboard aberto.
