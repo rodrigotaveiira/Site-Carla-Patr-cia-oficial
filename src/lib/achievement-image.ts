@@ -1,6 +1,8 @@
 // Gera e baixa uma imagem compartilhável (PNG) do selo "Excelência sustentada",
 // pra o aluno postar nas redes ou mandar pra família/amigos.
 
+import { downloadDataUrl } from '@/lib/download-file'
+
 const WIDTH = 1080
 const HEIGHT = 1080
 
@@ -129,10 +131,7 @@ export async function downloadAchievementImage(studentName: string, thresholdGra
   ctx.fillText('Redação e Língua Portuguesa', centerX, cardY + cardH - 38)
 
   const dataUrl = canvas.toDataURL('image/png')
-  const link = document.createElement('a')
-  link.download = 'excelencia-sustentada.png'
-  link.href = dataUrl
-  link.click()
+  downloadDataUrl('excelencia-sustentada.png', dataUrl)
 }
 
 function wrapCenteredText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) {

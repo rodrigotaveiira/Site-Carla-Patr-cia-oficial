@@ -8,6 +8,7 @@ import {
   CONTENT_SECTIONS, getContentItemFile, isContentSection,
   listContentItems, type ContentItem, type ContentSection,
 } from '@/lib/content-library'
+import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -101,10 +102,7 @@ function ConteudoPage() {
     setError('')
     try {
       const { fileName, fileDataUrl } = await getContentItemFile({ data: { section, id } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível baixar o arquivo.')
     } finally {
