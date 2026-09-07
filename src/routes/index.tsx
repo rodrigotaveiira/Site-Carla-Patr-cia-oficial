@@ -317,15 +317,12 @@ function HomePage() {
                   <div className="aprovado-name-overlay">
                     <h3 title={item.name}>{item.name}</h3>
                     <span title={item.university}>{item.university}</span>
+                    {(item.course || item.year) && (
+                      <span className="aprovado-meta" title={[item.course, item.year].filter(Boolean).join(' · ')}>
+                        {[item.course, item.year].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="aprovado-body">
-                  {item.course && (
-                    <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
-                  )}
-                  {item.quote && (
-                    <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
-                  )}
                 </div>
               </article>
             ))}
