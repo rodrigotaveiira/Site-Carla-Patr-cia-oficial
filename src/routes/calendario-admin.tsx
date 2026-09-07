@@ -13,6 +13,7 @@ import {
   type CalendarEvent,
   type CalendarEventType,
 } from '@/lib/calendario'
+import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/calendario-admin')({
@@ -199,7 +200,7 @@ function CalendarioAdminPage() {
                 <div className="list-title">{event.title}</div>
                 <div className="list-meta">
                   {CALENDAR_EVENT_LABELS[event.type]} · {event.date}
-                  {event.time && ` às ${event.time}`}
+                  {event.time && ` às ${formatarHora(event.time)}`}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>

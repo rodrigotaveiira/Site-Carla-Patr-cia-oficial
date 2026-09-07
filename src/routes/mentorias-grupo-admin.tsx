@@ -7,6 +7,7 @@ import {
   createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, updateMentoriaGrupoSlot,
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
+import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/mentorias-grupo-admin')({
@@ -190,7 +191,7 @@ function MentoriasGrupoAdminPage() {
                   </div>
                 ) : (
                   <div>
-                    <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{slot.time}</b> · {slot.duration} min · {slot.students.length}/{slot.capacity} vagas
+                    <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{formatarHora(slot.time)}</b> · {slot.duration} min · {slot.students.length}/{slot.capacity} vagas
                     {slot.students.length > 0 && (
                       <div style={{ color: 'var(--purple)', fontSize: 13, marginTop: 4 }}>
                         {slot.students.map((student) => student.name).join(', ')}
