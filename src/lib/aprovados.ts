@@ -30,15 +30,12 @@ async function requireAdmin() {
   return user
 }
 
-// Lista completa da galeria pra área do aluno (aprovado ou admin) — com foto,
-// já que aqui (diferente de Materiais) a foto é pra ser vista na tela, não
-// baixada com marca d'água.
+// Lista completa da galeria — pública (sem exigir login), já que agora é uma
+// seção da home pra visitante ainda não-aluno ver como prova social. Só o
+// nome, foto, faculdade, curso e depoimento de quem a professora cadastrou
+// (dados que já nascem pra serem públicos, ver addAprovado) ficam visíveis;
+// nenhum outro dado do aluno passa por aqui.
 export const listAprovados = createServerFn({ method: 'GET' }).handler(async (): Promise<ApprovedStudent[]> => {
-  const user = await getServerUser()
-  if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
-    throw new Error('Acesso negado.')
-  }
-
   const store = aprovadosStore()
   const { blobs } = await store.list()
   const items: ApprovedStudent[] = []

@@ -24,8 +24,9 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
+import { listAprovados, type ApprovedStudent } from '@/lib/aprovados'
 
 // O SEO da home mora aqui, não no __root: canonical, og:url, título e descrição
 // são desta página. No root eles vazavam pra toda rota, e as páginas legais
@@ -117,6 +118,13 @@ function HomePage() {
   const [activeFaq, setActiveFaq] = useState(0)
   const [testimonial, setTestimonial] = useState(0)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  const [aprovados, setAprovados] = useState<ApprovedStudent[]>([])
+
+  // Seção pública de prova social — some da home enquanto não houver nenhum
+  // aprovado cadastrado, em vez de mostrar uma galeria vazia pra quem visita.
+  useEffect(() => {
+    listAprovados().then(setAprovados).catch(() => { /* seção some silenciosamente sem dado */ })
+  }, [])
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -151,7 +159,11 @@ function HomePage() {
           <span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
-          {['Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados', 'FAQ', 'Contato'].map((item) => (
+          {[
+            'Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados',
+            ...(aprovados.length > 0 ? ['Aprovados'] : []),
+            'FAQ', 'Contato',
+          ].map((item) => (
             <a key={item} href={`#${item.toLowerCase().replace('ç', 'c')}`} onClick={() => setMenuOpen(false)}>{item}</a>
           ))}
           <Link className="nav-student mobile-only" to="/login">Área do aluno</Link>
@@ -271,6 +283,38 @@ function HomePage() {
         </div>
       </section>
 
+      {aprovados.length > 0 && (
+        <section className="section aprovados-section" id="aprovados">
+          <motion.div className="section-heading centered" {...reveal}>
+            <div className="section-kicker">Prova, não promessa</div>
+            <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
+            <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
+          </motion.div>
+          <div className="aprovados-grid">
+            {aprovados.map((item) => (
+              <article className="aprovado-card" key={item.id}>
+                <div className="aprovado-photo">
+                  <img src={item.photoDataUrl} alt={`Foto de ${item.name}`} loading="lazy" />
+                  {item.year && <span className="aprovado-year">{item.year}</span>}
+                  <div className="aprovado-name-overlay">
+                    <b title={item.name}>{item.name}</b>
+                    <span title={item.university}>{item.university}</span>
+                  </div>
+                </div>
+                <div className="aprovado-body">
+                  {item.course && (
+                    <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
+                  )}
+                  {item.quote && (
+                    <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="testimonials section-full">
         <div className="section-heading centered"><div className="section-kicker">Histórias reais</div><h2>Quem viveu a transformação <em>conta melhor.</em></h2></div>
         <div className="testimonial-wrap">
@@ -331,7 +375,7 @@ function HomePage() {
 
       <footer>
         <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
-          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a></div>
+          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a>{aprovados.length > 0 && <a href="#aprovados">Aprovados</a>}</div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
           <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
