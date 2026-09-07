@@ -1107,20 +1107,38 @@ footer .brand b { color: white; }
 /* Galeria dos Aprovados — mural de conquistas: cada card é um retrato com o
    nome/faculdade em legenda sobre a foto (estilo quadro de formatura), o
    dourado reservado pro selo do ano (mesmo acento usado nas conquistas do
-   dashboard), curso e depoimento abaixo, sem cara de lista genérica. */
+   dashboard), curso e depoimento abaixo, sem cara de lista genérica. O scrim
+   e o text-shadow do nome são propositalmente fortes: a foto é enviada pela
+   professora e pode vir clara (parede branca, dia ensolarado) — a legenda
+   precisa continuar legível em cima de qualquer imagem, não só das de teste. */
 .aprovados-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 22px; margin-top: 24px; }
 .aprovado-card {
   display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
   box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 14px 30px -22px rgba(15,35,66,.3);
   transition: transform .25s ease, box-shadow .25s ease;
+  animation: aprovado-in .5s cubic-bezier(.16,1,.3,1) backwards;
 }
+/* Entrada escalonada só na primeira leva de cards visíveis — depois disso o
+   delay ficaria perceptível demais numa galeria grande, então trava em 10. */
+.aprovado-card:nth-child(1) { animation-delay: 0ms; }
+.aprovado-card:nth-child(2) { animation-delay: 60ms; }
+.aprovado-card:nth-child(3) { animation-delay: 120ms; }
+.aprovado-card:nth-child(4) { animation-delay: 180ms; }
+.aprovado-card:nth-child(5) { animation-delay: 240ms; }
+.aprovado-card:nth-child(6) { animation-delay: 300ms; }
+.aprovado-card:nth-child(7) { animation-delay: 360ms; }
+.aprovado-card:nth-child(8) { animation-delay: 420ms; }
+.aprovado-card:nth-child(9) { animation-delay: 480ms; }
+.aprovado-card:nth-child(n+10) { animation-delay: 540ms; }
+@keyframes aprovado-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .aprovado-card { animation: none; } }
 .aprovado-card:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px rgba(109,40,217,.16), 0 22px 40px -20px rgba(15,35,66,.36); }
 .aprovado-photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--lilac-tint); }
 .aprovado-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
 .aprovado-card:hover .aprovado-photo img { transform: scale(1.05); }
 .aprovado-photo::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, transparent 52%, rgba(9,30,57,.82) 100%);
+  background: linear-gradient(180deg, transparent 38%, rgba(9,30,57,.55) 68%, rgba(9,30,57,.92) 100%);
 }
 .aprovado-year {
   position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: #fff;
@@ -1128,17 +1146,28 @@ footer .brand b { color: white; }
   font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
   box-shadow: 0 6px 14px rgba(200,162,77,.4);
 }
-.aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; }
-.aprovado-name-overlay b { display: block; font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.18; }
-.aprovado-name-overlay span { display: block; margin-top: 2px; color: rgba(255,255,255,.86); font-size: 12px; }
+.aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 12px rgba(0,0,0,.25); }
+.aprovado-name-overlay b {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.2;
+}
+.aprovado-name-overlay span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.92); font-size: 12px; }
 .aprovado-body { padding: 13px 16px 17px; }
-.aprovado-course { display: inline-flex; align-items: center; gap: 5px; color: var(--purple); font-size: 11.5px; font-weight: 700; }
+.aprovado-course {
+  display: inline-flex; max-width: 100%; align-items: center; gap: 5px; overflow: hidden;
+  color: var(--purple); font-size: 11.5px; font-weight: 700;
+}
+.aprovado-course span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aprovado-course svg { flex-shrink: 0; }
 .aprovado-quote {
   display: flex; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--line);
   color: #667085; font-family: var(--serif); font-style: italic; font-size: 13px; line-height: 1.55;
 }
+.aprovado-quote span {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
 .aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
-.aprovado-card-skeleton { box-shadow: 0 0 0 1px rgba(15,35,66,.06); }
+.aprovado-card-skeleton { box-shadow: 0 0 0 1px rgba(15,35,66,.06); animation: none; }
 
 @media (max-width: 480px) {
   .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }

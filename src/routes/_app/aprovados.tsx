@@ -74,16 +74,16 @@ function AprovadosPage() {
                 <img src={item.photoDataUrl} alt={`Foto de ${item.name}`} />
                 {item.year && <span className="aprovado-year">{item.year}</span>}
                 <div className="aprovado-name-overlay">
-                  <b>{item.name}</b>
-                  <span>{item.university}</span>
+                  <b title={item.name}>{item.name}</b>
+                  <span title={item.university}>{item.university}</span>
                 </div>
               </div>
               <div className="aprovado-body">
                 {item.course && (
-                  <span className="aprovado-course"><Sparkles size={12} /> {item.course}</span>
+                  <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
                 )}
                 {item.quote && (
-                  <p className="aprovado-quote"><Quote size={12} /> {item.quote}</p>
+                  <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
                 )}
               </div>
             </article>
