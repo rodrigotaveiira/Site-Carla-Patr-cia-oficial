@@ -4,6 +4,11 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
 
+// 'geral' = material normal (baixa com marca d'água de nome+CPF do aluno).
+// 'folha_redacao' = folha de redação em branco pra usar nas produções — sem marca d'água,
+// já que não é conteúdo protegido/corrigido, é um modelo pra imprimir/preencher.
+export type MaterialCategory = 'geral' | 'folha_redacao'
+
 export type Material = {
   id: string
   title: string
@@ -15,6 +20,7 @@ export type Material = {
   createdAt: string
   classDate: string | null // data da aula (YYYY-MM-DD). null = sem restrição.
   classTime: string | null // horário de início da aula (HH:MM, horário de Brasília). material libera 15min antes.
+  category: MaterialCategory
 }
 
 // Formato devolvido pela listagem: sem o arquivo (pesado), com o status de liberação calculado.
@@ -63,6 +69,12 @@ function isReleased(material: Pick<Material, 'classDate' | 'classTime'>): boolea
   return Date.now() >= releaseAt
 }
 
+// Materiais salvos antes da categoria existir não têm o campo no blob — trata como 'geral'.
+type StoredMaterial = Omit<Material, 'category'> & { category?: MaterialCategory }
+function normalizeMaterial(stored: StoredMaterial): Material {
+  return { ...stored, category: stored.category ?? 'geral' }
+}
+
 // Lista visível para qualquer aluno logado (aprovado ou admin) — usada no dashboard.
 // Admin vê todos os materiais (mesmo os que ainda não liberaram, pra gerenciar).
 // Aluno só vê os materiais sem data de aula, ou os que já liberaram (15min antes da aula).
@@ -79,7 +91,7 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    if (value) materials.push(value as Material)
+    if (value) materials.push(normalizeMaterial(value as StoredMaterial))
   }
 
   materials.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -110,17 +122,26 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     const store = materialsStore()
     const material = await store.get(data.id, { type: 'json' })
     if (!material) throw new Error('Material não encontrado.')
-    const materialData = material as Material
+    const materialData = normalizeMaterial(material as StoredMaterial)
 
     if (!userHasRole(user, 'admin') && !isReleased(materialData)) {
       throw new Error('Este material ainda não foi liberado.')
     }
 
     const { fileName, fileDataUrl } = materialData
+
+    // Folha de redação é um modelo em branco, não conteúdo protegido/corrigido —
+    // não leva a marca d'água de nome+CPF que os demais materiais recebem.
+    if (materialData.category === 'folha_redacao') {
+      return { fileName, fileDataUrl }
+    }
+
     const { name, cpf } = getStudentIdentity(user)
     const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
     return { fileName, fileDataUrl: watermarked }
   })
+
+const MATERIAL_CATEGORIES: MaterialCategory[] = ['geral', 'folha_redacao']
 
 export const addMaterial = createServerFn({ method: 'POST' })
   .inputValidator((data: {
@@ -132,6 +153,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
     fileDataUrl: string
     classDate?: string
     classTime?: string
+    category?: string
   }) => data)
   .handler(async ({ data }) => {
     await requireAdmin()
@@ -153,6 +175,10 @@ export const addMaterial = createServerFn({ method: 'POST' })
       throw new Error('Horário da aula inválido.')
     }
 
+    const category = MATERIAL_CATEGORIES.includes(data.category as MaterialCategory)
+      ? (data.category as MaterialCategory)
+      : 'geral'
+
     const store = materialsStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
     const material: Material = {
@@ -166,6 +192,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       createdAt: new Date().toISOString(),
       classDate: data.classDate?.trim() || null,
       classTime: classTime || null,
+      category,
     }
 
     await store.setJSON(id, material)
