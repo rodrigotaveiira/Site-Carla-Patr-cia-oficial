@@ -1,10 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { Download, Files, ShieldCheck } from 'lucide-react'
+import { Download, FileEdit, Files, ShieldCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -41,16 +42,16 @@ function MateriaisPage() {
     setError('')
     try {
       const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível baixar o material.')
     } finally {
       setDownloadingId(null)
     }
   }
+
+  const folhasRedacao = materials.filter((material) => material.category === 'folha_redacao')
+  const outrosMateriais = materials.filter((material) => material.category !== 'folha_redacao')
 
   return (
     <div className="panel">
@@ -67,28 +68,57 @@ function MateriaisPage() {
       {error && <p className="form-error">{error}</p>}
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
 
-      <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
-        {materials.map((material) => (
-          <div key={material.id} className="list-row">
-            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: material.accent, background: `${material.accent}1a`, padding: '4px 10px', borderRadius: 20, flexShrink: 0, marginTop: 2 }}>
-                {material.tag}
-              </span>
-              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <b style={{ color: 'var(--navy)' }}>{material.title}</b>
-                {material.description && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.description}</div>}
-                <div className="list-meta">Adicionado em {new Date(material.createdAt).toLocaleDateString('pt-BR')}</div>
-              </div>
-            </div>
-            <button onClick={() => handleDownload(material.id)} disabled={downloadingId === material.id} className="btn btn-primary btn-sm">
-              <Download size={15} /> {downloadingId === material.id ? 'Baixando...' : 'Baixar'}
-            </button>
+      {!loading && folhasRedacao.length > 0 && (
+        <section style={{ marginTop: 20 }}>
+          <h2 className="panel-section-title"><FileEdit size={17} /> Folha de redação</h2>
+          <p className="panel-card-hint" style={{ margin: '4px 0 0' }}>
+            Modelo em branco pra usar nas suas produções escritas. Sem marca d'água.
+          </p>
+          <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+            {folhasRedacao.map((material) => (
+              <MaterialRow key={material.id} material={material} downloadingId={downloadingId} onDownload={handleDownload} />
+            ))}
           </div>
-        ))}
-        {!loading && materials.length === 0 && (
-          <EmptyState icon={Files} title="Nenhum material disponível ainda" description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui." />
-        )}
+        </section>
+      )}
+
+      <section style={{ marginTop: 20 }}>
+        {folhasRedacao.length > 0 && <h2 className="panel-section-title">Materiais</h2>}
+        <div style={{ display: 'grid', gap: 12, marginTop: folhasRedacao.length > 0 ? 12 : 0 }}>
+          {outrosMateriais.map((material) => (
+            <MaterialRow key={material.id} material={material} downloadingId={downloadingId} onDownload={handleDownload} />
+          ))}
+          {!loading && materials.length === 0 && (
+            <EmptyState icon={Files} title="Nenhum material disponível ainda" description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui." />
+          )}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function MaterialRow({
+  material, downloadingId, onDownload,
+}: {
+  material: MaterialListItem
+  downloadingId: string | null
+  onDownload: (id: string) => void
+}) {
+  return (
+    <div className="list-row">
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: material.accent, background: `${material.accent}1a`, padding: '4px 10px', borderRadius: 20, flexShrink: 0, marginTop: 2 }}>
+          {material.tag}
+        </span>
+        <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
+          <b style={{ color: 'var(--navy)' }}>{material.title}</b>
+          {material.description && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.description}</div>}
+          <div className="list-meta">Adicionado em {new Date(material.createdAt).toLocaleDateString('pt-BR')}</div>
+        </div>
       </div>
+      <button onClick={() => onDownload(material.id)} disabled={downloadingId === material.id} className="btn btn-primary btn-sm">
+        <Download size={15} /> {downloadingId === material.id ? 'Baixando...' : 'Baixar'}
+      </button>
     </div>
   )
 }

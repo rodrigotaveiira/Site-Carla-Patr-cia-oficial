@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as AprovadosAdminRouteImport } from './routes/aprovados-admin'
 import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
@@ -32,6 +33,7 @@ import { Route as SessoesAdminRouteImport } from './routes/sessoes-admin'
 import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
 import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as AppAprovadosRouteImport } from './routes/_app/aprovados'
 import { Route as AppAulasRouteImport } from './routes/_app/aulas'
 import { Route as AppCalendarioRouteImport } from './routes/_app/calendario'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
@@ -63,6 +65,11 @@ const AdminRoute = AdminRouteImport.update({
 const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
   id: '/aguardando-aprovacao',
   path: '/aguardando-aprovacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AprovadosAdminRoute = AprovadosAdminRouteImport.update({
+  id: '/aprovados-admin',
+  path: '/aprovados-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AulaAoVivoAdminRoute = AulaAoVivoAdminRouteImport.update({
@@ -160,6 +167,11 @@ const TermosRoute = TermosRouteImport.update({
   path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppAprovadosRoute = AppAprovadosRouteImport.update({
+  id: '/aprovados',
+  path: '/aprovados',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAulasRoute = AppAulasRouteImport.update({
   id: '/aulas',
   path: '/aulas',
@@ -230,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -249,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -267,6 +281,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -286,6 +301,7 @@ export interface FileRoutesByTo {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/aprovados': typeof AppAprovadosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
   '/dashboard': typeof AppDashboardRoute
@@ -306,6 +322,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -325,6 +342,7 @@ export interface FileRoutesById {
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
   '/termos': typeof TermosRoute
+  '/_app/aprovados': typeof AppAprovadosRoute
   '/_app/aulas': typeof AppAulasRoute
   '/_app/calendario': typeof AppCalendarioRoute
   '/_app/dashboard': typeof AppDashboardRoute
@@ -345,6 +363,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -364,6 +383,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -382,6 +402,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -401,6 +422,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/aprovados'
     | '/aulas'
     | '/calendario'
     | '/dashboard'
@@ -420,6 +442,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -439,6 +462,7 @@ export interface FileRouteTypes {
     | '/simulados-admin'
     | '/temas-redacao-admin'
     | '/termos'
+    | '/_app/aprovados'
     | '/_app/aulas'
     | '/_app/calendario'
     | '/_app/dashboard'
@@ -459,6 +483,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AdminRoute: typeof AdminRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AprovadosAdminRoute: typeof AprovadosAdminRoute
   AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
@@ -510,6 +535,13 @@ declare module '@tanstack/react-router' {
       path: '/aguardando-aprovacao'
       fullPath: '/aguardando-aprovacao'
       preLoaderRoute: typeof AguardandoAprovacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aprovados-admin': {
+      id: '/aprovados-admin'
+      path: '/aprovados-admin'
+      fullPath: '/aprovados-admin'
+      preLoaderRoute: typeof AprovadosAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aula-ao-vivo-admin': {
@@ -645,6 +677,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/aprovados': {
+      id: '/_app/aprovados'
+      path: '/aprovados'
+      fullPath: '/aprovados'
+      preLoaderRoute: typeof AppAprovadosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/aulas': {
       id: '/_app/aulas'
       path: '/aulas'
@@ -740,6 +779,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAprovadosRoute: typeof AppAprovadosRoute
   AppAulasRoute: typeof AppAulasRoute
   AppCalendarioRoute: typeof AppCalendarioRoute
   AppDashboardRoute: typeof AppDashboardRoute
@@ -754,6 +794,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAprovadosRoute: AppAprovadosRoute,
   AppAulasRoute: AppAulasRoute,
   AppCalendarioRoute: AppCalendarioRoute,
   AppDashboardRoute: AppDashboardRoute,
@@ -774,6 +815,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AdminRoute: AdminRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AprovadosAdminRoute: AprovadosAdminRoute,
   AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,
