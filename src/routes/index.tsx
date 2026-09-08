@@ -71,6 +71,18 @@ const reveal = {
   transition: { duration: 0.65 },
 }
 
+// Deriva o href de âncora do menu a partir do rótulo visível. Tira acento de
+// verdade (normalize + remover marcas diacríticas) — só tirar "ç" deixava
+// "Início" virar "#início" (com acento), que não bate com id="inicio".
+function slugify(label: string) {
+  return label
+    .toLowerCase()
+    .normalize('NFD')
+    // U+0300–U+036F: marcas diacríticas combinantes que o NFD separa da letra
+    // base (ex.: "í" vira "i" + acento) — removê-las deixa só a letra.
+    .replace(/[̀-ͯ]/g, '')
+}
+
 const methods = [
   { icon: FileCheck2, title: 'Correção personalizada', text: 'Feedback criterioso, humano e direcionado para cada ponto de evolução.' },
   { icon: Target, title: 'Redação prática', text: 'Treino estratégico com temas atuais e repertórios que fazem sentido.' },
@@ -173,7 +185,7 @@ function HomePage() {
 
       <header className="nav-wrap">
         <a className="brand" href="#inicio" aria-label="Carla Patrícia Medina — início">
-          <span className="brand-mark"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></span>
+          <span className="brand-mark"><img src="/logo-icone.png" alt="Carla" /></span>
           <span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
@@ -182,7 +194,7 @@ function HomePage() {
             ...(aprovados.length > 0 ? ['Aprovados'] : []),
             'FAQ', 'Contato',
           ].map((item) => (
-            <a key={item} href={`#${item.toLowerCase().replace('ç', 'c')}`} onClick={() => setMenuOpen(false)}>{item}</a>
+            <a key={item} href={`#${slugify(item)}`} onClick={() => setMenuOpen(false)}>{item}</a>
           ))}
           <Link className="nav-student mobile-only" to="/login">Área do aluno</Link>
         </nav>
