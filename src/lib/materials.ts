@@ -7,6 +7,7 @@ import { watermarkFileDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { notificarNovoMaterial } from './notificar-material'
+import { logMaterialDownload } from './material-downloads'
 
 // 'geral' = material normal (baixa com marca d'água de nome+CPF do aluno).
 // 'folha_redacao' = folha de redação em branco pra usar nas produções — sem marca d'água,
@@ -129,6 +130,18 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     }
 
     const { fileName, fileDataUrl } = materialData
+    const { name, cpf } = getStudentIdentity(user)
+
+    // Só registra download de aluno de verdade — não conta teste da equipe
+    // (admin/professor também pode baixar, pra conferir o arquivo).
+    if (userHasRole(user, 'aprovado')) {
+      await logMaterialDownload({
+        materialId: data.id,
+        materialTitle: materialData.title,
+        studentEmail: user.email ?? '',
+        studentName: name,
+      })
+    }
 
     // Folha de redação é um modelo em branco, não conteúdo protegido/corrigido —
     // não leva a marca d'água de nome+CPF que os demais materiais recebem.
@@ -136,7 +149,6 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
       return { fileName, fileDataUrl }
     }
 
-    const { name, cpf } = getStudentIdentity(user)
     const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
     return { fileName, fileDataUrl: watermarked }
   })

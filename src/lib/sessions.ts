@@ -14,6 +14,7 @@ export type SessionRecord = {
 export type StudentSessionHistory = {
   email: string
   name: string
+  id?: string // id do Netlify Identity do aluno — só existe pra quem logou depois que esse campo passou a ser salvo.
   history: SessionRecord[] // mais recente primeiro; o [0] é o aparelho atualmente ativo
 }
 
@@ -55,7 +56,7 @@ export const registerLogin = createServerFn({ method: 'POST' })
     const historyStore = sessionHistoryStore()
     const existing = await historyStore.get(email, { type: 'json' }) as StudentSessionHistory | null
     const history = [{ sessionId, device: data.device, loginAt }, ...(existing?.history ?? [])].slice(0, MAX_HISTORY)
-    await historyStore.setJSON(email, { email, name: studentDisplayName(user), history })
+    await historyStore.setJSON(email, { email, name: studentDisplayName(user), id: user.id, history })
 
     setDeviceSessionCookie(sessionId)
 

@@ -968,6 +968,19 @@ footer .brand b { color: white; }
 .badge-neutral { color: var(--muted); background: #f3f4f6; }
 .badge-brand { color: var(--purple-dark); background: #f1e9fd; }
 
+.evolution-row-head { display: flex; align-items: center; gap: 16px; width: 100%; }
+.evolution-name { min-width: 0; flex-shrink: 0; width: 168px; }
+.evolution-metrics { display: flex; flex: 1; gap: 22px; min-width: 0; }
+@media (max-width: 720px) {
+  .evolution-row-head { flex-wrap: wrap; }
+  .evolution-name { width: auto; flex: 1 1 140px; order: 1; }
+  .evolution-row-head > svg { order: 2; }
+  .evolution-metrics { flex: 1 1 100%; order: 3; gap: 14px; }
+}
+@media (max-width: 460px) {
+  .evolution-metrics { flex-direction: column; gap: 10px; }
+}
+
 .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 24px; }
 .nav-card {
   display: block; text-decoration: none; color: var(--navy); background: #fff; border-radius: 12px; padding: 18px;
