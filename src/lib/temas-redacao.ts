@@ -1,4 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
+import { boundedText, id as idSchema, isoDate } from './schemas'
+import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { isStaff, userHasRole } from './roles'
@@ -32,7 +34,7 @@ export const listTemas = createServerFn({ method: 'GET' }).handler(async () => {
 })
 
 export const addTema = createServerFn({ method: 'POST' })
-  .inputValidator((data: { title: string; proposta: string; prazo?: string }) => data)
+  .validator(z.object({ title: boundedText(300), proposta: z.string().trim().max(20000), prazo: z.union([isoDate, z.literal('')]).optional() }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
@@ -52,7 +54,7 @@ export const addTema = createServerFn({ method: 'POST' })
   })
 
 export const deleteTema = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')

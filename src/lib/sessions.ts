@@ -1,7 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
+import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole, isStaff } from './roles'
+import { setDeviceSessionCookie } from './session-guard.server'
 
 export type SessionRecord = {
   sessionId: string
@@ -38,7 +40,7 @@ function studentDisplayName(user: unknown) {
 // qualquer outro aparelho já logado. Só se aplica a alunos — a equipe
 // (admin/professor) pode usar vários aparelhos ao mesmo tempo.
 export const registerLogin = createServerFn({ method: 'POST' })
-  .inputValidator((data: { device: string }) => data)
+  .validator(z.object({ device: z.string().trim().max(200) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !user.email) throw new Error('Você precisa estar logado.')
@@ -55,13 +57,15 @@ export const registerLogin = createServerFn({ method: 'POST' })
     const history = [{ sessionId, device: data.device, loginAt }, ...(existing?.history ?? [])].slice(0, MAX_HISTORY)
     await historyStore.setJSON(email, { email, name: studentDisplayName(user), history })
 
+    setDeviceSessionCookie(sessionId)
+
     return { sessionId, tracked: true }
   })
 
 // Checado periodicamente pelo app: se a sessão que este aparelho guarda não
 // bate mais com a sessão ativa da conta, é porque outro aparelho logou depois.
 export const checkSessionActive = createServerFn({ method: 'POST' })
-  .inputValidator((data: { sessionId: string }) => data)
+  .validator(z.object({ sessionId: z.string().trim().min(1).max(200) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !user.email) return { active: false }

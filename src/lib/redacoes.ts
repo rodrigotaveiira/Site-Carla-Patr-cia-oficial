@@ -1,7 +1,12 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole, isStaff } from './roles'
+import { assertActiveSession } from './session-guard.server'
+import { enforceRateLimit } from './rate-limit'
+import { validateUpload } from './upload-validation'
+import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
 import type { Competency } from './competencies'
 
 export type CompetencyScore = Competency & { value: number }
@@ -25,7 +30,9 @@ export type RedacaoSubmission = {
 }
 
 const MAX_FILE_DATA_URL_LENGTH = 10_000_000
-const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.pdf', '.doc', '.docx']
+const MAX_DECODED_BYTES = 8 * 1024 * 1024 // 8MB de arquivo de verdade (depois do base64)
+const REDACAO_ALLOWED = ['image', 'pdf', 'docx', 'doc'] as const
+const REDACAO_RATE_LIMIT = { action: 'redacao', windowMs: 24 * 60 * 60 * 1000, max: 6 } as const
 
 function redacoesStore() {
   return getStore({ name: 'redacoes-submissions', consistency: 'strong' })
@@ -37,21 +44,29 @@ function studentDisplayName(user: unknown) {
 }
 
 export const submitRedacao = createServerFn({ method: 'POST' })
-  .inputValidator((data: { title: string; fileName: string; fileDataUrl: string }) => data)
+  .validator(
+    z.object({
+      title: optionalText(300),
+      fileName: fileNameSchema,
+      fileDataUrl: dataUrl(MAX_FILE_DATA_URL_LENGTH),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
       throw new Error('Acesso negado.')
     }
-    if (!data.fileDataUrl || !data.fileName) throw new Error('Escolha um arquivo ou foto da redação.')
+    await assertActiveSession(user)
+    await enforceRateLimit(REDACAO_RATE_LIMIT, user.email ?? '')
 
-    const extension = data.fileName.toLowerCase().slice(data.fileName.lastIndexOf('.'))
-    if (!ALLOWED_EXTENSIONS.includes(extension)) {
-      throw new Error('Envie uma foto (JPG, PNG, WEBP) ou um arquivo (PDF, DOC, DOCX).')
-    }
-    if (data.fileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {
-      throw new Error('Esse arquivo é muito grande. Envie um arquivo de até 8MB.')
-    }
+    // Valida pelo CONTEÚDO: base64 íntegro, tamanho real, assinatura de bytes
+    // batendo com a extensão, e (pra .docx) o zip não sendo uma bomba.
+    validateUpload({
+      dataUrl: data.fileDataUrl,
+      fileName: data.fileName,
+      allowed: [...REDACAO_ALLOWED],
+      maxDecodedBytes: MAX_DECODED_BYTES,
+    })
 
     const store = redacoesStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -59,7 +74,7 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       id,
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
-      title: data.title.trim() || 'Redação sem título',
+      title: (data.title ?? '') || 'Redação sem título',
       deliveryMethod: 'upload',
       fileName: data.fileName,
       fileDataUrl: data.fileDataUrl,
@@ -80,12 +95,14 @@ export const submitRedacao = createServerFn({ method: 'POST' })
 // Aluno que escreveu a redação no papel, em sala, e não tem arquivo pra enviar —
 // só confirma a entrega presencial e a redação entra na fila de correção mesmo assim.
 export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
-  .inputValidator((data: { title: string }) => data)
+  .validator(z.object({ title: optionalText(300) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
       throw new Error('Acesso negado.')
     }
+    await assertActiveSession(user)
+    await enforceRateLimit(REDACAO_RATE_LIMIT, user.email ?? '')
 
     const store = redacoesStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -93,7 +110,7 @@ export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
       id,
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
-      title: data.title.trim() || 'Redação sem título',
+      title: (data.title ?? '') || 'Redação sem título',
       deliveryMethod: 'presencial',
       fileName: '',
       fileDataUrl: '',
@@ -149,7 +166,7 @@ export const listAllRedacoes = createServerFn({ method: 'GET' }).handler(async (
 })
 
 export const getRedacaoFile = createServerFn({ method: 'GET' })
-  .inputValidator((data: { id: string; kind?: 'original' | 'correction' }) => data)
+  .validator(z.object({ id: idSchema, kind: z.enum(['original', 'correction']).optional() }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
@@ -171,20 +188,19 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
   })
 
 export const correctRedacao = createServerFn({ method: 'POST' })
-  .inputValidator((data: {
-    id: string
-    scores: CompetencyScore[]
-    feedback: string
-    correctionFileName?: string
-    correctionFileDataUrl?: string
-  }) => data)
+  .validator(
+    z.object({
+      id: idSchema,
+      scores: z.array(competencyScore).min(1),
+      feedback: z.string().max(20000),
+      correctionFileName: fileNameSchema.optional(),
+      correctionFileDataUrl: dataUrl(MAX_FILE_DATA_URL_LENGTH).optional(),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
 
-    if (!Array.isArray(data.scores) || data.scores.length === 0) {
-      throw new Error('Preencha a pontuação de cada competência.')
-    }
     for (const score of data.scores) {
       if (score.value < 0 || score.value > score.maxValue) {
         throw new Error(`A nota de "${score.label}" deve estar entre 0 e ${score.maxValue}.`)
@@ -193,13 +209,12 @@ export const correctRedacao = createServerFn({ method: 'POST' })
 
     if (data.correctionFileDataUrl) {
       if (!data.correctionFileName) throw new Error('Arquivo de correção inválido.')
-      const extension = data.correctionFileName.toLowerCase().slice(data.correctionFileName.lastIndexOf('.'))
-      if (!ALLOWED_EXTENSIONS.includes(extension)) {
-        throw new Error('Envie uma foto (JPG, PNG, WEBP) ou um arquivo (PDF, DOC, DOCX) para a correção.')
-      }
-      if (data.correctionFileDataUrl.length > MAX_FILE_DATA_URL_LENGTH) {
-        throw new Error('Esse arquivo é muito grande. Envie um arquivo de até 8MB.')
-      }
+      validateUpload({
+        dataUrl: data.correctionFileDataUrl,
+        fileName: data.correctionFileName,
+        allowed: [...REDACAO_ALLOWED],
+        maxDecodedBytes: MAX_DECODED_BYTES,
+      })
     }
 
     const store = redacoesStore()

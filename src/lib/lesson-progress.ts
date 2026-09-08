@@ -1,4 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
+import { id as idSchema } from './schemas'
+import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
@@ -17,7 +19,7 @@ async function requireStudent() {
 
 // Marca uma aula como assistida pelo aluno logado (chamado quando ele abre a aula pra assistir).
 export const markLessonWatched = createServerFn({ method: 'POST' })
-  .inputValidator((data: { lessonId: string }) => data)
+  .validator(z.object({ lessonId: idSchema }))
   .handler(async ({ data }) => {
     const user = await requireStudent()
     if (!user.email) return { watched: [] }

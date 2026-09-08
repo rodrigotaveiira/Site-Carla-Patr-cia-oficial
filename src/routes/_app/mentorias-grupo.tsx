@@ -5,7 +5,7 @@ import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots, type MentoriaGrupoSlot } from '@/lib/mentorias-grupo'
-import { verifyPassword } from '@/lib/reauth'
+import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
@@ -78,8 +78,9 @@ function MentoriasGrupoPage() {
 
     setActionError('')
 
-    const valid = await verifyPassword(user?.email ?? '', password)
-    if (!valid) throw new Error('Senha incorreta. Tente de novo.')
+    // Confirma a senha NO SERVIDOR (verifica no Netlify Identity e grava um
+    // marcador de auth recente). Entrar no grupo abaixo exige esse marcador.
+    await confirmSchedulingAuth({ data: { password } })
 
     await joinMentoriaGrupoSlot({ data: { id: slot.id } })
     setPendingSlot(null)

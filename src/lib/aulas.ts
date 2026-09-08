@@ -1,4 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
+import { boundedText, httpUrl, id as idSchema } from './schemas'
+import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
@@ -86,7 +88,7 @@ export const listLessonModules = createServerFn({ method: 'GET' }).handler(async
 })
 
 export const createLessonModule = createServerFn({ method: 'POST' })
-  .inputValidator((data: { name: string }) => data)
+  .validator(z.object({ name: boundedText(120) }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const name = data.name.trim()
@@ -108,7 +110,7 @@ export const createLessonModule = createServerFn({ method: 'POST' })
 // Renomeia um módulo e reescreve o nome em todas as aulas que usavam o nome
 // antigo — sem isso, renomear "deixaria pra trás" as aulas já cadastradas.
 export const renameLessonModule = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; name: string }) => data)
+  .validator(z.object({ id: idSchema, name: boundedText(120) }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const name = data.name.trim()
@@ -141,7 +143,7 @@ export const renameLessonModule = createServerFn({ method: 'POST' })
 // ordem com o vizinho — mais simples que arrastar-e-soltar e resolve o
 // mesmo problema (curar em que sequência os módulos aparecem pro aluno).
 export const moveLessonModule = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; direction: 'up' | 'down' }) => data)
+  .validator(z.object({ id: idSchema, direction: z.enum(['up', 'down']) }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const modules = await readAllModules()
@@ -164,7 +166,7 @@ export const moveLessonModule = createServerFn({ method: 'POST' })
 // de um módulo que some da lista sem aviso. Pra excluir um módulo em uso,
 // primeiro move as aulas dele pra outro módulo.
 export const deleteLessonModule = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const modules = await readAllModules()
@@ -181,7 +183,7 @@ export const deleteLessonModule = createServerFn({ method: 'POST' })
   })
 
 export const addLesson = createServerFn({ method: 'POST' })
-  .inputValidator((data: { title: string; module: string; description: string; videoUrl: string }) => data)
+  .validator(z.object({ title: boundedText(200), module: z.string().trim().max(120), description: z.string().trim().max(5000), videoUrl: httpUrl }))
   .handler(async ({ data }) => {
     await requireAdmin()
     if (!data.title.trim()) throw new Error('Dê um título para a aula.')
@@ -215,7 +217,7 @@ export const addLesson = createServerFn({ method: 'POST' })
 // módulo sem precisar excluir e recadastrar (perdendo o link do vídeo, a
 // descrição etc). Antes só existia adicionar/excluir.
 export const updateLesson = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; title: string; module: string; description: string; videoUrl: string }) => data)
+  .validator(z.object({ id: idSchema, title: boundedText(200), module: z.string().trim().max(120), description: z.string().trim().max(5000), videoUrl: httpUrl }))
   .handler(async ({ data }) => {
     await requireAdmin()
     if (!data.title.trim()) throw new Error('Dê um título para a aula.')
@@ -247,7 +249,7 @@ export const updateLesson = createServerFn({ method: 'POST' })
   })
 
 export const deleteLesson = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     await requireAdmin()
     const store = lessonsStore()

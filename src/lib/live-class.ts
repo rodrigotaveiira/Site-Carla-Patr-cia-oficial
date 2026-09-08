@@ -1,7 +1,9 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { boundedText } from './schemas'
 
 export type LiveClass = {
   title: string
@@ -29,27 +31,21 @@ export const getLiveClass = createServerFn({ method: 'GET' }).handler(async () =
 })
 
 export const updateLiveClass = createServerFn({ method: 'POST' })
-  .inputValidator((data: {
-    title: string
-    module: string
-    description: string
-    dateTime: string
-    durationMinutes: number
-    zoomLink: string
-  }) => data)
+  .validator(
+    z.object({
+      title: boundedText(200),
+      module: z.string().trim().max(120),
+      description: z.string().trim().max(5000),
+      dateTime: z.string().regex(/^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):[0-5]\d$/, 'Data e horário inválidos.'),
+      durationMinutes: z.coerce.number().int().min(5).max(600),
+      zoomLink: z
+        .union([z.url().refine((v) => /^https?:\/\//i.test(v), 'O link do Zoom não parece válido.'), z.literal('')])
+        .transform((v) => v ?? ''),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
-    if (!data.title.trim()) throw new Error('Dê um título para a aula.')
-    if (!data.dateTime) throw new Error('Escolha a data e o horário da aula.')
-
-    if (data.zoomLink.trim()) {
-      try {
-        new URL(data.zoomLink.trim())
-      } catch {
-        throw new Error('O link do Zoom não parece válido.')
-      }
-    }
 
     const store = liveClassStore()
     const liveClass: LiveClass = {

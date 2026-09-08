@@ -1,7 +1,18 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { isStaff } from './roles'
+
+const competencyInput = z.object({
+  id: z.string().trim().min(1).max(100),
+  label: z.string().trim().min(1).max(200),
+  maxValue: z.number().gt(0).max(1000),
+  levels: z
+    .array(z.object({ range: z.string().max(100), description: z.string().max(2000) }))
+    .max(50)
+    .optional(),
+})
 
 export type CompetencyLevel = {
   range: string
@@ -88,18 +99,10 @@ export const getCompetencyScheme = createServerFn({ method: 'GET' }).handler(asy
 })
 
 export const updateCompetencyScheme = createServerFn({ method: 'POST' })
-  .inputValidator((data: { scheme: Competency[] }) => data)
+  .validator(z.object({ scheme: z.array(competencyInput).min(1).max(50) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
-
-    if (!Array.isArray(data.scheme) || data.scheme.length === 0) {
-      throw new Error('O esquema precisa ter pelo menos uma competência.')
-    }
-    for (const competency of data.scheme) {
-      if (!competency.label?.trim()) throw new Error('Toda competência precisa de um nome.')
-      if (!(competency.maxValue > 0)) throw new Error('O valor máximo de cada competência deve ser maior que zero.')
-    }
 
     const store = schemeStore()
     await store.setJSON('scheme', data.scheme)

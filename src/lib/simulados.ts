@@ -1,7 +1,13 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { assertActiveSession } from './session-guard.server'
+import { enforceRateLimit } from './rate-limit'
+import { boundedText, id as idSchema } from './schemas'
+
+const ATTEMPT_RATE_LIMIT = { action: 'simulado-attempt', windowMs: 24 * 60 * 60 * 1000, max: 30 } as const
 
 export type SimuladoOption = { letter: string; text: string }
 
@@ -129,12 +135,17 @@ export function parseGabaritoText(raw: string): Map<number, string> {
 // --------------------------------------------------------------------------
 
 export const createSimulado = createServerFn({ method: 'POST' })
-  .inputValidator((data: { title: string; questionsText: string; gabaritoText: string }) => data)
+  .validator(
+    z.object({
+      title: boundedText(200),
+      questionsText: z.string().max(200_000),
+      gabaritoText: z.string().max(50_000),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    if (!data.title.trim()) throw new Error('Dê um nome para o simulado.')
     const questions = parseQuestionsText(data.questionsText)
     if (questions.length === 0) {
       throw new Error('Não consegui reconhecer nenhuma questão nesse texto. Confira o formato (1) enunciado, a) b) c)...).')
@@ -163,7 +174,7 @@ export const createSimulado = createServerFn({ method: 'POST' })
   })
 
 export const deleteSimulado = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -204,7 +215,7 @@ export const listSimulados = createServerFn({ method: 'GET' }).handler(async () 
 })
 
 export const getSimuladoToTake = createServerFn({ method: 'GET' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -224,12 +235,21 @@ export const getSimuladoToTake = createServerFn({ method: 'GET' })
   })
 
 export const submitSimuladoAttempt = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; answers: Record<string, string> }) => data)
+  .validator(
+    z.object({
+      id: idSchema,
+      answers: z
+        .record(z.string().max(20), z.string().max(4))
+        .refine((obj) => Object.keys(obj).length <= 500, 'Muitas respostas.'),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
       throw new Error('Acesso negado.')
     }
+    await assertActiveSession(user)
+    await enforceRateLimit(ATTEMPT_RATE_LIMIT, user.email ?? '')
 
     const simulado = await simuladosStore().get(data.id, { type: 'json' }) as Simulado | null
     if (!simulado) throw new Error('Simulado não encontrado.')

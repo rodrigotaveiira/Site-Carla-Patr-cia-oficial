@@ -3,3 +3,9 @@ dist
 
 # Local Netlify folder
 .netlify
+
+# Variáveis de ambiente / segredos — nunca versionar.
+# As chaves de verdade (RESEND_API_KEY, etc.) ficam nas env vars do Netlify.
+.env
+.env.*
+!.env.example

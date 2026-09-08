@@ -4,6 +4,13 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
+import { assertActiveSession } from './session-guard.server'
+import { assertRecentAuth } from './reauth'
+import { enforceRateLimit } from './rate-limit'
+import { capacity as capacitySchema, durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
+import { z } from 'zod'
+
+const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
 
 export type MentoriaGrupoStudent = { email: string; name: string }
 
@@ -51,7 +58,7 @@ export const listMentoriaGrupoSlots = createServerFn({ method: 'GET' }).handler(
 })
 
 export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .inputValidator((data: { date: string; time: string; duration: number; capacity: number }) => data)
+  .validator(z.object({ date: isoDate, time: hhmm, duration: durationMinutes, capacity: capacitySchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -78,7 +85,7 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   })
 
 export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string; time: string; duration: number; capacity: number }) => data)
+  .validator(z.object({ id: idSchema, time: hhmm, duration: durationMinutes, capacity: capacitySchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -108,7 +115,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   })
 
 export const deleteMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -119,11 +126,16 @@ export const deleteMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   })
 
 export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
     if (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin')) throw new Error('Sua conta ainda não foi aprovada.')
+    await assertActiveSession(user)
+    if (!userHasRole(user, 'admin')) {
+      await assertRecentAuth(user)
+      await enforceRateLimit(AGENDAMENTO_RATE_LIMIT, user.email ?? '')
+    }
 
     const store = slotsStore()
     const entry = await store.getWithMetadata(data.id, { type: 'json' })
@@ -172,10 +184,12 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   })
 
 export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .inputValidator((data: { id: string }) => data)
+  .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
+    await assertActiveSession(user)
+    if (!userHasRole(user, 'admin')) await enforceRateLimit(AGENDAMENTO_RATE_LIMIT, user.email ?? '')
 
     const store = slotsStore()
     const entry = await store.getWithMetadata(data.id, { type: 'json' })
