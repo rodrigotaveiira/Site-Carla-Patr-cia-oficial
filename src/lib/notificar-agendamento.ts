@@ -15,7 +15,7 @@ import { montarEmailAgendamentoAluno, montarEmailAgendamentoProfessora } from '.
 // alguém dispare e-mail em nome da Carla pra um destinatário qualquer: aqui os
 // dados vêm da sessão e do próprio registro gravado, não do cliente.
 
-const EMAIL_PROFESSORA_PADRAO = 'contato@carlapatriciamedina.com.br'
+const EMAIL_PROFESSORA_PADRAO = 'contato.carlapatriciamedina@gmail.com'
 
 export async function notificarAgendamento(params: {
   nomeAluno: string

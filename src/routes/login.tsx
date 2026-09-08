@@ -129,7 +129,7 @@ function LoginPage() {
             {error && <p className="form-message error">{error}</p>}{notice && <p className="form-message success">{notice}</p>}
             <button className="button login-submit" disabled={loading}>{loading ? 'Aguarde...' : mode === 'login' ? 'Entrar na plataforma' : 'Criar minha conta'} <ArrowRight size={17} /></button>
           </form>
-          <div className="login-support">Precisa de ajuda? <a href="mailto:contato@carlapatriciamedina.com.br">Fale com o suporte</a></div>
+          <div className="login-support">Precisa de ajuda? <a href="mailto:contato.carlapatriciamedina@gmail.com">Fale com o suporte</a></div>
         </div>
       </section>
     </main>

@@ -14,7 +14,7 @@ const REMETENTE_PADRAO = 'Carla Patrícia Medina <noreply@carlapatriciamedina.co
 
 // Sai de um noreply, mas resposta de aluno nao pode cair num buraco: o Reply-To
 // manda pro endereco de contato de verdade.
-const RESPONDER_PARA_PADRAO = 'contato@carlapatriciamedina.com.br'
+const RESPONDER_PARA_PADRAO = 'contato.carlapatriciamedina@gmail.com'
 
 export type ResultadoEnvio =
   | { status: 'enviado'; id: string }
