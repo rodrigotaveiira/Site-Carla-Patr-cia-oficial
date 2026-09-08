@@ -377,7 +377,7 @@ function HomePage() {
       <section className="contact section-full" id="contato">
         <div className="contact-card">
           <div className="contact-copy"><div className="section-kicker">Vamos conversar?</div><h2>O próximo capítulo da sua história pode começar <em>agora.</em></h2><p>Conte seus objetivos. Nossa equipe ajuda você a escolher o melhor caminho.</p>
-            <div className="contact-channels"><a href="https://wa.me/5522999325306"><MessageCircle /> WhatsApp</a><a href="mailto:contato@carlapatriciamedina.com.br"><Mail /> E-mail</a><a href="https://instagram.com/carlapatricia.medina"><Instagram /> Instagram</a></div>
+            <div className="contact-channels"><a href="https://wa.me/5522999325306"><MessageCircle /> WhatsApp</a><a href="mailto:contato.carlapatriciamedina@gmail.com"><Mail /> E-mail</a><a href="https://instagram.com/carlapatricia.medina"><Instagram /> Instagram</a></div>
           </div>
           <form className="contact-form" name="contato" onSubmit={submitContact}>
             <input type="hidden" name="form-name" value="contato" /><input className="hidden-field" name="bot-field" tabIndex={-1} autoComplete="off" />
@@ -396,10 +396,10 @@ function HomePage() {
       </section>
 
       <footer>
-        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
+        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato.carlapatriciamedina@gmail.com" aria-label="E-mail"><Mail /></a></div></div>
           <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a>{aprovados.length > 0 && <a href="#aprovados">Aprovados</a>}</div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
-          <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
+          <div><b>Fale conosco</b><span>contato.carlapatriciamedina@gmail.com</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
         <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/lgpd">LGPD</a></div></div>
       </footer>

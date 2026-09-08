@@ -167,7 +167,7 @@ function AppLayout() {
               </div>
             )}
           </div>
-          <a href="mailto:contato@carlapatriciamedina.com.br" className="sidebar-help">
+          <a href="mailto:contato.carlapatriciamedina@gmail.com" className="sidebar-help">
             <MessageSquareText size={16} />
             <span>Dúvida? Fale com a gente</span>
           </a>
