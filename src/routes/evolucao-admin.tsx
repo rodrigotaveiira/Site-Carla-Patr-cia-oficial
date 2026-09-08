@@ -101,7 +101,7 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
 
       {open && (
         <div style={{ display: 'grid', gap: 18, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
               <PenLine size={14} /> Redação
             </div>
@@ -111,8 +111,8 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
             {redacao.recent.length === 0 && <p className="list-meta">Nenhuma redação enviada.</p>}
             <div style={{ display: 'grid', gap: 6 }}>
               {redacao.recent.map((r) => (
-                <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, background: 'var(--lilac-tint)', borderRadius: 8, padding: '7px 10px', fontSize: 12 }}>
-                  <span style={{ color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, minWidth: 0, background: 'var(--lilac-tint)', borderRadius: 8, padding: '7px 10px', fontSize: 12 }}>
+                  <span style={{ color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{r.title}</span>
                   {r.status === 'corrigida' && r.grade !== null
                     ? <b style={{ color: gradeColor(r.grade), flexShrink: 0 }}>{r.grade}/40</b>
                     : <span className="badge badge-warning" style={{ flexShrink: 0 }}>Aguardando</span>}
@@ -121,7 +121,7 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
             </div>
           </div>
 
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
               <Download size={14} /> Materiais
             </div>
@@ -129,15 +129,15 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
             {materiais.recent.length === 0 && <p className="list-meta">Nenhum download registrado ainda.</p>}
             <div style={{ display: 'grid', gap: 6 }}>
               {materiais.recent.map((d, i) => (
-                <div key={`${d.materialTitle}-${d.downloadedAt}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, background: 'var(--lilac-tint)', borderRadius: 8, padding: '7px 10px', fontSize: 12 }}>
-                  <span style={{ color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.materialTitle}</span>
+                <div key={`${d.materialTitle}-${d.downloadedAt}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, minWidth: 0, background: 'var(--lilac-tint)', borderRadius: 8, padding: '7px 10px', fontSize: 12 }}>
+                  <span style={{ color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{d.materialTitle}</span>
                   <span style={{ color: 'var(--muted)', flexShrink: 0 }}>{formatDate(d.downloadedAt)}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
               <TrendingUp size={14} /> Progresso
             </div>
