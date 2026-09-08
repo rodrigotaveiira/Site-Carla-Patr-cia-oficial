@@ -3,6 +3,7 @@ import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
+import { notificarNovoMaterial } from './notificar-material'
 
 // 'geral' = material normal (baixa com marca d'água de nome+CPF do aluno).
 // 'folha_redacao' = folha de redação em branco pra usar nas produções — sem marca d'água,
@@ -196,6 +197,15 @@ export const addMaterial = createServerFn({ method: 'POST' })
     }
 
     await store.setJSON(id, material)
+
+    // Só avisa por e-mail se o material já nasce liberado (sem trava de aula
+    // futura) — material agendado pra liberar depois não deve gerar aviso
+    // agora, só quando de fato ficar disponível (o sino segue essa mesma
+    // regra, via getRecentContentNotifications).
+    if (isReleased(material)) {
+      await notificarNovoMaterial({ titulo: material.title, descricao: material.description })
+    }
+
     const { fileDataUrl: _omit, ...meta } = material
     return meta
   })
