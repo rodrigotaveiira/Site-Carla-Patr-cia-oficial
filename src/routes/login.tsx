@@ -9,8 +9,9 @@ export const Route = createFileRoute('/login')({ head: noindexHead, component: L
 
 function LoginPage() {
   const navigate = useNavigate()
-  // ?mode=signup abre direto na aba de cadastro — usado pelo CTA "Quero começar"
-  // da Galeria dos Aprovados na home, que deve levar direto pro cadastro.
+  // ?mode=signup abre direto na aba de cadastro — pra usar em links de
+  // marketing/campanha que devem levar direto pro cadastro, sem passar pela
+  // aba de login primeiro.
   const [mode, setMode] = useState<'login' | 'signup'>(() =>
     (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mode') === 'signup')
       ? 'signup'

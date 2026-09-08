@@ -344,7 +344,7 @@ function HomePage() {
           </div>
           <motion.div className="aprovados-cta" {...reveal}>
             <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
-            <a className="button" href="/login?mode=signup">Quero começar <ArrowRight size={18} /></a>
+            <a className="button" href="#contato">Quero começar <ArrowRight size={18} /></a>
           </motion.div>
         </section>
       )}
