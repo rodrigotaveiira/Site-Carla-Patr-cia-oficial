@@ -27,43 +27,63 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
   const notifications: ContentNotification[] = []
 
   // Materiais: usa o instante de liberação (15min antes da aula) quando definido.
-  const materialsStore = getStore({ name: 'student-materials', consistency: 'strong' })
-  const { blobs: materialBlobs } = await materialsStore.list()
-  for (const blob of materialBlobs) {
-    const value = (await materialsStore.get(blob.key, { type: 'json' })) as
-      | { title: string; createdAt: string; classDate: string | null; classTime: string | null }
-      | null
-    if (!value) continue
+  // Cada item é isolado em try/catch: um blob legado/corrompido não pode derrubar
+  // o aviso dos demais materiais (nem dos itens de biblioteca, coletados depois).
+  try {
+    const materialsStore = getStore({ name: 'student-materials', consistency: 'strong' })
+    const { blobs: materialBlobs } = await materialsStore.list()
+    for (const blob of materialBlobs) {
+      try {
+        const value = (await materialsStore.get(blob.key, { type: 'json' })) as
+          | { title: string; createdAt: string; classDate: string | null; classTime: string | null }
+          | null
+        if (!value) continue
 
-    const releaseAt = releaseInstantMs(value.classDate, value.classTime)
-    const referenceDate = releaseAt !== null ? new Date(releaseAt) : new Date(value.createdAt)
-    if (referenceDate.getTime() > now) continue // ainda não liberado — não avisa
+        const releaseAt = releaseInstantMs(value.classDate, value.classTime)
+        const referenceDate = releaseAt !== null ? new Date(releaseAt) : new Date(value.createdAt)
+        if (referenceDate.getTime() > now) continue // ainda não liberado — não avisa
 
-    const daysAgo = (now - referenceDate.getTime()) / (1000 * 60 * 60 * 24)
-    if (daysAgo <= RECENT_WINDOW_DAYS) {
-      notifications.push({
-        id: `material-${blob.key}`,
-        text: `Novo material disponível: "${value.title}"`,
-        date: referenceDate.toISOString(),
-      })
+        const daysAgo = (now - referenceDate.getTime()) / (1000 * 60 * 60 * 24)
+        if (daysAgo <= RECENT_WINDOW_DAYS) {
+          notifications.push({
+            id: `material-${blob.key}`,
+            text: `Novo material disponível: "${value.title}"`,
+            date: referenceDate.toISOString(),
+          })
+        }
+      } catch (error) {
+        console.error(`Aviso: falha ao ler material "${blob.key}" para o sino de avisos:`, error)
+      }
     }
+  } catch (error) {
+    console.error('Aviso: falha ao listar materiais para o sino de avisos:', error)
   }
 
-  // Bibliotecas de PDF (Biblioteca, Questões, Simulados, Repertórios, Dicas).
+  // Bibliotecas de PDF (Biblioteca, Questões, Simulados, Repertórios, Dicas, Gabaritos).
   for (const section of Object.keys(CONTENT_SECTIONS) as ContentSection[]) {
-    const store = getStore({ name: `content-library-${section}`, consistency: 'strong' })
-    const { blobs } = await store.list()
-    for (const blob of blobs) {
-      const value = (await store.get(blob.key, { type: 'json' })) as { title: string; createdAt: string } | null
-      if (!value) continue
-      const daysAgo = (now - new Date(value.createdAt).getTime()) / (1000 * 60 * 60 * 24)
-      if (daysAgo <= RECENT_WINDOW_DAYS) {
-        notifications.push({
-          id: `${section}-${blob.key}`,
-          text: `Novo arquivo em ${CONTENT_SECTIONS[section]}: "${value.title}"`,
-          date: value.createdAt,
-        })
+    try {
+      const store = getStore({ name: `content-library-${section}`, consistency: 'strong' })
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        try {
+          const value = (await store.get(blob.key, { type: 'json' })) as { title: string; createdAt: string } | null
+          if (!value) continue
+          const createdAtMs = new Date(value.createdAt).getTime()
+          if (createdAtMs > now) continue // data futura (dado inconsistente) — não avisa
+          const daysAgo = (now - createdAtMs) / (1000 * 60 * 60 * 24)
+          if (daysAgo <= RECENT_WINDOW_DAYS) {
+            notifications.push({
+              id: `${section}-${blob.key}`,
+              text: `Novo arquivo em ${CONTENT_SECTIONS[section]}: "${value.title}"`,
+              date: value.createdAt,
+            })
+          }
+        } catch (error) {
+          console.error(`Aviso: falha ao ler arquivo "${blob.key}" de ${section} para o sino de avisos:`, error)
+        }
       }
+    } catch (error) {
+      console.error(`Aviso: falha ao listar a seção ${section} para o sino de avisos:`, error)
     }
   }
 

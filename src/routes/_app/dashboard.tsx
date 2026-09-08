@@ -377,12 +377,14 @@ function DashboardPage() {
 
   const [lembretes, setLembretes] = useState<Lembrete[]>([])
   useEffect(() => {
-    listLembretes().then(setLembretes).catch(() => { /* sem lembretes por enquanto */ })
+    listLembretes().then(setLembretes).catch((error) => console.error('Não foi possível carregar os lembretes:', error))
   }, [])
 
   const [contentNotifications, setContentNotifications] = useState<ContentNotification[]>([])
   useEffect(() => {
-    getRecentContentNotifications().then(setContentNotifications).catch(() => { /* sem avisos de arquivo por enquanto */ })
+    getRecentContentNotifications()
+      .then(setContentNotifications)
+      .catch((error) => console.error('Não foi possível carregar os avisos do sino:', error))
   }, [])
 
   // Novidade de verdade: lembrete da professora e arquivo novo. Só isto acende
