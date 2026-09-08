@@ -411,7 +411,7 @@ footer .brand b { color: white; }
    porque agora a barra lateral persiste entre todas as páginas do aluno. */
 .mobile-nav-toggle { display: none; position: relative; z-index: 1; }
 .dashboard-search { position: relative; display: flex; align-items: center; gap: 10px; flex: 1 1 330px; min-width: 0; max-width: 330px; }
-.dashboard-search svg { width: 17px; color: #9ca3af; flex-shrink: 0; }
+.dashboard-search svg { width: 17px; color: var(--muted); flex-shrink: 0; }
 .dashboard-search input { width: 100%; border: 0; outline: 0; font-size: 15px; }
 
 .search-results { position: absolute; top: calc(100% + 10px); left: 0; width: 380px; max-width: calc(100vw - 68px); max-height: 420px; overflow-y: auto; padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 30px rgba(15, 35, 66, 0.12); z-index: 30; }
@@ -551,7 +551,7 @@ footer .brand b { color: white; }
    lido como uma frase de verdade acima do título, não uma legenda genérica. */
 .card-title span { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .card-title h3 { margin: 4px 0 0; color: var(--navy); font-family: var(--serif); font-size: 17px; font-weight: 400; }
-.card-title button { color: #9ca3af; background: none; border: 0; border-radius: 50%; padding: 5px; cursor: pointer; transition: background .15s, color .15s; }
+.card-title button { color: var(--muted); background: none; border: 0; border-radius: 50%; padding: 5px; cursor: pointer; transition: background .15s, color .15s; }
 .card-title button:hover { color: var(--purple); background: var(--lilac-tint); }
 .card-title button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
 .card-title button svg { width: 17px; }
@@ -601,7 +601,7 @@ footer .brand b { color: white; }
 .week-days i { width: 28px; height: 28px; display: grid; place-items: center; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 13px; font-style: normal; font-variant-numeric: tabular-nums; }
 .week-days span.done i { color: white; background: var(--purple); }
 .week-days span.today i { color: var(--purple); background: #f1e9fd; border: 1px solid var(--purple); }
-.week-days small { color: #a0a7b0; font-size: 12px; }
+.week-days small { color: var(--muted); font-size: 12px; }
 .weekly-goal > p { margin: 19px 0 0; padding-top: 14px; color: #7b8490; border-top: 1px solid #eff0f2; font-size: 13px; text-align: center; }
 .weekly-goal-success { margin: 19px 0 0; padding: 12px 14px 0; color: var(--purple); font-weight: 800; font-size: 14px; text-align: center; border-top: 1px solid #eff0f2; }
 .streak-badge { display: flex; align-items: center; gap: 4px; padding: 5px 10px; color: var(--purple-dark); background: #f1e9fd; border-radius: 20px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -627,7 +627,7 @@ footer .brand b { color: white; }
 .month-review-header p { margin: 0; color: rgba(255,255,255,.85); font-size: 13px; font-variant-numeric: tabular-nums; }
 .month-review-body { padding: 22px 22px 26px; transition: opacity .15s; }
 .month-review-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
-.month-review-weekdays span { text-align: center; color: #a0a7b0; font-size: 11px; font-weight: 700; }
+.month-review-weekdays span { text-align: center; color: var(--muted); font-size: 11px; font-weight: 700; }
 .month-review-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .month-review-grid span { display: grid; place-items: center; aspect-ratio: 1; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 12px; font-variant-numeric: tabular-nums; }
 .month-review-grid span.done { color: #fff; background: var(--purple); font-weight: 700; }
@@ -669,7 +669,7 @@ footer .brand b { color: white; }
 .competencies i { width: 100%; min-height: 6px; background: var(--purple); border-radius: 3px 3px 0 0; }
 /* Duas linhas garantidas (min-height) pra caber o nome inteiro da competência sem cortar,
    e pra toda coluna ter a mesma altura (barras ficam alinhadas mesmo com nomes de tamanhos diferentes). */
-.competencies small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px; max-width: 100%; color: #9aa2ac; font-size: 10.5px; line-height: 1.3; text-align: center; word-break: break-word; }
+.competencies small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px; max-width: 100%; color: var(--muted); font-size: 10.5px; line-height: 1.3; text-align: center; word-break: break-word; }
 .competencies b { color: var(--navy); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 1100px) {
@@ -913,7 +913,7 @@ footer .brand b { color: white; }
 .panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
-.panel-meta-strip { margin: 10px 0 0; color: #9aa2ac; font-size: 12px; font-variant-numeric: tabular-nums; }
+.panel-meta-strip { margin: 10px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .panel-inline-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--purple); font-weight: 700; font-size: 13px; text-decoration: none; }
 .panel-inline-link:hover { color: var(--purple-dark); text-decoration: underline; }
 
@@ -944,7 +944,7 @@ footer .brand b { color: white; }
 .panel input:focus, .panel textarea:focus, .panel select:focus {
   outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,.14);
 }
-.panel input::placeholder, .panel textarea::placeholder { color: #9aa2ac; }
+.panel input::placeholder, .panel textarea::placeholder { color: var(--muted); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; border: 0; text-decoration: none; white-space: nowrap; transition: transform .15s, box-shadow .15s, background .15s, border-color .15s; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
@@ -989,9 +989,9 @@ footer .brand b { color: white; }
 .list-row:hover { box-shadow: 0 0 0 1px rgba(109,40,217,.09), 0 10px 22px -14px rgba(15,35,66,.24); }
 .list-row + .list-row { margin-top: 10px; }
 .list-title { color: var(--navy); font-weight: 700; font-size: 14px; }
-.list-meta { color: #9aa2ac; font-size: 12px; margin-top: 3px; }
+.list-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
 
-.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: #9ca3af; background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
 .icon-btn:hover:not(:disabled) { color: var(--purple); background: var(--lilac-tint); border-color: var(--purple); }
 .icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
 .icon-btn:disabled { opacity: .4; cursor: not-allowed; }
@@ -1055,7 +1055,7 @@ footer .brand b { color: white; }
 .toast-viewport { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; max-width: min(360px, calc(100vw - 40px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: #fff; border-radius: 10px; box-shadow: 0 12px 30px rgba(15,35,66,.16); font-size: 14px; color: var(--navy); animation: toast-in .25s ease; }
 .toast span { flex: 1; line-height: 1.4; }
-.toast button { flex-shrink: 0; display: flex; padding: 2px; background: none; border: 0; color: #9aa2ac; cursor: pointer; }
+.toast button { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; margin: -4px; background: none; border: 0; border-radius: 50%; color: var(--muted); cursor: pointer; }
 .toast button:hover { color: var(--navy); }
 .toast-success svg:first-child { color: #15803d; }
 .toast-error svg:first-child { color: #dc2626; }
