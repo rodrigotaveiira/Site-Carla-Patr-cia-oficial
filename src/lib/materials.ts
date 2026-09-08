@@ -5,7 +5,13 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
-import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema, isoDate } from './schemas'
+import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, hhmm, id as idSchema, isoDate } from './schemas'
+import { notificarNovoMaterial } from './notificar-material'
+
+// 'geral' = material normal (baixa com marca d'água de nome+CPF do aluno).
+// 'folha_redacao' = folha de redação em branco pra usar nas produções — sem marca d'água,
+// já que não é conteúdo protegido/corrigido, é um modelo pra imprimir/preencher.
+export type MaterialCategory = 'geral' | 'folha_redacao'
 
 export type Material = {
   id: string
@@ -16,18 +22,25 @@ export type Material = {
   fileName: string
   fileDataUrl: string // base64 (data:application/...;base64,....)
   createdAt: string
-  classDate: string | null // data da aula (YYYY-MM-DD); material libera 1 dia antes. null = sem restrição.
+  classDate: string | null // data da aula (YYYY-MM-DD). null = sem restrição.
+  classTime: string | null // horário de início da aula (HH:MM, horário de Brasília). material libera 15min antes.
+  category: MaterialCategory
 }
 
 // Formato devolvido pela listagem: sem o arquivo (pesado), com o status de liberação calculado.
 export type MaterialListItem = Omit<Material, 'fileDataUrl'> & {
   released: boolean
-  releaseDate: string | null
+  releaseAt: string | null // instante (ISO) em que o material libera
 }
 
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
 const MAX_FILE_DATA_URL_LENGTH = 16_000_000
 
+// Quanto antes do início da aula o material já fica disponível pra download.
+const RELEASE_LEAD_MS = 15 * 60 * 1000
+
+// América/São_Paulo é UTC-3 o ano todo (sem horário de verão desde 2019).
+const BRASILIA_UTC_OFFSET_MS = 3 * 60 * 60 * 1000
 
 function materialsStore() {
   return getStore({ name: 'student-materials', consistency: 'strong' })
@@ -39,28 +52,32 @@ async function requireAdmin() {
   return user
 }
 
-// Data (YYYY-MM-DD) em que o material libera: um dia antes da data da aula.
-// Sem data da aula definida, o material já nasce liberado.
-function releaseDateFor(classDate: string | null): string | null {
+// Instante (epoch ms) em que o material libera: 15 minutos antes do início da aula,
+// considerando data+horário informados no horário de Brasília. Sem data da aula
+// definida, o material já nasce liberado (retorna null).
+export function releaseInstantMs(classDate: string | null, classTime: string | null): number | null {
   if (!classDate) return null
-  const date = new Date(`${classDate}T00:00:00`)
-  date.setDate(date.getDate() - 1)
-  return date.toISOString().slice(0, 10)
+  const [year, month, day] = classDate.split('-').map(Number)
+  const [hour, minute] = (classTime || '00:00').split(':').map(Number)
+  const classStartUtcMs = Date.UTC(year, month - 1, day, hour, minute) + BRASILIA_UTC_OFFSET_MS
+  return classStartUtcMs - RELEASE_LEAD_MS
 }
 
-function todayDateString(): string {
-  return new Date().toISOString().slice(0, 10)
+function isReleased(material: Pick<Material, 'classDate' | 'classTime'>): boolean {
+  const releaseAt = releaseInstantMs(material.classDate, material.classTime)
+  if (releaseAt === null) return true
+  return Date.now() >= releaseAt
 }
 
-function isReleased(material: Material): boolean {
-  const releaseDate = releaseDateFor(material.classDate)
-  if (!releaseDate) return true
-  return todayDateString() >= releaseDate
+// Materiais salvos antes da categoria existir não têm o campo no blob — trata como 'geral'.
+type StoredMaterial = Omit<Material, 'category'> & { category?: MaterialCategory }
+function normalizeMaterial(stored: StoredMaterial): Material {
+  return { ...stored, category: stored.category ?? 'geral' }
 }
 
 // Lista visível para qualquer aluno logado (aprovado ou admin) — usada no dashboard.
 // Admin vê todos os materiais (mesmo os que ainda não liberaram, pra gerenciar).
-// Aluno só vê os materiais sem data de aula, ou os que já liberaram (1 dia antes da aula).
+// Aluno só vê os materiais sem data de aula, ou os que já liberaram (15min antes da aula).
 export const listMaterials = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -74,7 +91,7 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    if (value) materials.push(value as Material)
+    if (value) materials.push(normalizeMaterial(value as StoredMaterial))
   }
 
   materials.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -83,11 +100,14 @@ export const listMaterials = createServerFn({ method: 'GET' }).handler(async () 
 
   // Não manda o arquivo inteiro na listagem (pesado) — só os metadados,
   // com o status de liberação calculado pra exibir na tela.
-  return visible.map(({ fileDataUrl: _omit, ...meta }) => ({
-    ...meta,
-    released: isReleased(meta as Material),
-    releaseDate: releaseDateFor(meta.classDate),
-  }))
+  return visible.map(({ fileDataUrl: _omit, ...meta }) => {
+    const releaseAt = releaseInstantMs(meta.classDate, meta.classTime)
+    return {
+      ...meta,
+      released: isReleased(meta),
+      releaseAt: releaseAt === null ? null : new Date(releaseAt).toISOString(),
+    }
+  })
 })
 
 // Busca o arquivo de um material específico (só quando o aluno clica em baixar).
@@ -102,17 +122,26 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     const store = materialsStore()
     const material = await store.get(data.id, { type: 'json' })
     if (!material) throw new Error('Material não encontrado.')
-    const materialData = material as Material
+    const materialData = normalizeMaterial(material as StoredMaterial)
 
     if (!userHasRole(user, 'admin') && !isReleased(materialData)) {
       throw new Error('Este material ainda não foi liberado.')
     }
 
     const { fileName, fileDataUrl } = materialData
+
+    // Folha de redação é um modelo em branco, não conteúdo protegido/corrigido —
+    // não leva a marca d'água de nome+CPF que os demais materiais recebem.
+    if (materialData.category === 'folha_redacao') {
+      return { fileName, fileDataUrl }
+    }
+
     const { name, cpf } = getStudentIdentity(user)
     const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
     return { fileName, fileDataUrl: watermarked }
   })
+
+const MATERIAL_CATEGORIES: MaterialCategory[] = ['geral', 'folha_redacao']
 
 export const addMaterial = createServerFn({ method: 'POST' })
   .validator(
@@ -124,6 +153,8 @@ export const addMaterial = createServerFn({ method: 'POST' })
       fileName: fileNameSchema,
       fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
       classDate: z.union([isoDate, z.literal('')]).optional(),
+      classTime: z.union([hhmm, z.literal('')]).optional(),
+      category: z.string().trim().max(30).optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -135,6 +166,12 @@ export const addMaterial = createServerFn({ method: 'POST' })
       allowed: ['pdf', 'docx'],
       maxDecodedBytes: 12 * 1024 * 1024,
     })
+
+    const classTime = data.classTime?.trim() || ''
+
+    const category = MATERIAL_CATEGORIES.includes(data.category as MaterialCategory)
+      ? (data.category as MaterialCategory)
+      : 'geral'
 
     const store = materialsStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -148,9 +185,20 @@ export const addMaterial = createServerFn({ method: 'POST' })
       fileDataUrl: data.fileDataUrl,
       createdAt: new Date().toISOString(),
       classDate: data.classDate?.trim() || null,
+      classTime: classTime || null,
+      category,
     }
 
     await store.setJSON(id, material)
+
+    // Só avisa por e-mail se o material já nasce liberado (sem trava de aula
+    // futura) — material agendado pra liberar depois não deve gerar aviso
+    // agora, só quando de fato ficar disponível (o sino segue essa mesma
+    // regra, via getRecentContentNotifications).
+    if (isReleased(material)) {
+      await notificarNovoMaterial({ titulo: material.title, descricao: material.description })
+    }
+
     const { fileDataUrl: _omit, ...meta } = material
     return meta
   })

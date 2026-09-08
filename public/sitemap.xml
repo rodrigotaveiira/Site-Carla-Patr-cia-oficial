@@ -4,4 +4,16 @@
     <loc>https://carlapatriciamedina.com/</loc>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://carlapatriciamedina.com/termos</loc>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://carlapatriciamedina.com/privacidade</loc>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://carlapatriciamedina.com/lgpd</loc>
+    <priority>0.2</priority>
+  </url>
 </urlset>

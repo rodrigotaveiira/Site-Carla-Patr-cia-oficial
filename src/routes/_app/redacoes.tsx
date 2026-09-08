@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getRedacaoFile, listMyRedacoes, submitRedacao, submitRedacaoPresencial, type RedacaoSubmission } from '@/lib/redacoes'
 import { listTemas, type TemaRedacao } from '@/lib/temas-redacao'
+import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -106,10 +107,7 @@ function RedacoesPage() {
     setDownloadingId(id)
     try {
       const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } finally {
       setDownloadingId(null)
     }
@@ -119,10 +117,7 @@ function RedacoesPage() {
     setDownloadingCorrectionId(id)
     try {
       const { fileName, fileDataUrl } = await getRedacaoFile({ data: { id, kind: 'correction' } })
-      const link = document.createElement('a')
-      link.download = fileName
-      link.href = fileDataUrl
-      link.click()
+      downloadDataUrl(fileName, fileDataUrl)
     } finally {
       setDownloadingCorrectionId(null)
     }

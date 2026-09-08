@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as AprovadosAdminRouteImport } from './routes/aprovados-admin'
 import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin'
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
@@ -63,6 +64,11 @@ const AdminRoute = AdminRouteImport.update({
 const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
   id: '/aguardando-aprovacao',
   path: '/aguardando-aprovacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AprovadosAdminRoute = AprovadosAdminRouteImport.update({
+  id: '/aprovados-admin',
+  path: '/aprovados-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AulaAoVivoAdminRoute = AulaAoVivoAdminRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -306,6 +314,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/admin': typeof AdminRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/aprovados-admin': typeof AprovadosAdminRoute
   '/aula-ao-vivo-admin': typeof AulaAoVivoAdminRoute
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -420,6 +431,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/aprovados-admin'
     | '/aula-ao-vivo-admin'
     | '/aulas-admin'
     | '/calendario-admin'
@@ -459,6 +471,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AdminRoute: typeof AdminRoute
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AprovadosAdminRoute: typeof AprovadosAdminRoute
   AulaAoVivoAdminRoute: typeof AulaAoVivoAdminRoute
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
@@ -510,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/aguardando-aprovacao'
       fullPath: '/aguardando-aprovacao'
       preLoaderRoute: typeof AguardandoAprovacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aprovados-admin': {
+      id: '/aprovados-admin'
+      path: '/aprovados-admin'
+      fullPath: '/aprovados-admin'
+      preLoaderRoute: typeof AprovadosAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/aula-ao-vivo-admin': {
@@ -774,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AdminRoute: AdminRoute,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AprovadosAdminRoute: AprovadosAdminRoute,
   AulaAoVivoAdminRoute: AulaAoVivoAdminRoute,
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,

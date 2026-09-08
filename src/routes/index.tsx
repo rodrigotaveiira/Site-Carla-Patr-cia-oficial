@@ -26,10 +26,23 @@ import {
 } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
+import { listAprovados } from '@/lib/aprovados'
+
+// Quantos aprovados aparecem na home — o cadastro pode crescer bem além disso
+// (é 300+ desde sempre), mas a home é uma amostra, não o catálogo completo:
+// evita que a página fique cada vez mais pesada (fotos em base64) conforme a
+// professora cadastra mais alunos. A lista completa de verdade só existe
+// mesmo no /aprovados-admin, pra gerenciar.
+const MAX_APROVADOS_HOME = 12
 
 // O SEO da home mora aqui, não no __root: canonical, og:url, título e descrição
 // são desta página. No root eles vazavam pra toda rota, e as páginas legais
 // acabavam se declarando duplicatas da home e herdando o título dela.
+//
+// A Galeria dos Aprovados busca no loader (SSR), não em useEffect: é conteúdo
+// público de prova social — precisa estar no HTML inicial pra aparecer pra
+// quem visita sem JS e pra ser indexado, e pra não re-fluir o menu/a página
+// depois que o React já hidratou.
 export const Route = createFileRoute('/')({
   head: pageHead({
     path: '/',
@@ -38,6 +51,16 @@ export const Route = createFileRoute('/')({
       'Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.',
     robots: 'index, follow',
   }),
+  loader: async () => {
+    // Se a busca falhar, a home inteira não pode cair por causa de uma seção
+    // — mas a falha fica registrada no log do servidor, não desaparece.
+    try {
+      return { aprovados: (await listAprovados()).slice(0, MAX_APROVADOS_HOME) }
+    } catch (error) {
+      console.error('Não foi possível carregar a Galeria dos Aprovados na home:', error)
+      return { aprovados: [] }
+    }
+  },
   component: HomePage,
 })
 
@@ -46,6 +69,18 @@ const reveal = {
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: '-80px' },
   transition: { duration: 0.65 },
+}
+
+// Deriva o href de âncora do menu a partir do rótulo visível. Tira acento de
+// verdade (normalize + remover marcas diacríticas) — só tirar "ç" deixava
+// "Início" virar "#início" (com acento), que não bate com id="inicio".
+function slugify(label: string) {
+  return label
+    .toLowerCase()
+    .normalize('NFD')
+    // U+0300–U+036F: marcas diacríticas combinantes que o NFD separa da letra
+    // base (ex.: "í" vira "i" + acento) — removê-las deixa só a letra.
+    .replace(/[̀-ͯ]/g, '')
 }
 
 const methods = [
@@ -74,7 +109,7 @@ const courses = [
   },
   {
     tag: 'Experiência VIP',
-    title: 'Mentoria individual',
+    title: 'Mentorias individuais',
     text: 'Plano de estudos personalizado, encontros exclusivos e acompanhamento da redação.',
     image: 'https://images.unsplash.com/photo-1529390079861-591de354faf5?auto=format&fit=crop&w=1000&q=85',
     items: ['Plano sob medida', 'Contato direto', 'Metas personalizadas'],
@@ -117,6 +152,9 @@ function HomePage() {
   const [activeFaq, setActiveFaq] = useState(0)
   const [testimonial, setTestimonial] = useState(0)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
+  // Some da home enquanto não houver nenhum aprovado cadastrado, em vez de
+  // mostrar uma galeria vazia pra quem visita. Vem pronto do loader (SSR).
+  const { aprovados } = Route.useLoaderData()
 
   const submitContact = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -147,12 +185,16 @@ function HomePage() {
 
       <header className="nav-wrap">
         <a className="brand" href="#inicio" aria-label="Carla Patrícia Medina — início">
-          <span className="brand-mark"><img src="https://i.im.ge/QM8BQuT/carla-t300.webp" alt="Carla" /></span>
+          <span className="brand-mark"><img src="/logo-icone.png" alt="Carla" /></span>
           <span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span>
         </a>
         <nav className={menuOpen ? 'nav-links open' : 'nav-links'} aria-label="Navegação principal">
-          {['Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados', 'FAQ', 'Contato'].map((item) => (
-            <a key={item} href={`#${item.toLowerCase().replace('ç', 'c')}`} onClick={() => setMenuOpen(false)}>{item}</a>
+          {[
+            'Início', 'Sobre', 'Metodologia', 'Cursos', 'Resultados',
+            ...(aprovados.length > 0 ? ['Aprovados'] : []),
+            'FAQ', 'Contato',
+          ].map((item) => (
+            <a key={item} href={`#${slugify(item)}`} onClick={() => setMenuOpen(false)}>{item}</a>
           ))}
           <Link className="nav-student mobile-only" to="/login">Área do aluno</Link>
         </nav>
@@ -271,6 +313,42 @@ function HomePage() {
         </div>
       </section>
 
+      {aprovados.length > 0 && (
+        <section className="section aprovados-section" id="aprovados">
+          <motion.div className="section-heading centered" {...reveal}>
+            <div className="section-kicker">Prova, não promessa</div>
+            <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
+            <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
+          </motion.div>
+          <div className="aprovados-grid">
+            {aprovados.map((item) => (
+              <article className="aprovado-card" key={item.id}>
+                <div className="aprovado-photo">
+                  <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
+                  {item.year && <span className="aprovado-year">{item.year}</span>}
+                  <div className="aprovado-name-overlay">
+                    <h3 title={item.name}>{item.name}</h3>
+                    <span title={item.university}>{item.university}</span>
+                  </div>
+                </div>
+                <div className="aprovado-body">
+                  {item.course && (
+                    <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
+                  )}
+                  {item.quote && (
+                    <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+          <motion.div className="aprovados-cta" {...reveal}>
+            <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
+            <a className="button" href="/login?mode=signup">Quero começar <ArrowRight size={18} /></a>
+          </motion.div>
+        </section>
+      )}
+
       <section className="testimonials section-full">
         <div className="section-heading centered"><div className="section-kicker">Histórias reais</div><h2>Quem viveu a transformação <em>conta melhor.</em></h2></div>
         <div className="testimonial-wrap">
@@ -311,13 +389,17 @@ function HomePage() {
       <section className="contact section-full" id="contato">
         <div className="contact-card">
           <div className="contact-copy"><div className="section-kicker">Vamos conversar?</div><h2>O próximo capítulo da sua história pode começar <em>agora.</em></h2><p>Conte seus objetivos. Nossa equipe ajuda você a escolher o melhor caminho.</p>
-            <div className="contact-channels"><a href="https://wa.me/5522999325306"><MessageCircle /> WhatsApp</a><a href="mailto:contato@carlapatriciamedina.com.br"><Mail /> E-mail</a><a href="https://instagram.com/carlapatricia.medina"><Instagram /> Instagram</a></div>
+            <div className="contact-channels"><a href="https://wa.me/5522999325306"><MessageCircle /> WhatsApp</a><a href="mailto:contato.carlapatriciamedina@gmail.com"><Mail /> E-mail</a><a href="https://instagram.com/carlapatricia.medina"><Instagram /> Instagram</a></div>
           </div>
           <form className="contact-form" name="contato" onSubmit={submitContact}>
             <input type="hidden" name="form-name" value="contato" /><input className="hidden-field" name="bot-field" tabIndex={-1} autoComplete="off" />
             <label>Seu nome<input name="nome" placeholder="Como podemos chamar você?" required /></label>
             <div className="form-row"><label>E-mail<input type="email" name="email" placeholder="voce@email.com" required /></label><label>WhatsApp<input name="telefone" placeholder="(00) 00000-0000" /></label></div>
             <label>Como podemos ajudar?<textarea name="mensagem" placeholder="Conte um pouco sobre seu objetivo..." rows={4} required /></label>
+            <label className="terms-check">
+              <input type="checkbox" name="aceite" value="sim" required />
+              <span>Li e concordo com os <a href="/termos">Termos de Uso</a> e a <a href="/privacidade">Política de Privacidade</a>.</span>
+            </label>
             <button className="button" disabled={formState === 'sending'}>{formState === 'sending' ? 'Enviando...' : 'Enviar mensagem'} <Send size={17} /></button>
             {formState === 'success' && <p className="form-message success">Mensagem enviada. Em breve entraremos em contato!</p>}
             {formState === 'error' && <p className="form-message error">Não foi possível enviar. Tente novamente.</p>}
@@ -326,10 +408,10 @@ function HomePage() {
       </section>
 
       <footer>
-        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato@carlapatriciamedina.com.br" aria-label="E-mail"><Mail /></a></div></div>
-          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a></div>
+        <div className="footer-main"><div className="footer-brand"><a className="brand" href="#inicio"><span className="brand-mark">CP</span><span><b>Carla Patrícia Medina</b><small>Redação e Gramática</small></span></a><p>Sua aprovação começa por uma redação de excelência.</p><div className="socials"><a href="https://instagram.com/carlapatricia.medina" aria-label="Instagram"><Instagram /></a><a href="https://wa.me/5522999325306" aria-label="WhatsApp"><MessageCircle /></a><a href="mailto:contato.carlapatriciamedina@gmail.com" aria-label="E-mail"><Mail /></a></div></div>
+          <div><b>Navegue</b><a href="#sobre">Sobre</a><a href="#metodologia">Metodologia</a><a href="#cursos">Cursos</a><a href="#resultados">Resultados</a>{aprovados.length > 0 && <a href="#aprovados">Aprovados</a>}</div>
           <div><b>Conteúdo</b><a href="#faq">FAQ</a><a href="#contato">Contato</a><Link to="/dashboard">Área do aluno</Link><Link to="/login">Entrar</Link></div>
-          <div><b>Fale conosco</b><span>contato@carla<br />patriciamedina.com.br</span><span>Seg–Sex · 9h às 18h</span></div>
+          <div><b>Fale conosco</b><span>contato.carlapatriciamedina@gmail.com</span><span>Seg–Sex · 9h às 18h</span></div>
         </div>
         <div className="footer-bottom"><span>© 2026 Carla Patrícia Medina. Todos os direitos reservados.</span><div><a href="/privacidade">Privacidade</a><a href="/termos">Termos de uso</a><a href="/lgpd">LGPD</a></div></div>
       </footer>

@@ -1,10 +1,10 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { MessageCircleHeart } from 'lucide-react'
+import { MessageCircleHeart, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
-import { listAllRecados, markRecadoRead, type Recado } from '@/lib/recados'
+import { listAllRecados, markRecadoRead, replyRecado, type Recado } from '@/lib/recados'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/recados-admin')({
@@ -21,6 +21,101 @@ export const Route = createFileRoute('/recados-admin')({
   },
   component: RecadosAdminPage,
 })
+
+function RecadoCard({ recado, onMarkRead, markingId, onReplied }: {
+  recado: Recado
+  onMarkRead: (id: string) => void
+  markingId: string | null
+  onReplied: (updated: Recado) => void
+}) {
+  const showToast = useToast()
+  const [replyText, setReplyText] = useState('')
+  const [editingReply, setEditingReply] = useState(false)
+  const [sendingReply, setSendingReply] = useState(false)
+  const [replyError, setReplyError] = useState('')
+
+  async function handleSendReply() {
+    if (!replyText.trim()) { setReplyError('Escreva uma resposta antes de enviar.'); return }
+    setReplyError('')
+    setSendingReply(true)
+    try {
+      const updated = await replyRecado({ data: { id: recado.id, reply: replyText } })
+      onReplied(updated)
+      setEditingReply(false)
+      setReplyText('')
+      showToast('Resposta enviada.')
+    } catch (err) {
+      setReplyError(err instanceof Error ? err.message : 'Não foi possível enviar a resposta.')
+    } finally {
+      setSendingReply(false)
+    }
+  }
+
+  return (
+    <div
+      className="panel-card plain"
+      style={{
+        marginTop: 0,
+        background: recado.read ? '#fff' : 'var(--lilac-tint)',
+        borderColor: recado.read ? 'var(--line)' : '#c9befd',
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
+        <div>
+          <b style={{ color: 'var(--navy)' }}>{recado.studentName}</b>
+          <div className="list-meta">
+            {recado.studentEmail} · {new Date(recado.createdAt).toLocaleDateString('pt-BR')} às {new Date(recado.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+        </div>
+        {!recado.read && (
+          <button onClick={() => onMarkRead(recado.id)} disabled={markingId === recado.id} className="btn btn-ghost btn-sm">
+            {markingId === recado.id ? '...' : 'Marcar como lido'}
+          </button>
+        )}
+      </div>
+      <p style={{ margin: '12px 0 0', color: '#374151', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{recado.message}</p>
+
+      {recado.reply && !editingReply ? (
+        <div style={{ marginTop: 12, background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <b style={{ fontSize: 12, color: 'var(--purple)' }}>Sua resposta</b>
+            <span style={{ fontSize: 11, color: '#9ca3af' }}>
+              {recado.repliedAt && `${new Date(recado.repliedAt).toLocaleDateString('pt-BR')} às ${new Date(recado.repliedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+            </span>
+          </div>
+          <p style={{ margin: '8px 0 0', color: '#374151', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{recado.reply}</p>
+          <button
+            type="button"
+            onClick={() => { setReplyText(recado.reply ?? ''); setEditingReply(true) }}
+            style={{ marginTop: 8, color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 12, padding: 0 }}
+          >
+            Editar resposta
+          </button>
+        </div>
+      ) : (
+        <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
+          <textarea
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            placeholder="Responder para o aluno..."
+            rows={3}
+          />
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button onClick={handleSendReply} disabled={sendingReply} className="btn btn-primary btn-sm">
+              <Send size={13} /> {sendingReply ? 'Enviando...' : 'Responder'}
+            </button>
+            {editingReply && (
+              <button type="button" onClick={() => { setEditingReply(false); setReplyText('') }} className="btn btn-ghost btn-sm">
+                Cancelar
+              </button>
+            )}
+          </div>
+          {replyError && <p className="form-error" style={{ margin: 0 }}>{replyError}</p>}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function RecadosAdminPage() {
   const showToast = useToast()
@@ -71,30 +166,13 @@ function RecadosAdminPage() {
 
       <div style={{ display: 'grid', gap: 10, marginTop: 20 }}>
         {recados.map((recado) => (
-          <div
+          <RecadoCard
             key={recado.id}
-            className="panel-card plain"
-            style={{
-              marginTop: 0,
-              background: recado.read ? '#fff' : 'var(--lilac-tint)',
-              borderColor: recado.read ? 'var(--line)' : '#c9befd',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 10 }}>
-              <div>
-                <b style={{ color: 'var(--navy)' }}>{recado.studentName}</b>
-                <div className="list-meta">
-                  {recado.studentEmail} · {new Date(recado.createdAt).toLocaleDateString('pt-BR')} às {new Date(recado.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                </div>
-              </div>
-              {!recado.read && (
-                <button onClick={() => handleMarkRead(recado.id)} disabled={markingId === recado.id} className="btn btn-ghost btn-sm">
-                  {markingId === recado.id ? '...' : 'Marcar como lido'}
-                </button>
-              )}
-            </div>
-            <p style={{ margin: '12px 0 0', color: '#374151', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{recado.message}</p>
-          </div>
+            recado={recado}
+            markingId={markingId}
+            onMarkRead={handleMarkRead}
+            onReplied={(updated) => setRecados((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))}
+          />
         ))}
         {!loading && !error && recados.length === 0 && <p className="empty-state">Nenhum recado ainda.</p>}
       </div>

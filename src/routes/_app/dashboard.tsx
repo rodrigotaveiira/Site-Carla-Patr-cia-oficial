@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, CheckCircle2, ChevronRight, CircleHelp, CirclePlay,
-  Clock3, Download, FileCheck2, Files, Library, LogOut,
+  Clock3, Download, FileCheck2, Files, Library, LogOut, MessageCircleHeart,
   MoreHorizontal, PenLine, Search, Target, Trophy, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -22,6 +22,7 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
+import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
@@ -65,10 +66,7 @@ export const Route = createFileRoute('/_app/dashboard')({
 
 async function downloadMaterial(id: string) {
   const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-  const link = document.createElement('a')
-  link.download = fileName
-  link.href = fileDataUrl
-  link.click()
+  downloadDataUrl(fileName, fileDataUrl)
 }
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'
@@ -314,15 +312,44 @@ function DashboardPage() {
   const [monthly, setMonthly] = useState<MonthlyActivity | null>(null)
   const [monthOpen, setMonthOpen] = useState(false)
   const [monthLoading, setMonthLoading] = useState(false)
+  const [monthNavigating, setMonthNavigating] = useState(false)
+  // Guarda os meses já buscados (chave "ano-mês") pra ir e voltar entre eles
+  // sem precisar recarregar do servidor toda vez.
+  const monthCacheRef = useRef<Map<string, MonthlyActivity>>(new Map())
 
   function openMonthReview() {
     setMonthOpen(true)
     if (monthly) return
     setMonthLoading(true)
-    getMonthlyActivity()
-      .then((result) => { if (result) setMonthly(result) })
+    getMonthlyActivity({ data: {} })
+      .then((result) => {
+        if (!result) return
+        monthCacheRef.current.set(`${result.year}-${result.month}`, result)
+        setMonthly(result)
+      })
       .catch(() => { /* sem conexão com o servidor, o modal mostra um aviso */ })
       .finally(() => setMonthLoading(false))
+  }
+
+  function navigateMonth(direction: -1 | 1) {
+    if (!monthly) return
+    // Desliza o mês atual em até 11 posições pra frente/trás, sem se preocupar
+    // com o range de dias de cada mês — Date normaliza sozinho.
+    const shifted = new Date(monthly.year, monthly.month - 1 + direction, 1)
+    const key = `${shifted.getFullYear()}-${shifted.getMonth() + 1}`
+
+    const cached = monthCacheRef.current.get(key)
+    if (cached) { setMonthly(cached); return }
+
+    setMonthNavigating(true)
+    getMonthlyActivity({ data: { year: shifted.getFullYear(), month: shifted.getMonth() + 1 } })
+      .then((result) => {
+        if (!result) return
+        monthCacheRef.current.set(`${result.year}-${result.month}`, result)
+        setMonthly(result)
+      })
+      .catch(() => { /* sem conexão com o servidor, mantém o mês que já estava exibido */ })
+      .finally(() => setMonthNavigating(false))
   }
 
   // Ao abrir o dashboard, só exibe a meta semanal já salva — ainda não marca o dia de hoje.
@@ -445,7 +472,9 @@ function DashboardPage() {
   return (
     <>
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
-      {monthOpen && monthly && <MonthReviewModal monthly={monthly} onClose={() => setMonthOpen(false)} />}
+      {monthOpen && monthly && (
+        <MonthReviewModal monthly={monthly} onClose={() => setMonthOpen(false)} onNavigate={navigateMonth} navigating={monthNavigating} />
+      )}
       {monthOpen && !monthly && monthLoading && (
         <div className="onboarding-overlay" role="dialog" aria-modal="true" onClick={() => setMonthOpen(false)}>
           <div className="month-review-modal month-review-loading" onClick={(event) => event.stopPropagation()}>
@@ -666,6 +695,12 @@ function DashboardPage() {
               <Link to="/redacoes">{latestCorrection ? 'Ver correção detalhada' : 'Enviar redação'} <ChevronRight /></Link>
             </section>
           )}
+
+          <section className="dashboard-card message-card">
+            <div className="card-title"><div><span>Fale com a professora</span><h3>Mensagem para Carlinha</h3></div></div>
+            <p>Uma dúvida, um pedido, um "oi" — sua mensagem chega direto para a Carlinha.</p>
+            <Link to="/perfil">Mandar mensagem <MessageCircleHeart size={14} /></Link>
+          </section>
         </div>
       </div>
     </>

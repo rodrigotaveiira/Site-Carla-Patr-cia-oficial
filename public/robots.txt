@@ -18,6 +18,7 @@ Disallow: /calendario
 # Painel administrativo e area do professor
 Disallow: /admin
 Disallow: /professor
+Disallow: /aprovados-admin
 Disallow: /aulas-admin
 Disallow: /aula-ao-vivo-admin
 Disallow: /calendario-admin

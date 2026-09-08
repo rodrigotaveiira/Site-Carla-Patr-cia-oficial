@@ -39,10 +39,16 @@ type WatermarkItem = {
 // outra. Alguns ícones se repetem (em tamanho/posição diferentes) já que
 // só temos estes 7 pra montar 10–14 elementos no desktop.
 const ITEMS: WatermarkItem[] = [
-  // --- tier A: os poucos elementos que sobrevivem até o celular (3–5) ---
-  { icon: 'sparkles', width: 42, height: 47, top: '7%', left: '20%', opacity: 0.06, tier: 'A' },
-  { icon: 'book', width: 200, height: 123, top: '-9%', left: '-6%', rotate: -5, opacity: 0.08, tier: 'A' },
-  { icon: 'spiralNotebook', width: 150, height: 213, top: '30%', left: '-4%', opacity: 0.07, tier: 'A' },
+  // --- tier A: os elementos que sobrevivem até o celular. No celular a
+  // margem em volta dos cards é bem estreita, então esses ficam um pouco
+  // mais fortes (opacidade maior) e espalhados do topo ao rodapé da página
+  // pra não sumirem atrás do conteúdo.
+  { icon: 'sparkles', width: 42, height: 47, top: '7%', left: '20%', opacity: 0.1, tier: 'A' },
+  { icon: 'book', width: 200, height: 123, top: '-9%', left: '-6%', rotate: -5, opacity: 0.12, tier: 'A' },
+  { icon: 'spiralNotebook', width: 150, height: 213, top: '30%', left: '-4%', opacity: 0.11, tier: 'A' },
+  { icon: 'pen', width: 90, height: 109, top: '1%', right: '-5%', rotate: 18, opacity: 0.1, tier: 'A' },
+  { icon: 'cap', width: 100, height: 86, bottom: '3%', right: '-4%', rotate: -4, opacity: 0.11, tier: 'A' },
+  { icon: 'sparkles', width: 28, height: 31, bottom: '18%', left: '8%', opacity: 0.08, tier: 'A' },
 
   // --- tier B: entram a partir do tablet (total 7–9) ---
   { icon: 'pen', width: 150, height: 182, top: '18%', right: '-6%', rotate: 22, opacity: 0.08, tier: 'B' },

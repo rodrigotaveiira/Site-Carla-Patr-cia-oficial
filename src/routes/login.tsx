@@ -9,7 +9,13 @@ export const Route = createFileRoute('/login')({ head: noindexHead, component: L
 
 function LoginPage() {
   const navigate = useNavigate()
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  // ?mode=signup abre direto na aba de cadastro — usado pelo CTA "Quero começar"
+  // da Galeria dos Aprovados na home, que deve levar direto pro cadastro.
+  const [mode, setMode] = useState<'login' | 'signup'>(() =>
+    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('mode') === 'signup')
+      ? 'signup'
+      : 'login',
+  )
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(() =>
@@ -117,11 +123,17 @@ function LoginPage() {
             )}
             <label>E-mail<div className="input-icon"><Mail /><input type="email" name="email" placeholder="voce@email.com" required /></div></label>
             <label>Senha<div className="input-icon"><LockKeyhole /><input type={showPassword ? 'text' : 'password'} name="password" placeholder="Mínimo de 6 caracteres" minLength={6} required /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label="Mostrar senha">{showPassword ? <EyeOff /> : <Eye />}</button></div></label>
+            {mode === 'signup' && (
+              <label className="terms-check">
+                <input type="checkbox" name="acceptTerms" required />
+                <span>Li e concordo com os <Link to="/termos">Termos de Uso</Link> e a <Link to="/privacidade">Política de Privacidade</Link>.</span>
+              </label>
+            )}
             {mode === 'login' && <div className="login-options"><label><input type="checkbox" /> Lembrar de mim</label><button type="button">Esqueci minha senha</button></div>}
             {error && <p className="form-message error">{error}</p>}{notice && <p className="form-message success">{notice}</p>}
             <button className="button login-submit" disabled={loading}>{loading ? 'Aguarde...' : mode === 'login' ? 'Entrar na plataforma' : 'Criar minha conta'} <ArrowRight size={17} /></button>
           </form>
-          <div className="login-support">Precisa de ajuda? <a href="mailto:contato@carlapatriciamedina.com.br">Fale com o suporte</a></div>
+          <div className="login-support">Precisa de ajuda? <a href="mailto:contato.carlapatriciamedina@gmail.com">Fale com o suporte</a></div>
         </div>
       </section>
     </main>

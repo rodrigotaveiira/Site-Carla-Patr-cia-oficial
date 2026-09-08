@@ -3,6 +3,7 @@ import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { CONTENT_SECTIONS, type ContentSection } from './content-library'
+import { releaseInstantMs } from './materials'
 
 export type ContentNotification = {
   id: string
@@ -11,13 +12,6 @@ export type ContentNotification = {
 }
 
 const RECENT_WINDOW_DAYS = 7
-
-function releaseDateFor(classDate: string | null): string | null {
-  if (!classDate) return null
-  const date = new Date(`${classDate}T00:00:00`)
-  date.setDate(date.getDate() - 1)
-  return date.toISOString().slice(0, 10)
-}
 
 // Avisa o aluno sobre arquivos novos ou recém-liberados em qualquer seção
 // (Materiais, Biblioteca, Questões, Simulados, Repertórios, Dicas), dos últimos 7 dias.
@@ -32,17 +26,17 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
   const now = Date.now()
   const notifications: ContentNotification[] = []
 
-  // Materiais: usa a data de liberação (1 dia antes da aula) quando definida.
+  // Materiais: usa o instante de liberação (15min antes da aula) quando definido.
   const materialsStore = getStore({ name: 'student-materials', consistency: 'strong' })
   const { blobs: materialBlobs } = await materialsStore.list()
   for (const blob of materialBlobs) {
     const value = (await materialsStore.get(blob.key, { type: 'json' })) as
-      | { title: string; createdAt: string; classDate: string | null }
+      | { title: string; createdAt: string; classDate: string | null; classTime: string | null }
       | null
     if (!value) continue
 
-    const releaseDate = releaseDateFor(value.classDate)
-    const referenceDate = releaseDate ? new Date(`${releaseDate}T00:00:00`) : new Date(value.createdAt)
+    const releaseAt = releaseInstantMs(value.classDate, value.classTime)
+    const referenceDate = releaseAt !== null ? new Date(releaseAt) : new Date(value.createdAt)
     if (referenceDate.getTime() > now) continue // ainda não liberado — não avisa
 
     const daysAgo = (now - referenceDate.getTime()) / (1000 * 60 * 60 * 24)

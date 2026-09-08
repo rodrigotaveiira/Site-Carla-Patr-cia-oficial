@@ -245,6 +245,17 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .form-message.success { color: #166534; background: #dcfce7; }
 .form-message.error { color: #991b1b; background: #fee2e2; }
 
+/* Caixinha de aceite dos termos (cadastro e formulário de contato) — sobrescreve
+   o estilo padrão de <label> dos dois formulários (uppercase, grid), que não
+   funciona pra uma frase corrida com links. */
+.contact-form label.terms-check, .login-form label.terms-check {
+  display: flex; align-items: flex-start; gap: 9px;
+  color: #707987; font-size: 11px; font-weight: 400; line-height: 1.55; text-transform: none; letter-spacing: normal;
+}
+.terms-check input[type="checkbox"] { flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--purple); cursor: pointer; }
+.terms-check a { color: var(--purple); font-weight: 700; }
+.terms-check a:hover { text-decoration: underline; }
+
 footer { color: #d4dbea; background: var(--navy-dark); }
 .footer-main { max-width: 1240px; display: grid; grid-template-columns: 1.7fr repeat(3, 1fr); gap: 70px; margin: auto; padding: 70px 30px; }
 footer .brand b { color: white; }
@@ -400,7 +411,7 @@ footer .brand b { color: white; }
    porque agora a barra lateral persiste entre todas as páginas do aluno. */
 .mobile-nav-toggle { display: none; position: relative; z-index: 1; }
 .dashboard-search { position: relative; display: flex; align-items: center; gap: 10px; flex: 1 1 330px; min-width: 0; max-width: 330px; }
-.dashboard-search svg { width: 17px; color: #9ca3af; flex-shrink: 0; }
+.dashboard-search svg { width: 17px; color: var(--muted); flex-shrink: 0; }
 .dashboard-search input { width: 100%; border: 0; outline: 0; font-size: 15px; }
 
 .search-results { position: absolute; top: calc(100% + 10px); left: 0; width: 380px; max-width: calc(100vw - 68px); max-height: 420px; overflow-y: auto; padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 30px rgba(15, 35, 66, 0.12); z-index: 30; }
@@ -540,7 +551,7 @@ footer .brand b { color: white; }
    lido como uma frase de verdade acima do título, não uma legenda genérica. */
 .card-title span { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 .card-title h3 { margin: 4px 0 0; color: var(--navy); font-family: var(--serif); font-size: 17px; font-weight: 400; }
-.card-title button { color: #9ca3af; background: none; border: 0; border-radius: 50%; padding: 5px; cursor: pointer; transition: background .15s, color .15s; }
+.card-title button { color: var(--muted); background: none; border: 0; border-radius: 50%; padding: 5px; cursor: pointer; transition: background .15s, color .15s; }
 .card-title button:hover { color: var(--purple); background: var(--lilac-tint); }
 .card-title button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
 .card-title button svg { width: 17px; }
@@ -565,11 +576,11 @@ footer .brand b { color: white; }
 .next-class h4 { margin: 7px 0; color: var(--navy); font-family: var(--serif); font-size: 16px; font-weight: 400; }
 .next-class > p { display: flex; align-items: center; gap: 5px; color: #8e98a5; font-size: 12px; }
 .next-class > p svg { width: 12px; }
-.next-class > button, .correction-card > button, .next-class > a, .correction-card > a { width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 11px 14px; color: white; background: var(--purple); border: 0; border-radius: 8px; font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; transition: background .15s, transform .12s, box-shadow .15s; }
-.next-class > button:hover, .correction-card > button:hover, .next-class > a:hover, .correction-card > a:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(109,40,217,.24); }
-.next-class > button:active, .correction-card > button:active, .next-class > a:active, .correction-card > a:active { transform: translateY(0); }
-.next-class > button:focus-visible, .correction-card > button:focus-visible, .next-class > a:focus-visible, .correction-card > a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.28); }
-.next-class > button svg, .correction-card > button svg, .next-class > a svg, .correction-card > a svg { width: 12px; }
+.next-class > button, .correction-card > button, .message-card > a, .next-class > a, .correction-card > a { width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding: 11px 14px; color: white; background: var(--purple); border: 0; border-radius: 8px; font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; transition: background .15s, transform .12s, box-shadow .15s; }
+.next-class > button:hover, .correction-card > button:hover, .message-card > a:hover, .next-class > a:hover, .correction-card > a:hover { background: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 8px 18px rgba(109,40,217,.24); }
+.next-class > button:active, .correction-card > button:active, .message-card > a:active, .next-class > a:active, .correction-card > a:active { transform: translateY(0); }
+.next-class > button:focus-visible, .correction-card > button:focus-visible, .message-card > a:focus-visible, .next-class > a:focus-visible, .correction-card > a:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.28); }
+.next-class > button svg, .correction-card > button svg, .message-card > a svg, .next-class > a svg, .correction-card > a svg { width: 12px; }
 /* Troféu com peso/dimensão — único elemento fora do banner de conquista que ganha
    degradê, porque é um momento real de conquista (bater a meta semanal). */
 .trophy-chip {
@@ -590,7 +601,7 @@ footer .brand b { color: white; }
 .week-days i { width: 28px; height: 28px; display: grid; place-items: center; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 13px; font-style: normal; font-variant-numeric: tabular-nums; }
 .week-days span.done i { color: white; background: var(--purple); }
 .week-days span.today i { color: var(--purple); background: #f1e9fd; border: 1px solid var(--purple); }
-.week-days small { color: #a0a7b0; font-size: 12px; }
+.week-days small { color: var(--muted); font-size: 12px; }
 .weekly-goal > p { margin: 19px 0 0; padding-top: 14px; color: #7b8490; border-top: 1px solid #eff0f2; font-size: 13px; text-align: center; }
 .weekly-goal-success { margin: 19px 0 0; padding: 12px 14px 0; color: var(--purple); font-weight: 800; font-size: 14px; text-align: center; border-top: 1px solid #eff0f2; }
 .streak-badge { display: flex; align-items: center; gap: 4px; padding: 5px 10px; color: var(--purple-dark); background: #f1e9fd; border-radius: 20px; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -607,11 +618,16 @@ footer .brand b { color: white; }
 .month-review-close:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
 .month-review-header { padding: 28px 24px 20px; background: linear-gradient(135deg, var(--navy-dark), var(--purple)); color: #fff; text-align: center; }
 .month-review-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.4); }
-.month-review-header h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 20px; text-transform: capitalize; }
+.month-review-nav { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.month-review-nav h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 20px; text-transform: capitalize; }
+.month-review-nav button { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; color: #fff; background: rgba(255,255,255,.14); border: 0; border-radius: 50%; cursor: pointer; transition: background .15s, opacity .15s; }
+.month-review-nav button:hover:not(:disabled) { background: rgba(255,255,255,.24); }
+.month-review-nav button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.4); }
+.month-review-nav button:disabled { opacity: .3; cursor: default; }
 .month-review-header p { margin: 0; color: rgba(255,255,255,.85); font-size: 13px; font-variant-numeric: tabular-nums; }
-.month-review-body { padding: 22px 22px 26px; }
+.month-review-body { padding: 22px 22px 26px; transition: opacity .15s; }
 .month-review-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
-.month-review-weekdays span { text-align: center; color: #a0a7b0; font-size: 11px; font-weight: 700; }
+.month-review-weekdays span { text-align: center; color: var(--muted); font-size: 11px; font-weight: 700; }
 .month-review-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .month-review-grid span { display: grid; place-items: center; aspect-ratio: 1; color: #a5abb5; background: #f3f4f6; border-radius: 50%; font-size: 12px; font-variant-numeric: tabular-nums; }
 .month-review-grid span.done { color: #fff; background: var(--purple); font-weight: 700; }
@@ -646,14 +662,14 @@ footer .brand b { color: white; }
 .material-item button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.28); }
 .material-item button:disabled { opacity: .6; cursor: not-allowed; }
 .material-item button svg { width: 13px; }
-.correction-card > p { color: #7d8693; font-size: 13px; line-height: 1.6; }
+.correction-card > p, .message-card > p { color: #7d8693; font-size: 13px; line-height: 1.6; }
 .competencies { display: flex; align-items: flex-end; justify-content: space-around; gap: 6px; padding: 10px 8px 0; border-bottom: 1px solid #e8eaf0; }
 .competencies span { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .competencies .bar-track { width: 100%; max-width: 16px; height: 46px; display: flex; align-items: flex-end; justify-content: center; }
 .competencies i { width: 100%; min-height: 6px; background: var(--purple); border-radius: 3px 3px 0 0; }
 /* Duas linhas garantidas (min-height) pra caber o nome inteiro da competência sem cortar,
    e pra toda coluna ter a mesma altura (barras ficam alinhadas mesmo com nomes de tamanhos diferentes). */
-.competencies small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px; max-width: 100%; color: #9aa2ac; font-size: 10.5px; line-height: 1.3; text-align: center; word-break: break-word; }
+.competencies small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px; max-width: 100%; color: var(--muted); font-size: 10.5px; line-height: 1.3; text-align: center; word-break: break-word; }
 .competencies b { color: var(--navy); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 1100px) {
@@ -765,6 +781,10 @@ footer .brand b { color: white; }
   .welcome-row .outline-button { display: none; }
   .dashboard-hero-card { min-height: 310px; align-items: flex-start; padding: 28px 25px; }
   .dashboard-hero-card > div:first-child { max-width: none; }
+  /* O anel vira uma caixa de ~100px fixada no canto inferior direito do card.
+     O paragrafo, sem essa reserva, corria a largura toda e ficava por baixo
+     do anel quando quebrava linha ate ali embaixo. */
+  .dashboard-hero-card p { max-width: calc(100% - 110px); }
   .hero-ring-wrap { right: 25px; bottom: 22px; }
   .hero-ring { --ring-size: 100px; }
   .hero-ring-panel { width: min(240px, calc(100vw - 24px)); }
@@ -804,6 +824,7 @@ footer .brand b { color: white; }
   .faq-item p { font-size: 14px; }
   .contact-channels a { font-size: 14px; }
   .contact-form label, .login-form > label { font-size: 13px; }
+  .contact-form label.terms-check, .login-form label.terms-check { font-size: 13px; }
   .contact-form input, .contact-form textarea { font-size: 14px; }
   .form-message { font-size: 14px; }
   .footer-main > div > b { font-size: 14px; }
@@ -892,7 +913,7 @@ footer .brand b { color: white; }
 .panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
-.panel-meta-strip { margin: 10px 0 0; color: #9aa2ac; font-size: 12px; font-variant-numeric: tabular-nums; }
+.panel-meta-strip { margin: 10px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .panel-inline-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--purple); font-weight: 700; font-size: 13px; text-decoration: none; }
 .panel-inline-link:hover { color: var(--purple-dark); text-decoration: underline; }
 
@@ -923,7 +944,7 @@ footer .brand b { color: white; }
 .panel input:focus, .panel textarea:focus, .panel select:focus {
   outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,.14);
 }
-.panel input::placeholder, .panel textarea::placeholder { color: #9aa2ac; }
+.panel input::placeholder, .panel textarea::placeholder { color: var(--muted); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 11px 20px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; border: 0; text-decoration: none; white-space: nowrap; transition: transform .15s, box-shadow .15s, background .15s, border-color .15s; }
 .btn:active:not(:disabled) { transform: translateY(1px); }
@@ -968,9 +989,9 @@ footer .brand b { color: white; }
 .list-row:hover { box-shadow: 0 0 0 1px rgba(109,40,217,.09), 0 10px 22px -14px rgba(15,35,66,.24); }
 .list-row + .list-row { margin-top: 10px; }
 .list-title { color: var(--navy); font-weight: 700; font-size: 14px; }
-.list-meta { color: #9aa2ac; font-size: 12px; margin-top: 3px; }
+.list-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
 
-.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: #9ca3af; background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
 .icon-btn:hover:not(:disabled) { color: var(--purple); background: var(--lilac-tint); border-color: var(--purple); }
 .icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
 .icon-btn:disabled { opacity: .4; cursor: not-allowed; }
@@ -1034,7 +1055,7 @@ footer .brand b { color: white; }
 .toast-viewport { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; max-width: min(360px, calc(100vw - 40px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: #fff; border-radius: 10px; box-shadow: 0 12px 30px rgba(15,35,66,.16); font-size: 14px; color: var(--navy); animation: toast-in .25s ease; }
 .toast span { flex: 1; line-height: 1.4; }
-.toast button { flex-shrink: 0; display: flex; padding: 2px; background: none; border: 0; color: #9aa2ac; cursor: pointer; }
+.toast button { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; margin: -4px; background: none; border: 0; border-radius: 50%; color: var(--muted); cursor: pointer; }
 .toast button:hover { color: var(--navy); }
 .toast-success svg:first-child { color: #15803d; }
 .toast-error svg:first-child { color: #dc2626; }
@@ -1098,4 +1119,85 @@ footer .brand b { color: white; }
   .calendar-grid { gap: 4px; }
   .calendar-month { font-size: 17px; min-width: 150px; }
   .calendar-admin-form { grid-template-columns: 1fr; }
+}
+
+/* Galeria dos Aprovados — mural de conquistas: cada card é um retrato com o
+   nome/faculdade em legenda sobre a foto (estilo quadro de formatura), o
+   dourado reservado pro selo do ano (mesmo acento usado nas conquistas do
+   dashboard), curso e depoimento abaixo, sem cara de lista genérica. O scrim
+   e o text-shadow do nome são propositalmente fortes: a foto é enviada pela
+   professora e pode vir clara (parede branca, dia ensolarado) — a legenda
+   precisa continuar legível em cima de qualquer imagem, não só das de teste. */
+/* Fundo levemente tingido pra separar do branco puro dos Depoimentos logo
+   abaixo, e scroll-margin pra não ficar escondida atrás do header fixo
+   quando alguém chega direto pelo link do menu. */
+.aprovados-section { background: #fbfafc; scroll-margin-top: 82px; }
+.aprovados-section .section-heading > p { color: #667085; }
+.aprovados-section h2 { text-wrap: balance; }
+.aprovados-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 22px; margin-top: 24px; }
+.aprovado-card {
+  display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 14px 30px -22px rgba(15,35,66,.3);
+  transition: transform .25s ease, box-shadow .25s ease;
+  animation: aprovado-in .5s cubic-bezier(.16,1,.3,1) backwards;
+}
+/* Entrada escalonada só na primeira leva de cards visíveis — depois disso o
+   delay ficaria perceptível demais numa galeria grande, então trava em 10. */
+.aprovado-card:nth-child(1) { animation-delay: 0ms; }
+.aprovado-card:nth-child(2) { animation-delay: 60ms; }
+.aprovado-card:nth-child(3) { animation-delay: 120ms; }
+.aprovado-card:nth-child(4) { animation-delay: 180ms; }
+.aprovado-card:nth-child(5) { animation-delay: 240ms; }
+.aprovado-card:nth-child(6) { animation-delay: 300ms; }
+.aprovado-card:nth-child(7) { animation-delay: 360ms; }
+.aprovado-card:nth-child(8) { animation-delay: 420ms; }
+.aprovado-card:nth-child(9) { animation-delay: 480ms; }
+.aprovado-card:nth-child(n+10) { animation-delay: 540ms; }
+@keyframes aprovado-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .aprovado-card { animation: none; } }
+.aprovado-card:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px rgba(109,40,217,.16), 0 22px 40px -20px rgba(15,35,66,.36); }
+.aprovado-photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--lilac-tint); }
+.aprovado-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+.aprovado-card:hover .aprovado-photo img { transform: scale(1.05); }
+.aprovado-photo::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, transparent 38%, rgba(9,30,57,.55) 68%, rgba(9,30,57,.92) 100%);
+}
+.aprovado-year {
+  position: absolute; top: 12px; right: 12px; z-index: 2; padding: 4px 11px; color: #fff;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border-radius: 20px;
+  font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
+  box-shadow: 0 6px 14px rgba(109,40,217,.4);
+}
+.aprovado-name-overlay { position: absolute; left: 14px; right: 14px; bottom: 12px; z-index: 2; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.45), 0 1px 12px rgba(0,0,0,.25); }
+.aprovado-name-overlay h3 {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  margin: 0; font-family: var(--serif); font-weight: 400; font-size: 17px; line-height: 1.2;
+}
+.aprovado-name-overlay span { display: block; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.92); font-size: 12px; }
+.aprovado-body { padding: 13px 16px 17px; }
+.aprovado-course {
+  display: inline-flex; max-width: 100%; align-items: center; gap: 5px; overflow: hidden;
+  color: var(--purple); font-size: 11.5px; font-weight: 700;
+}
+.aprovado-course span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aprovado-course svg { flex-shrink: 0; }
+/* Sem borda quando o depoimento é o primeiro elemento do corpo do card (sem
+   curso acima) — senão sobra uma régua flutuando sem nada em cima dela. */
+.aprovado-quote {
+  display: flex; gap: 6px; margin: 0; color: #667085; font-family: var(--serif);
+  font-style: italic; font-size: 13px; line-height: 1.55;
+}
+.aprovado-course + .aprovado-quote { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.aprovado-quote span {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+}
+.aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
+
+.aprovados-cta { margin-top: 40px; text-align: center; }
+.aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
+
+@media (max-width: 480px) {
+  .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .aprovado-name-overlay h3 { font-size: 15px; }
 }
