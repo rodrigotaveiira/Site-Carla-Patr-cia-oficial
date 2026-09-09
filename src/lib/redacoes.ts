@@ -8,6 +8,7 @@ import { enforceRateLimit } from './rate-limit'
 import { validateUpload } from './upload-validation'
 import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
 import type { Competency } from './competencies'
+import { notificarNovaRedacao } from './notificar-redacao'
 
 export type CompetencyScore = Competency & { value: number }
 
@@ -88,6 +89,14 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       correctedFileDataUrl: null,
     }
     await store.setJSON(id, submission)
+
+    await notificarNovaRedacao({
+      nomeAluno: submission.studentName,
+      emailAluno: submission.studentEmail,
+      titulo: submission.title,
+      deliveryMethod: submission.deliveryMethod,
+    })
+
     const { fileDataUrl: _omit, ...meta } = submission
     return meta
   })
@@ -124,6 +133,14 @@ export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
       correctedFileDataUrl: null,
     }
     await store.setJSON(id, submission)
+
+    await notificarNovaRedacao({
+      nomeAluno: submission.studentName,
+      emailAluno: submission.studentEmail,
+      titulo: submission.title,
+      deliveryMethod: submission.deliveryMethod,
+    })
+
     const { fileDataUrl: _omit, ...meta } = submission
     return meta
   })
