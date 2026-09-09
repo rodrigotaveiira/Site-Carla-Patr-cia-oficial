@@ -371,6 +371,11 @@ footer .brand b { color: white; }
   overflow-x: hidden;
   background-color: var(--lilac-tint);
 }
+/* Sem altura própria — cresce com o conteúdo real (Outlet), diferente de
+   .student-main (que é travado em 100% da viewport pra poder rolar). É o
+   que dá ao fundo decorativo (position:absolute; inset:0 dentro daqui) uma
+   altura que acompanha a página inteira, não só a primeira tela. */
+.student-main-stack { position: relative; }
 
 /* Camada decorativa da Área do Aluno: as marcas d'água fornecidas (selo
    CPM, nome, caneta, livro, pilha, capelo, caderno, brilhos etc.)
