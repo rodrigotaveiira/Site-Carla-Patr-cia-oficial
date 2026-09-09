@@ -2,6 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { z } from 'zod'
 import { getServerUser } from './auth'
+import { enforceRateLimit } from './rate-limit'
 
 // Comprovação de autenticação recente pra marcar mentoria — no servidor.
 //
@@ -13,6 +14,12 @@ import { getServerUser } from './auth'
 // só vai pro endpoint de auth e é descartada — nada é armazenado.
 
 const RECENT_AUTH_TTL_MS = 5 * 60 * 1000
+
+// Limite curto e apertado de propósito: isto verifica senha de verdade contra
+// o Netlify Identity, então sem isso uma sessão comprometida (aparelho
+// compartilhado, etc.) poderia tentar adivinhar a senha real da conta sem
+// limite nenhum de tentativas.
+const CONFIRM_AUTH_RATE_LIMIT = { action: 'confirmar-senha', windowMs: 15 * 60 * 1000, max: 5 } as const
 
 function recentAuthStore() {
   return getStore({ name: 'recent-auth', consistency: 'strong' })
@@ -29,6 +36,7 @@ export const confirmSchedulingAuth = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user?.email) throw new Error('Você precisa estar logado.')
+    await enforceRateLimit(CONFIRM_AUTH_RATE_LIMIT, user.email)
 
     const url = identityTokenUrl()
     if (!url) {
