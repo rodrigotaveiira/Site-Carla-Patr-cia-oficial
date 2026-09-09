@@ -1,7 +1,7 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
   BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
-  LogOut, Menu, MessageCircleHeart, MessageSquareText, Settings, Target, TrendingUp, User, Users, X, Zap,
+  LogOut, Menu, MessageCircleHeart, MessageSquareText, ScrollText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -30,6 +30,7 @@ const sidebarGroups = [
       { icon: Library, label: 'Biblioteca', href: '/conteudo/biblioteca' },
       { icon: BookMarked, label: 'Repertórios', href: '/conteudo/repertorios' },
       { icon: Zap, label: 'Dicas', href: '/conteudo/dicas' },
+      { icon: ScrollText, label: 'Edital da prova', href: '/conteudo/edital' },
     ],
   },
   {

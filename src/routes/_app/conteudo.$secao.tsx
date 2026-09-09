@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { BookCheck, BookMarked, CircleHelp, Download, Library, Target, Zap, type LucideIcon } from 'lucide-react'
+import { BookCheck, BookMarked, CircleHelp, Download, Library, ScrollText, Target, Zap, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -74,6 +74,12 @@ const SECTION_META: Record<ContentSection, {
     description: 'Gabaritos comentados dos simulados, com a resolução completa de cada questão.',
     emptyTitle: 'Nenhum gabarito disponível ainda',
     emptyDescription: 'Assim que um simulado for corrigido, o gabarito aparece aqui.',
+  },
+  edital: {
+    icon: ScrollText,
+    description: 'O edital oficial da prova, com datas, regras de inscrição e conteúdo cobrado. Baixe e leia com atenção.',
+    emptyTitle: 'Nenhum edital publicado ainda',
+    emptyDescription: 'Assim que o edital da prova for divulgado, a professora publica ele aqui.',
   },
 }
 

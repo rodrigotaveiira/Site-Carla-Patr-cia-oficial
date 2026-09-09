@@ -7,7 +7,7 @@ import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
 
-const contentSectionSchema = z.enum(['biblioteca', 'questoes', 'simulados', 'repertorios', 'dicas', 'gabaritos'])
+const contentSectionSchema = z.enum(['biblioteca', 'questoes', 'simulados', 'repertorios', 'dicas', 'gabaritos', 'edital'])
 
 // Seções de conteúdo em PDF geridas pela admin. Cada uma tem sua própria "gaveta" de arquivos.
 export const CONTENT_SECTIONS = {
@@ -17,6 +17,7 @@ export const CONTENT_SECTIONS = {
   repertorios: 'Repertórios',
   dicas: 'Dicas',
   gabaritos: 'Gabaritos dos Simulados',
+  edital: 'Edital da prova',
 } as const
 
 export type ContentSection = keyof typeof CONTENT_SECTIONS
