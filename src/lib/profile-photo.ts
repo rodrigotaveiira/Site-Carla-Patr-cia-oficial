@@ -5,10 +5,16 @@ import { getServerUser } from './auth'
 import { assertActiveSession } from './session-guard.server'
 import { dataUrl as dataUrlSchema } from './schemas'
 import { parseDataUrl, sniffKind } from './upload-validation'
+import { enforceRateLimit } from './rate-limit'
 
 // Tamanho máximo aceito para a foto (em base64). ~2MB de imagem original.
 const MAX_DATA_URL_LENGTH = 3_000_000
 const MAX_DECODED_BYTES = 2 * 1024 * 1024
+
+// Uploads legítimos de foto de perfil não são frequentes — sem isso, um
+// aluno autenticado (ou script) poderia soterrar o Blobs com uploads
+// repetidos de até 2MB cada.
+const PROFILE_PHOTO_RATE_LIMIT = { action: 'foto-perfil', windowMs: 60 * 60 * 1000, max: 10 } as const
 
 function photosStore() {
   return getStore({ name: 'profile-photos', consistency: 'strong' })
@@ -33,6 +39,7 @@ export const saveMyProfilePhoto = createServerFn({ method: 'POST' })
     const user = await getServerUser()
     if (!user) throw new Error('Você precisa estar logado.')
     await assertActiveSession(user)
+    await enforceRateLimit(PROFILE_PHOTO_RATE_LIMIT, user.email ?? '')
 
     // Valida pelo conteúdo: base64 íntegro, tamanho real e assinatura de bytes
     // de imagem — não basta o prefixo "data:image/" (é escolhido pelo cliente).
