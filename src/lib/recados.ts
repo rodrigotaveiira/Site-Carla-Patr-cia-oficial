@@ -7,6 +7,7 @@ import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
 import { boundedText, id as idSchema } from './schemas'
 import { notificarNovoRecado } from './notificar-recado'
+import { notificarRecadoRespondido } from './notificar-recado-respondido'
 
 export type Recado = {
   id: string
@@ -129,5 +130,13 @@ export const replyRecado = createServerFn({ method: 'POST' })
       repliedAt: new Date().toISOString(),
     }
     await store.setJSON(data.id, updated)
+
+    await notificarRecadoRespondido({
+      nomeAluno: updated.studentName,
+      emailAluno: updated.studentEmail,
+      mensagemOriginal: updated.message,
+      resposta: updated.reply ?? '',
+    })
+
     return updated
   })

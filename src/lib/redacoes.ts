@@ -9,6 +9,7 @@ import { validateUpload } from './upload-validation'
 import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
 import type { Competency } from './competencies'
 import { notificarNovaRedacao } from './notificar-redacao'
+import { notificarRedacaoCorrigida } from './notificar-redacao-corrigida'
 
 export type CompetencyScore = Competency & { value: number }
 
@@ -258,6 +259,14 @@ export const correctRedacao = createServerFn({ method: 'POST' })
       correctedFileDataUrl: data.correctionFileDataUrl ?? submission.correctedFileDataUrl,
     }
     await store.setJSON(data.id, updated)
+
+    await notificarRedacaoCorrigida({
+      nomeAluno: updated.studentName,
+      emailAluno: updated.studentEmail,
+      titulo: updated.title,
+      grade,
+    })
+
     const { fileDataUrl: _omit, correctedFileDataUrl: _omit2, ...meta } = updated
     return meta
   })

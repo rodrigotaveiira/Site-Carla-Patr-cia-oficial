@@ -87,6 +87,65 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
     }
   }
 
+  // Redações corrigidas do próprio aluno (não de todo mundo, ao contrário
+  // dos itens acima — por isso filtra por studentEmail).
+  try {
+    const store = getStore({ name: 'redacoes-submissions', consistency: 'strong' })
+    const { blobs } = await store.list()
+    for (const blob of blobs) {
+      try {
+        const value = (await store.get(blob.key, { type: 'json' })) as
+          | { studentEmail: string; title: string; status: string; correctedAt: string | null }
+          | null
+        if (!value || value.studentEmail !== user.email || value.status !== 'corrigida' || !value.correctedAt) continue
+
+        const correctedAtMs = new Date(value.correctedAt).getTime()
+        if (correctedAtMs > now) continue // data futura (dado inconsistente) — não avisa
+        const daysAgo = (now - correctedAtMs) / (1000 * 60 * 60 * 24)
+        if (daysAgo <= RECENT_WINDOW_DAYS) {
+          notifications.push({
+            id: `redacao-corrigida-${blob.key}`,
+            text: `Sua redação "${value.title}" foi corrigida`,
+            date: value.correctedAt,
+          })
+        }
+      } catch (error) {
+        console.error(`Aviso: falha ao ler redação "${blob.key}" para o sino de avisos:`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Aviso: falha ao listar redações para o sino de avisos:', error)
+  }
+
+  // Recados respondidos do próprio aluno.
+  try {
+    const store = getStore({ name: 'student-recados', consistency: 'strong' })
+    const { blobs } = await store.list()
+    for (const blob of blobs) {
+      try {
+        const value = (await store.get(blob.key, { type: 'json' })) as
+          | { studentEmail: string; reply: string | null; repliedAt: string | null }
+          | null
+        if (!value || value.studentEmail !== user.email || !value.reply || !value.repliedAt) continue
+
+        const repliedAtMs = new Date(value.repliedAt).getTime()
+        if (repliedAtMs > now) continue // data futura (dado inconsistente) — não avisa
+        const daysAgo = (now - repliedAtMs) / (1000 * 60 * 60 * 24)
+        if (daysAgo <= RECENT_WINDOW_DAYS) {
+          notifications.push({
+            id: `recado-respondido-${blob.key}`,
+            text: 'A Carla respondeu seu recado',
+            date: value.repliedAt,
+          })
+        }
+      } catch (error) {
+        console.error(`Aviso: falha ao ler recado "${blob.key}" para o sino de avisos:`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Aviso: falha ao listar recados para o sino de avisos:', error)
+  }
+
   notifications.sort((a, b) => b.date.localeCompare(a.date))
   return notifications.slice(0, 5)
 })
