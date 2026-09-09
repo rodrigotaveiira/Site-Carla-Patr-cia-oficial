@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, CheckCircle2, ChevronRight, CircleHelp, CirclePlay,
   Clock3, Download, FileCheck2, Files, Library, LogOut, MessageCircleHeart,
-  MoreHorizontal, PenLine, Search, Target, Trophy, Zap,
+  MoreHorizontal, PenLine, ScrollText, Search, Target, Trophy, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -82,6 +82,7 @@ const SEARCH_TYPE_ICON: Record<SearchResultType, typeof BookOpen> = {
   repertorios: BookMarked,
   dicas: Zap,
   gabaritos: BookCheck,
+  edital: ScrollText,
 }
 
 // Tempo de espera depois que o aluno para de digitar até disparar a busca real no servidor.

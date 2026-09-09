@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, Monitor, PencilLine, PenLine, Target, TrendingUp, Users, Video, Zap,
+  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, Monitor, PencilLine, PenLine, ScrollText, Target, TrendingUp, Users, Video, Zap,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -43,6 +43,7 @@ const links = [
   { icon: Target, label: 'Simulados', to: '/simulados-admin', description: 'Cole questões e gabarito para o aluno fazer no site.', badgeKey: undefined },
   { icon: BookMarked, label: 'Repertórios', to: '/conteudo-admin/repertorios', description: 'PDFs da seção Repertórios.', badgeKey: undefined },
   { icon: Zap, label: 'Dicas', to: '/conteudo-admin/dicas', description: 'PDFs da seção Dicas.', badgeKey: undefined },
+  { icon: ScrollText, label: 'Edital da prova', to: '/conteudo-admin/edital', description: 'PDFs do edital oficial da prova.', badgeKey: undefined },
 ] as const
 
 function AdminHubPage() {

@@ -25,6 +25,7 @@ const SECTION_HREF: Record<ContentSection, string> = {
   repertorios: '/conteudo/repertorios',
   dicas: '/conteudo/dicas',
   gabaritos: '/conteudo/gabaritos',
+  edital: '/conteudo/edital',
 }
 
 function matches(query: string, ...fields: Array<string | undefined | null>): boolean {
