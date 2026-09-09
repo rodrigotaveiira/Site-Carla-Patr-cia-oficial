@@ -175,9 +175,15 @@ function AppLayout() {
       </aside>
 
       <section className="student-main">
-        <AcademicBackground />
         <button className="mobile-nav-toggle" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu"><Menu /></button>
-        <Outlet />
+        {/* .student-main-stack não tem altura fixa (ao contrário de .student-main,
+            que é 100% da viewport pra rolar) — ela acompanha a altura real do
+            conteúdo, então o fundo decorativo (absolute, inset:0) cobre a página
+            inteira mesmo quando é mais longa que uma tela. */}
+        <div className="student-main-stack">
+          <AcademicBackground />
+          <Outlet />
+        </div>
       </section>
     </main>
   )
