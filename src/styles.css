@@ -983,6 +983,7 @@ footer .brand b { color: white; }
 
 .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 24px; }
 .nav-card {
+  position: relative;
   display: block; text-decoration: none; color: var(--navy); background: #fff; border-radius: 12px; padding: 18px;
   box-shadow: 0 0 0 1px rgba(15,35,66,.05), 0 8px 18px -14px rgba(15,35,66,.18);
   transition: box-shadow .15s, transform .12s;
@@ -992,6 +993,12 @@ footer .brand b { color: white; }
 .nav-card svg { color: var(--purple); }
 .nav-card b { display: block; font-weight: 700; margin-top: 10px; font-size: 14px; }
 .nav-card-desc { color: var(--muted); font-size: 13px; margin-top: 4px; line-height: 1.5; }
+.nav-card-badge {
+  position: absolute; top: -8px; right: -8px; min-width: 22px; height: 22px; padding: 0 6px;
+  display: flex; align-items: center; justify-content: center;
+  background: #dc2626; color: #fff; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+  border-radius: 999px; box-shadow: 0 0 0 2px #fff;
+}
 
 .list-row {
   display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px;

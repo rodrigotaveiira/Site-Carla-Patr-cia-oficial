@@ -6,6 +6,7 @@ import { userHasRole, isStaff } from './roles'
 import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
 import { boundedText, id as idSchema } from './schemas'
+import { notificarNovoRecado } from './notificar-recado'
 
 export type Recado = {
   id: string
@@ -52,6 +53,13 @@ export const sendRecado = createServerFn({ method: 'POST' })
       repliedAt: null,
     }
     await store.setJSON(id, recado)
+
+    await notificarNovoRecado({
+      nomeAluno: recado.studentName,
+      emailAluno: recado.studentEmail,
+      mensagem: recado.message,
+    })
+
     return recado
   })
 
