@@ -36,8 +36,8 @@ const sidebarGroups = [
   {
     title: 'Praticar',
     items: [
-      { icon: CircleHelp, label: 'Questões', href: '/conteudo/questoes' },
-      { icon: Target, label: 'Simulados', href: '/simulados' },
+      { icon: Target, label: 'Questões para treino', href: '/simulados' },
+      { icon: CircleHelp, label: 'Questões em PDF', href: '/conteudo/questoes' },
       { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
     ],
   },

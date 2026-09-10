@@ -2,10 +2,11 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { z } from 'zod'
 import { getServerUser } from './auth'
-import { userHasRole } from './roles'
+import { userHasRole, isStaff } from './roles'
 import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
-import { boundedText, id as idSchema } from './schemas'
+import { boundedText, id as idSchema, optionalHhmm, optionalIsoDate } from './schemas'
+import { isReleased } from './simulado-release'
 
 const ATTEMPT_RATE_LIMIT = { action: 'simulado-attempt', windowMs: 24 * 60 * 60 * 1000, max: 30 } as const
 
@@ -23,6 +24,10 @@ export type Simulado = {
   id: string
   title: string
   createdAt: string
+  // Data/hora (horário de Brasília) em que o conjunto libera pro aluno.
+  // Ambos '' = liberado na criação. Ver src/lib/simulado-release.ts.
+  releaseDate: string // 'AAAA-MM-DD' ou ''
+  releaseTime: string // 'HH:MM' ou ''
   questions: SimuladoQuestion[]
 }
 
@@ -140,6 +145,8 @@ export const createSimulado = createServerFn({ method: 'POST' })
       title: boundedText(200),
       questionsText: z.string().max(200_000),
       gabaritoText: z.string().max(50_000),
+      releaseDate: optionalIsoDate,
+      releaseTime: optionalHhmm,
     }),
   )
   .handler(async ({ data }) => {
@@ -167,6 +174,8 @@ export const createSimulado = createServerFn({ method: 'POST' })
       id,
       title: data.title.trim(),
       createdAt: new Date().toISOString(),
+      releaseDate: data.releaseDate,
+      releaseTime: data.releaseTime,
       questions,
     }
     await store.setJSON(id, simulado)
@@ -182,6 +191,22 @@ export const deleteSimulado = createServerFn({ method: 'POST' })
     return { ok: true }
   })
 
+// Reagenda (ou libera na hora) um conjunto já publicado.
+export const updateSimuladoRelease = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: idSchema, releaseDate: optionalIsoDate, releaseTime: optionalHhmm }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+
+    const store = simuladosStore()
+    const existing = (await store.get(data.id, { type: 'json' })) as Simulado | null
+    if (!existing) throw new Error('Esse conjunto não existe mais. Atualize a página.')
+
+    const updated: Simulado = { ...existing, releaseDate: data.releaseDate, releaseTime: data.releaseTime }
+    await store.setJSON(data.id, updated)
+    return updated
+  })
+
 export const listAllSimulados = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -191,7 +216,8 @@ export const listAllSimulados = createServerFn({ method: 'GET' }).handler(async 
   const simulados: Simulado[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    if (value) simulados.push(value as Simulado)
+    // Conjuntos antigos não têm `releaseDate`/`releaseTime` — completa o formato.
+    if (value) simulados.push({ releaseDate: '', releaseTime: '', ...(value as Partial<Simulado>) } as Simulado)
   }
   simulados.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return simulados
@@ -205,10 +231,13 @@ export const listSimulados = createServerFn({ method: 'GET' }).handler(async () 
 
   const store = simuladosStore()
   const { blobs } = await store.list()
+  const now = Date.now()
   const summaries: { id: string; title: string; createdAt: string; totalQuestions: number }[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' }) as Simulado | null
-    if (value) summaries.push({ id: value.id, title: value.title, createdAt: value.createdAt, totalQuestions: value.questions.length })
+    // Conjunto ainda não liberado não aparece pro aluno (nem na busca).
+    if (!value || !isReleased(value, now)) continue
+    summaries.push({ id: value.id, title: value.title, createdAt: value.createdAt, totalQuestions: value.questions.length })
   }
   summaries.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return summaries
@@ -224,6 +253,7 @@ export const getSimuladoToTake = createServerFn({ method: 'GET' })
 
     const simulado = await simuladosStore().get(data.id, { type: 'json' }) as Simulado | null
     if (!simulado) throw new Error('Simulado não encontrado.')
+    if (!isReleased(simulado) && !isStaff(user)) throw new Error('Esse conjunto ainda não foi liberado.')
 
     const forStudent: SimuladoForStudent = {
       id: simulado.id,
@@ -253,6 +283,7 @@ export const submitSimuladoAttempt = createServerFn({ method: 'POST' })
 
     const simulado = await simuladosStore().get(data.id, { type: 'json' }) as Simulado | null
     if (!simulado) throw new Error('Simulado não encontrado.')
+    if (!isReleased(simulado) && !isStaff(user)) throw new Error('Esse conjunto ainda não foi liberado.')
     if (simulado.questions.length === 0) throw new Error('Esse simulado não tem questões.')
 
     let score = 0

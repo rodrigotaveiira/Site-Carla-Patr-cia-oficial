@@ -51,7 +51,7 @@ function SimuladosPage() {
       setSummaries(simuladosList)
       setAttempts(attemptsList)
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar os simulados.')
+      setLoadError(err instanceof Error ? err.message : 'Não foi possível carregar as questões.')
     } finally {
       setLoading(false)
     }
@@ -102,7 +102,7 @@ function SimuladosPage() {
   if (active && result) {
     return (
       <div className="panel">
-        <button onClick={backToList} className="panel-back">← Voltar aos simulados</button>
+        <button onClick={backToList} className="panel-back">← Voltar</button>
         <h1>{active.title}</h1>
         <Link to="/conteudo/gabaritos" className="panel-inline-link">
           <BookCheck size={14} /> Ver gabarito comentado completo
@@ -151,7 +151,7 @@ function SimuladosPage() {
     const answeredCount = Object.keys(answers).length
     return (
       <div className="panel">
-        <button onClick={backToList} className="panel-back">← Voltar aos simulados</button>
+        <button onClick={backToList} className="panel-back">← Voltar</button>
         <h1>{active.title}</h1>
         <p className="panel-subtitle">{answeredCount} de {active.questions.length} respondidas</p>
 
@@ -188,7 +188,7 @@ function SimuladosPage() {
         </div>
 
         <button onClick={handleSubmit} disabled={submitting || answeredCount === 0} className="btn btn-primary" style={{ marginTop: 20 }}>
-          {submitting ? 'Enviando...' : 'Finalizar simulado'}
+          {submitting ? 'Enviando...' : 'Finalizar e ver resultado'}
         </button>
         {takeError && <p className="form-error">{takeError}</p>}
       </div>
@@ -198,8 +198,8 @@ function SimuladosPage() {
   // --- Lista de simulados disponíveis ----------------------------------
   return (
     <div className="panel">
-      <h1><ClipboardList /> Simulados</h1>
-      <p className="panel-subtitle">Faça o simulado e acompanhe seu crescimento, sua aprovação está a caminho.</p>
+      <h1><ClipboardList /> Questões para treino</h1>
+      <p className="panel-subtitle">Responda as questões no site e acompanhe seu crescimento — sua aprovação está a caminho.</p>
       <Link to="/conteudo/gabaritos" className="panel-inline-link">
         <BookCheck size={14} /> Ver gabaritos comentados
       </Link>
@@ -210,7 +210,7 @@ function SimuladosPage() {
       {chronological.length >= 2 && (
         <section>
           <h2 className="panel-section-title">Sua evolução</h2>
-          <p className="panel-section-hint">Percentual de acerto nos últimos simulados, na ordem em que você fez.</p>
+          <p className="panel-section-hint">Percentual de acerto nas últimas séries que você respondeu, na ordem.</p>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 16, height: 130, padding: '0 4px', overflowX: 'auto' }}>
             {chronological.map((attempt) => (
               <div key={attempt.id} title={attempt.simuladoTitle} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, minWidth: 44 }}>
@@ -239,7 +239,7 @@ function SimuladosPage() {
             </div>
           ))}
           {!loading && summaries.length === 0 && (
-            <EmptyState icon={ClipboardList} title="Nenhum simulado disponível ainda" description="Assim que a professora publicar o primeiro simulado, ele aparece aqui pra você responder." />
+            <EmptyState icon={ClipboardList} title="Nada disponível ainda" description="Assim que a professora liberar a primeira série de questões, ela aparece aqui pra você responder." />
           )}
         </div>
       </section>
