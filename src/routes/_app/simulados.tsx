@@ -10,6 +10,8 @@ import {
 } from '@/lib/simulados'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
+import { TextoBase } from '@/components/TextoBase'
+import { agruparPorTextoBase } from '@/lib/simulado-parser'
 
 export const Route = createFileRoute('/_app/simulados')({
   beforeLoad: async () => {
@@ -115,32 +117,37 @@ function SimuladosPage() {
         </div>
 
         <div style={{ display: 'grid', gap: 10, marginTop: 24 }}>
-          {active.questions.map((question) => {
-            const correction = result.corrections.find((c) => c.questionId === question.id)
-            return (
-              <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                  {correction?.correct ? <CheckCircle2 size={18} color="#15803d" style={{ flexShrink: 0, marginTop: 1 }} /> : <XCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 1 }} />}
-                  <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
-                </div>
-                <div style={{ display: 'grid', gap: 4, marginTop: 10, marginLeft: 26 }}>
-                  {question.options.map((option) => {
-                    const isChosen = correction?.chosenLetter === option.letter
-                    const isCorrect = correction?.correctLetter === option.letter
-                    let color = '#4b5563'
-                    if (isCorrect) color = '#15803d'
-                    else if (isChosen && !isCorrect) color = '#dc2626'
-                    return (
-                      <div key={option.letter} style={{ fontSize: 13, color, fontWeight: isCorrect || isChosen ? 700 : 400 }}>
-                        {option.letter}) {option.text} {isChosen && !isCorrect ? '(sua resposta)' : ''} {isCorrect ? '✓' : ''}
-                      </div>
-                    )
-                  })}
-                  {!correction?.correctLetter && <div style={{ fontSize: 12, color: '#a16207' }}>Essa questão não tinha gabarito cadastrado.</div>}
-                </div>
-              </div>
-            )
-          })}
+          {agruparPorTextoBase(active.questions, active.passages ?? []).map((grupo) => (
+            <div key={grupo.key || 'sem-texto'} style={{ display: 'grid', gap: 10 }}>
+              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} />)}
+              {grupo.questions.map((question) => {
+                const correction = result.corrections.find((c) => c.questionId === question.id)
+                return (
+                  <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      {correction?.correct ? <CheckCircle2 size={18} color="#15803d" style={{ flexShrink: 0, marginTop: 1 }} /> : <XCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 1 }} />}
+                      <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
+                    </div>
+                    <div style={{ display: 'grid', gap: 4, marginTop: 10, marginLeft: 26 }}>
+                      {question.options.map((option) => {
+                        const isChosen = correction?.chosenLetter === option.letter
+                        const isCorrect = correction?.correctLetter === option.letter
+                        let color = '#4b5563'
+                        if (isCorrect) color = '#15803d'
+                        else if (isChosen && !isCorrect) color = '#dc2626'
+                        return (
+                          <div key={option.letter} style={{ fontSize: 13, color, fontWeight: isCorrect || isChosen ? 700 : 400 }}>
+                            {option.letter}) {option.text} {isChosen && !isCorrect ? '(sua resposta)' : ''} {isCorrect ? '✓' : ''}
+                          </div>
+                        )
+                      })}
+                      {!correction?.correctLetter && <div style={{ fontSize: 12, color: '#a16207' }}>Essa questão não tinha gabarito cadastrado.</div>}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ))}
         </div>
       </div>
     )
@@ -156,33 +163,38 @@ function SimuladosPage() {
         <p className="panel-subtitle">{answeredCount} de {active.questions.length} respondidas</p>
 
         <div style={{ display: 'grid', gap: 14, marginTop: 20 }}>
-          {active.questions.map((question) => (
-            <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
-              <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
-              <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
-                {question.options.map((option) => {
-                  const checked = answers[question.id] === option.letter
-                  return (
-                    <label
-                      key={option.letter}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 8, cursor: 'pointer',
-                        border: `1px solid ${checked ? 'var(--purple)' : 'var(--line)'}`, background: checked ? 'var(--lilac-tint)' : '#fff',
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name={question.id}
-                        checked={checked}
-                        onChange={() => setAnswers((prev) => ({ ...prev, [question.id]: option.letter }))}
-                        style={{ accentColor: 'var(--purple)', width: 'auto' }}
-                      />
-                      {checked ? <CheckCircle2 size={15} color="var(--purple)" /> : <Circle size={15} color="#c9befd" />}
-                      <span style={{ fontSize: 13, color: 'var(--navy)' }}>{option.letter}) {option.text}</span>
-                    </label>
-                  )
-                })}
-              </div>
+          {agruparPorTextoBase(active.questions, active.passages ?? []).map((grupo) => (
+            <div key={grupo.key || 'sem-texto'} style={{ display: 'grid', gap: 14 }}>
+              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} />)}
+              {grupo.questions.map((question) => (
+                <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
+                  <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
+                  <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
+                    {question.options.map((option) => {
+                      const checked = answers[question.id] === option.letter
+                      return (
+                        <label
+                          key={option.letter}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', borderRadius: 8, cursor: 'pointer',
+                            border: `1px solid ${checked ? 'var(--purple)' : 'var(--line)'}`, background: checked ? 'var(--lilac-tint)' : '#fff',
+                          }}
+                        >
+                          <input
+                            type="radio"
+                            name={question.id}
+                            checked={checked}
+                            onChange={() => setAnswers((prev) => ({ ...prev, [question.id]: option.letter }))}
+                            style={{ accentColor: 'var(--purple)', width: 'auto' }}
+                          />
+                          {checked ? <CheckCircle2 size={15} color="var(--purple)" /> : <Circle size={15} color="#c9befd" />}
+                          <span style={{ fontSize: 13, color: 'var(--navy)' }}>{option.letter}) {option.text}</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
