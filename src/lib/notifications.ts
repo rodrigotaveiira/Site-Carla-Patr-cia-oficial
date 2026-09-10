@@ -4,6 +4,7 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { CONTENT_SECTIONS, type ContentSection } from './content-library'
 import { releaseInstantMs } from './materials'
+import { releaseInstantMs as simuladoReleaseInstantMs } from './simulado-release'
 import { formatarHora } from './formato'
 import { instanteInicioDoDiaSimulado, instanteInicioSimulado, instanteLembreteVespera } from './lembrete-simulado-horario'
 
@@ -146,6 +147,36 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
     }
   } catch (error) {
     console.error('Aviso: falha ao listar recados para o sino de avisos:', error)
+  }
+
+  // Novas "Questões para treino" que acabaram de liberar (últimos 7 dias). A
+  // data do aviso é o instante de liberação (ou a criação, quando libera na
+  // hora) — fixo e no passado, então o ponto do sino se comporta como nos demais.
+  try {
+    const store = getStore({ name: 'simulados', consistency: 'strong' })
+    const { blobs } = await store.list()
+    for (const blob of blobs) {
+      try {
+        const value = (await store.get(blob.key, { type: 'json' })) as
+          | { title: string; createdAt: string; releaseDate?: string; releaseTime?: string }
+          | null
+        if (!value) continue
+        const releasedAtMs = simuladoReleaseInstantMs(value) ?? new Date(value.createdAt).getTime()
+        if (releasedAtMs > now) continue // ainda não liberado
+        const daysAgo = (now - releasedAtMs) / (1000 * 60 * 60 * 24)
+        if (daysAgo <= RECENT_WINDOW_DAYS) {
+          notifications.push({
+            id: `questoes-treino-${blob.key}`,
+            text: `Novas questões para treino: "${value.title}"`,
+            date: new Date(releasedAtMs).toISOString(),
+          })
+        }
+      } catch (error) {
+        console.error(`Aviso: falha ao ler o conjunto "${blob.key}" para o sino de avisos:`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Aviso: falha ao listar questões para treino para o sino de avisos:', error)
   }
 
   // Simulado/simuladão (e a correção dele) chegando: entra no sino a partir das
