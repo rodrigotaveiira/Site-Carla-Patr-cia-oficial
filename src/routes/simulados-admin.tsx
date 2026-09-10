@@ -1,12 +1,14 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Trash2 } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Trash2, XCircle } from 'lucide-react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { createSimulado, deleteSimulado, listAllSimulados, updateSimuladoRelease, type Simulado } from '@/lib/simulados'
+import { agruparPorTextoBase, parseActivityText, parseGabaritoText } from '@/lib/simulado-parser'
 import { releaseInstantMs } from '@/lib/simulado-release'
 import { formatarHora } from '@/lib/formato'
+import { TextoBase } from '@/components/TextoBase'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/simulados-admin')({
@@ -24,21 +26,36 @@ export const Route = createFileRoute('/simulados-admin')({
   component: SimuladosAdminPage,
 })
 
-const QUESTIONS_PLACEHOLDER = `1) Qual a capital do Brasil?
-a) São Paulo
-b) Rio de Janeiro
-c) Brasília
-d) Salvador
-e) Belo Horizonte
+const QUESTIONS_PLACEHOLDER = `TEXTO 1
 
-2) Próxima questão...
-a) ...
-b) ...`
+Onicofagia — o hábito de roer as unhas
 
-const GABARITO_PLACEHOLDER = `1) C
-2) A
-3) E
-...`
+Onicofagia é o termo médico para nomear o hábito de roer as unhas.
+Segundo a OMS, cerca de 30% das crianças apresentam o hábito.
+
+Fonte: Revista Saúde, 2024.
+
+TEXTO 2
+
+A onicofagia é caracterizada por repetidas injúrias ao leito ungueal.
+
+1) Os textos 1 e 2 concordam que:
+a) os casos de onicofagia são muito raros.
+b) o ato de roer as unhas ocorre somente na infância.
+c) as consequências atingem apenas as unhas.
+d) a onicofagia pode estar ligada a outros transtornos.
+
+2) O texto 2 se diferencia do texto 1 porque:
+a) utiliza linguagem mais especializada.
+b) não apresenta informações médicas.
+c) trata de assunto completamente diferente.
+d) apresenta linguagem informal.`
+
+const GABARITO_PLACEHOLDER = `1) d
+2) a
+3) c
+
+(também aceita 1-d, 1. d ou 1 d)`
 
 // "12/03 às 19h" a partir de releaseDate ('AAAA-MM-DD') e releaseTime ('HH:MM').
 function formatarLiberacao(date: string, time: string) {
@@ -151,25 +168,77 @@ function SimuladoCard({ simulado, onChanged }: { simulado: Simulado; onChanged: 
 
       {open && (
         <div style={{ display: 'grid', gap: 10, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
-          {simulado.questions.map((question) => (
-            <div key={question.id} style={{ background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {question.statement}</b>
-                {question.correctLetter ? (
-                  <span style={{ color: '#15803d', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Gabarito: {question.correctLetter}</span>
-                ) : (
-                  <span style={{ color: '#a16207', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Sem gabarito</span>
-                )}
-              </div>
-              <div style={{ display: 'grid', gap: 3, marginTop: 6 }}>
-                {question.options.map((option) => (
-                  <div key={option.letter} style={{ fontSize: 12, color: option.letter === question.correctLetter ? '#15803d' : '#4b5563', fontWeight: option.letter === question.correctLetter ? 700 : 400 }}>
-                    {option.letter}) {option.text}
+          {agruparPorTextoBase(simulado.questions, simulado.passages ?? []).map((grupo) => (
+            <div key={grupo.key || 'sem-texto'} style={{ display: 'grid', gap: 10 }}>
+              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} />)}
+              {grupo.questions.map((question) => (
+                <div key={question.id} style={{ background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
+                    <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {question.statement}</b>
+                    {question.correctLetter ? (
+                      <span style={{ color: '#15803d', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Gabarito: {question.correctLetter}</span>
+                    ) : (
+                      <span style={{ color: '#a16207', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Sem gabarito</span>
+                    )}
                   </div>
-                ))}
-              </div>
+                  <div style={{ display: 'grid', gap: 3, marginTop: 6 }}>
+                    {question.options.map((option) => (
+                      <div key={option.letter} style={{ fontSize: 12, color: option.letter === question.correctLetter ? '#15803d' : '#4b5563', fontWeight: option.letter === question.correctLetter ? 700 : 400 }}>
+                        {option.letter}) {option.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+type Conferencia = ReturnType<typeof parseActivityText> & { semGabarito: Array<{ number: number }> }
+
+// Painel de conferência mostrado enquanto a professora cola o texto, antes de
+// publicar: quantas questões e textos o sistema reconheceu e o que está
+// estranho, apontando a questão exata em vez de um erro genérico.
+function Conferencia({ conferencia }: { conferencia: Conferencia }) {
+  const { passages, questions, issues, semGabarito } = conferencia
+  const erros = issues.filter((i) => i.level === 'erro')
+  const avisos = issues.filter((i) => i.level === 'aviso')
+  const ok = questions.length > 0 && erros.length === 0
+
+  return (
+    <div style={{ padding: 14, background: 'var(--cream)', border: '1px solid var(--line)', borderRadius: 10, display: 'grid', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: ok ? '#15803d' : '#dc2626', fontWeight: 700, fontSize: 14 }}>
+        {ok ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
+        {questions.length === 0
+          ? 'Nenhuma questão reconhecida ainda.'
+          : `${questions.length} ${questions.length === 1 ? 'questão reconhecida' : 'questões reconhecidas'}.`}
+        {passages.length > 0 && (
+          <span style={{ color: 'var(--muted)', fontWeight: 700 }}>
+            · {passages.length} {passages.length === 1 ? 'texto-base' : 'textos-base'}
+          </span>
+        )}
+      </div>
+
+      {erros.map((issue, index) => (
+        <div key={`erro-${index}`} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', color: '#dc2626', fontSize: 13 }}>
+          <XCircle size={14} style={{ flexShrink: 0, marginTop: 2 }} /> {issue.message}
+        </div>
+      ))}
+      {avisos.map((issue, index) => (
+        <div key={`aviso-${index}`} style={{ display: 'flex', gap: 7, alignItems: 'flex-start', color: '#a16207', fontSize: 13 }}>
+          <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} /> {issue.message}
+        </div>
+      ))}
+      {questions.length > 0 && semGabarito.length > 0 && (
+        <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start', color: '#a16207', fontSize: 13 }}>
+          <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+          Sem gabarito reconhecido {semGabarito.length === 1 ? 'na questão' : 'nas questões'}{' '}
+          {semGabarito.slice(0, 12).map((q) => q.number).join(', ')}
+          {semGabarito.length > 12 ? '…' : ''}.
         </div>
       )}
     </div>
@@ -187,6 +256,19 @@ function SimuladosAdminPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+
+  // Conferência antes de publicar: a mesma leitura que roda no servidor, feita
+  // aqui no navegador enquanto a professora cola o texto.
+  const conferencia = useMemo(() => {
+    if (!questionsText.trim()) return null
+    const parsed = parseActivityText(questionsText)
+    const gabarito = parseGabaritoText(gabaritoText)
+    const semGabarito = parsed.questions.filter((q) => {
+      const letra = gabarito.get(q.number)
+      return !letra || !q.options.some((o) => o.letter === letra)
+    })
+    return { ...parsed, semGabarito }
+  }, [questionsText, gabaritoText])
 
   async function load() {
     setLoading(true)
@@ -210,10 +292,13 @@ function SimuladosAdminPage() {
     setSaving(true)
     try {
       const result = await createSimulado({ data: { title, questionsText, gabaritoText, releaseDate, releaseTime } })
+      const textos = result.passagesFound > 0
+        ? ` e ${result.passagesFound} ${result.passagesFound === 1 ? 'texto-base' : 'textos-base'}`
+        : ''
       setNotice(
         result.answersMatched < result.questionsFound
-          ? `${result.questionsFound} questões reconhecidas, mas só ${result.answersMatched} com gabarito. Confira o texto do gabarito.`
-          : `${result.questionsFound} questões reconhecidas e todas com gabarito. Publicado!`,
+          ? `${result.questionsFound} questões reconhecidas${textos}, mas só ${result.answersMatched} com gabarito. Publicado — confira o texto do gabarito.`
+          : `${result.questionsFound} questões reconhecidas${textos}, todas com gabarito. Publicado!`,
       )
       setTitle('')
       setQuestionsText('')
@@ -233,8 +318,9 @@ function SimuladosAdminPage() {
       <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
       <h1><ClipboardList /> Questões para treino</h1>
       <p className="panel-subtitle">
-        Cole o texto das questões e do gabarito — o sistema separa tudo automaticamente em questões de múltipla escolha
-        para o aluno responder no site, com correção e nota na hora. (O simulado presencial fica no Calendário do curso.)
+        Cole os textos-base e as questões num campo só — o sistema separa tudo automaticamente em questões de múltipla
+        escolha para o aluno responder no site, com correção e nota na hora. (O simulado presencial fica no Calendário
+        do curso.)
       </p>
 
       <form onSubmit={handleSubmit} className="panel-card">
@@ -243,17 +329,22 @@ function SimuladosAdminPage() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Questões de Linguagens — Semana 1" />
         </div>
         <div className="field">
-          <label>Questões (cole o texto — cada questão começa com "1)", cada alternativa com "a)")</label>
+          <label>Textos e questões</label>
+          <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '0 0 8px' }}>
+            Comece um texto-base com uma linha <b>TEXTO 1</b>, <b>TEXTO 2</b>… e cole o texto embaixo. Cada questão
+            começa numa linha nova com <b>1)</b>, <b>2)</b>… e cada alternativa com <b>a)</b>, <b>b)</b>… (maiúscula
+            ou minúscula). Os textos valem para as questões que vierem depois deles, até aparecer um novo bloco TEXTO.
+          </p>
           <textarea
             value={questionsText}
             onChange={(e) => setQuestionsText(e.target.value)}
             placeholder={QUESTIONS_PLACEHOLDER}
-            rows={10}
+            rows={14}
             style={{ fontFamily: 'monospace', fontSize: 13 }}
           />
         </div>
         <div className="field">
-          <label>Gabarito (cole o texto — "número + letra" em qualquer formato: "1) C", "1 - C", "1C"...)</label>
+          <label>Gabarito <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(aceita "1) d", "1-d", "1. d" ou "1 d")</span></label>
           <textarea
             value={gabaritoText}
             onChange={(e) => setGabaritoText(e.target.value)}
@@ -262,6 +353,9 @@ function SimuladosAdminPage() {
             style={{ fontFamily: 'monospace', fontSize: 13 }}
           />
         </div>
+
+        {conferencia && <Conferencia conferencia={conferencia} />}
+
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div className="field" style={{ margin: 0 }}>
             <label>Liberar em <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>

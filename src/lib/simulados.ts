@@ -7,10 +7,12 @@ import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
 import { boundedText, id as idSchema, optionalHhmm, optionalIsoDate } from './schemas'
 import { isReleased } from './simulado-release'
+import { parseActivityText, parseGabaritoText, type SimuladoPassage } from './simulado-parser'
 
 const ATTEMPT_RATE_LIMIT = { action: 'simulado-attempt', windowMs: 24 * 60 * 60 * 1000, max: 30 } as const
 
 export type SimuladoOption = { letter: string; text: string }
+export type { SimuladoPassage }
 
 export type SimuladoQuestion = {
   id: string
@@ -18,6 +20,11 @@ export type SimuladoQuestion = {
   statement: string
   options: SimuladoOption[]
   correctLetter: string | null
+  /**
+   * Ids dos textos-base que valem pra essa questão. Vazio em atividades antigas
+   * (criadas antes dos textos-base) e em questões sem texto de apoio.
+   */
+  passageIds: string[]
 }
 
 export type Simulado = {
@@ -28,12 +35,35 @@ export type Simulado = {
   // Ambos '' = liberado na criação. Ver src/lib/simulado-release.ts.
   releaseDate: string // 'AAAA-MM-DD' ou ''
   releaseTime: string // 'HH:MM' ou ''
+  /** Textos-base colados junto das questões. Vazio nas atividades antigas. */
+  passages: SimuladoPassage[]
   questions: SimuladoQuestion[]
 }
 
 // O que o aluno recebe pra fazer a prova: sem a resposta certa embutida.
 export type SimuladoQuestionForStudent = Omit<SimuladoQuestion, 'correctLetter'>
-export type SimuladoForStudent = { id: string; title: string; createdAt: string; questions: SimuladoQuestionForStudent[] }
+export type SimuladoForStudent = {
+  id: string
+  title: string
+  createdAt: string
+  passages: SimuladoPassage[]
+  questions: SimuladoQuestionForStudent[]
+}
+
+// Atividades gravadas antes dos textos-base não têm `passages`/`passageIds`.
+// Completa o formato na leitura pra tela não precisar checar `undefined`.
+function normalizeSimulado(value: unknown): Simulado {
+  const raw = value as Partial<Simulado>
+  return {
+    releaseDate: '',
+    releaseTime: '',
+    passages: [],
+    ...raw,
+    questions: (raw.questions ?? []).map(
+      (q) => ({ passageIds: [], ...(q as Partial<SimuladoQuestion>) }) as SimuladoQuestion,
+    ),
+  } as Simulado
+}
 
 export type SimuladoAttempt = {
   id: string
@@ -61,81 +91,9 @@ function studentDisplayName(user: unknown) {
   return u?.name || u?.user_metadata?.full_name || u?.userMetadata?.full_name || 'Aluno'
 }
 
-// --- Parsing: transforma texto colado em questões estruturadas -----------
-//
-// Formato esperado para as questões (cada uma começando numa nova linha):
-//   1) Enunciado da questão, pode ocupar mais de uma linha...
-//   a) alternativa A
-//   b) alternativa B
-//   c) alternativa C
-//   d) alternativa D
-//   e) alternativa E
-//
-// Formato esperado para o gabarito (bem flexível): "1) C", "1 - C", "1: C",
-// "1C", tudo numa linha ou separado por vírgula — o sistema procura pares
-// número+letra em qualquer um desses formatos.
-
-const QUESTION_START = /^\s*(\d{1,3})[.)\-–]\s*(.*)$/
-const OPTION_START = /^\s*([A-Ea-e])[.)\-–]\s*(.*)$/
-
-export function parseQuestionsText(raw: string): SimuladoQuestion[] {
-  const lines = raw.replace(/\r\n/g, '\n').split('\n')
-
-  type Block = { number: number; lines: string[] }
-  const blocks: Block[] = []
-  for (const line of lines) {
-    const match = line.match(QUESTION_START)
-    if (match) {
-      blocks.push({ number: Number(match[1]), lines: [match[2]] })
-    } else if (blocks.length > 0) {
-      blocks[blocks.length - 1].lines.push(line)
-    }
-  }
-
-  const questions: SimuladoQuestion[] = []
-  for (const block of blocks) {
-    const statementLines: string[] = []
-    const options: SimuladoOption[] = []
-    let current: SimuladoOption | null = null
-
-    for (const line of block.lines) {
-      const optionMatch = line.match(OPTION_START)
-      if (optionMatch) {
-        current = { letter: optionMatch[1].toUpperCase(), text: optionMatch[2].trim() }
-        options.push(current)
-      } else if (current) {
-        const extra = line.trim()
-        if (extra) current.text = `${current.text} ${extra}`.trim()
-      } else {
-        statementLines.push(line)
-      }
-    }
-
-    const statement = statementLines.join(' ').replace(/\s+/g, ' ').trim()
-    if (!statement || options.length < 2) continue // bloco sem enunciado ou sem alternativas suficientes: ignora
-
-    questions.push({
-      id: `q${block.number}`,
-      number: block.number,
-      statement,
-      options,
-      correctLetter: null,
-    })
-  }
-
-  questions.sort((a, b) => a.number - b.number)
-  return questions
-}
-
-export function parseGabaritoText(raw: string): Map<number, string> {
-  const map = new Map<number, string>()
-  const pattern = /(\d{1,3})\s*[.)\-:–]?\s*([A-Ea-e])\b/g
-  let match: RegExpExecArray | null
-  while ((match = pattern.exec(raw))) {
-    map.set(Number(match[1]), match[2].toUpperCase())
-  }
-  return map
-}
+// A leitura do texto colado (textos-base + questões) e a do gabarito moram em
+// src/lib/simulado-parser.ts — módulo puro, usado aqui na hora de publicar e
+// também no navegador, pra mostrar a conferência antes de publicar.
 
 // --------------------------------------------------------------------------
 
@@ -153,20 +111,22 @@ export const createSimulado = createServerFn({ method: 'POST' })
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    const questions = parseQuestionsText(data.questionsText)
-    if (questions.length === 0) {
-      throw new Error('Não consegui reconhecer nenhuma questão nesse texto. Confira o formato (1) enunciado, a) b) c)...).')
+    const parsed = parseActivityText(data.questionsText)
+    if (parsed.questions.length === 0) {
+      // A mensagem específica do parser diz o que deu errado (formato do
+      // número, alternativa faltando, etc.) — melhor que um texto genérico.
+      const motivo = parsed.issues.find((i) => i.level === 'erro')?.message
+      throw new Error(motivo ?? 'Não consegui reconhecer nenhuma questão nesse texto.')
     }
 
     const gabarito = parseGabaritoText(data.gabaritoText)
     let matched = 0
-    for (const question of questions) {
+    const questions: SimuladoQuestion[] = parsed.questions.map((question) => {
       const letter = gabarito.get(question.number)
-      if (letter && question.options.some((o) => o.letter === letter)) {
-        question.correctLetter = letter
-        matched++
-      }
-    }
+      const correctLetter = letter && question.options.some((o) => o.letter === letter) ? letter : null
+      if (correctLetter) matched++
+      return { ...question, correctLetter }
+    })
 
     const store = simuladosStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -176,10 +136,17 @@ export const createSimulado = createServerFn({ method: 'POST' })
       createdAt: new Date().toISOString(),
       releaseDate: data.releaseDate,
       releaseTime: data.releaseTime,
+      passages: parsed.passages,
       questions,
     }
     await store.setJSON(id, simulado)
-    return { simulado, questionsFound: questions.length, answersMatched: matched }
+    return {
+      simulado,
+      questionsFound: questions.length,
+      passagesFound: parsed.passages.length,
+      answersMatched: matched,
+      issues: parsed.issues,
+    }
   })
 
 export const deleteSimulado = createServerFn({ method: 'POST' })
@@ -199,9 +166,10 @@ export const updateSimuladoRelease = createServerFn({ method: 'POST' })
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
     const store = simuladosStore()
-    const existing = (await store.get(data.id, { type: 'json' })) as Simulado | null
-    if (!existing) throw new Error('Esse conjunto não existe mais. Atualize a página.')
+    const stored = await store.get(data.id, { type: 'json' })
+    if (!stored) throw new Error('Esse conjunto não existe mais. Atualize a página.')
 
+    const existing = normalizeSimulado(stored)
     const updated: Simulado = { ...existing, releaseDate: data.releaseDate, releaseTime: data.releaseTime }
     await store.setJSON(data.id, updated)
     return updated
@@ -216,8 +184,7 @@ export const listAllSimulados = createServerFn({ method: 'GET' }).handler(async 
   const simulados: Simulado[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    // Conjuntos antigos não têm `releaseDate`/`releaseTime` — completa o formato.
-    if (value) simulados.push({ releaseDate: '', releaseTime: '', ...(value as Partial<Simulado>) } as Simulado)
+    if (value) simulados.push(normalizeSimulado(value))
   }
   simulados.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   return simulados
@@ -251,14 +218,16 @@ export const getSimuladoToTake = createServerFn({ method: 'GET' })
       throw new Error('Acesso negado.')
     }
 
-    const simulado = await simuladosStore().get(data.id, { type: 'json' }) as Simulado | null
-    if (!simulado) throw new Error('Simulado não encontrado.')
+    const stored = await simuladosStore().get(data.id, { type: 'json' })
+    if (!stored) throw new Error('Simulado não encontrado.')
+    const simulado = normalizeSimulado(stored)
     if (!isReleased(simulado) && !isStaff(user)) throw new Error('Esse conjunto ainda não foi liberado.')
 
     const forStudent: SimuladoForStudent = {
       id: simulado.id,
       title: simulado.title,
       createdAt: simulado.createdAt,
+      passages: simulado.passages,
       questions: simulado.questions.map(({ correctLetter: _omit, ...rest }) => rest),
     }
     return forStudent

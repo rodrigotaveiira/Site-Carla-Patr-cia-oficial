@@ -1142,6 +1142,12 @@ footer .brand b { color: white; }
 .calendar-cell.has-simulado.is-today .calendar-day { color: #8a6d1f; }
 .calendar-cell-star { position: absolute; top: 4px; right: 4px; color: var(--gold); fill: var(--gold); }
 
+/* Texto-base das atividades (Questões para treino): parágrafos, citações e
+   fonte precisam sair como foram colados, daí o pre-wrap. */
+.texto-base { padding: 18px 20px; background: var(--cream); border: 1px solid var(--line); border-radius: 10px; }
+.texto-base-label { margin-bottom: 8px; color: #8a6d1f; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.texto-base-corpo { color: var(--navy); font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: break-word; }
+
 /* Formulário da aba de admin do calendário. */
 .calendar-admin-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
 .calendar-admin-wide { grid-column: 1 / -1; }
