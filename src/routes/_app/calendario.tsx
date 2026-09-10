@@ -28,13 +28,16 @@ export const Route = createFileRoute('/_app/calendario')({
 })
 
 // As mentorias entram na agenda junto com os eventos cadastrados pela Carla,
-// então os dois viram o mesmo formato antes de ir pra tela.
-type AgendaKind = CalendarEventType | 'mentoria' | 'mentoria-grupo'
+// então os dois viram o mesmo formato antes de ir pra tela. 'correcao' é a aula
+// de correção de um simulado — nasce dentro do evento de simulado, mas vira um
+// item próprio aqui (pode cair em outro dia).
+type AgendaKind = CalendarEventType | 'mentoria' | 'mentoria-grupo' | 'correcao'
 
 type AgendaItem = {
   id: string
   date: string
   time: string
+  endTime: string
   kind: AgendaKind
   title: string
   link: string
@@ -44,11 +47,13 @@ const KIND_LABELS: Record<AgendaKind, string> = {
   ...CALENDAR_EVENT_LABELS,
   mentoria: 'Mentoria individual',
   'mentoria-grupo': 'Mentoria em grupo',
+  correcao: 'Correção de simulado',
 }
 
-// Simulado e simuladão ganham destaque próprio na grade (estrela + dia dourado),
-// além da cor do pontinho — é a data que o aluno mais precisa não perder.
-const SIMULADO_KINDS = new Set<AgendaKind>(['simulado', 'simuladao'])
+// Simulado, simuladão e a correção deles ganham destaque próprio na grade
+// (estrela + dia dourado), além da cor do pontinho — é a data que o aluno mais
+// precisa não perder.
+const SIMULADO_KINDS = new Set<AgendaKind>(['simulado', 'simuladao', 'correcao'])
 
 // Uma cor por tipo, pro aluno bater o olho no mês e entender sem ler.
 const KIND_COLORS: Record<AgendaKind, string> = {
@@ -56,6 +61,7 @@ const KIND_COLORS: Record<AgendaKind, string> = {
   aula: '#0f2d52',
   simulado: '#c8a24d',
   simuladao: '#b45309',
+  correcao: '#a16207',
   outro: '#667085',
   mentoria: '#0e7490',
   'mentoria-grupo': '#15803d',
@@ -122,10 +128,23 @@ function CalendarioPage() {
               id: `evento-${event.id}`,
               date: event.date,
               time: event.time,
+              endTime: event.endTime ?? '',
               kind: event.type,
               title: event.title,
               link: event.link,
             })
+            // A correção do simulado vira um item próprio — pode ser outro dia.
+            if (event.correction) {
+              merged.push({
+                id: `correcao-${event.id}`,
+                date: event.correction.date,
+                time: event.correction.time,
+                endTime: event.correction.endTime,
+                kind: 'correcao',
+                title: event.correction.description.trim() || `Correção — ${event.title}`,
+                link: event.correction.link,
+              })
+            }
           }
         }
 
@@ -137,6 +156,7 @@ function CalendarioPage() {
               id: `mentoria-${slot.id}`,
               date: slot.date,
               time: slot.time,
+              endTime: '',
               kind: 'mentoria',
               title: `Mentoria individual com a Carla · ${slot.duration} min`,
               link: '',
@@ -151,6 +171,7 @@ function CalendarioPage() {
               id: `grupo-${slot.id}`,
               date: slot.date,
               time: slot.time,
+              endTime: '',
               kind: 'mentoria-grupo',
               title: `Mentoria em grupo · ${slot.duration} min`,
               link: '',
@@ -310,7 +331,7 @@ function CalendarioPage() {
                       </div>
                       <div className="list-meta">
                         {KIND_LABELS[item.kind]}
-                        {item.time && ` · ${formatarHora(item.time)}`}
+                        {item.time && ` · ${formatarHora(item.time)}${item.endTime ? ` às ${formatarHora(item.endTime)}` : ''}`}
                       </div>
                     </div>
                   </div>

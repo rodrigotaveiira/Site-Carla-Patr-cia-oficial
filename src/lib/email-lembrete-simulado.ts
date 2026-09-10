@@ -51,8 +51,9 @@ function moldura(conteudo: string, tituloCabecalho: string) {
 }
 
 /**
- * Lembrete de simulado pro aluno. `tipo` já vem no rótulo de exibição
- * ('Simulado' ou 'Simuladão'); `hora` pode vir vazia (evento sem horário).
+ * Lembrete de simulado (ou da correção dele) pro aluno. `tipo` já vem no rótulo
+ * de exibição ('Simulado' ou 'Simuladão'); `hora` pode vir vazia (sem horário);
+ * `link` opcional entra como botão extra (Zoom da correção, p.ex.).
  */
 export function montarEmailLembreteSimulado(params: {
   nomeAluno: string
@@ -61,24 +62,37 @@ export function montarEmailLembreteSimulado(params: {
   data: string
   hora: string
   fase: FaseLembreteSimulado
+  contexto?: 'prova' | 'correcao'
+  link?: string
 }) {
-  const { nomeAluno, tipo, titulo, data, hora, fase } = params
+  const { nomeAluno, tipo, titulo, data, hora, fase, contexto = 'prova', link } = params
   const primeiroNome = nomeAluno.trim().split(/\s+/)[0] || 'Aluno(a)'
   const dataLonga = formatarDataLonga(data)
   const tipoBaixo = tipo.toLowerCase()
-  const link = `${SITE_URL}/calendario`
+  const ehCorrecao = contexto === 'correcao'
+  const linkCalendario = `${SITE_URL}/calendario`
+
+  // "seu simulado" / "a correção do seu simulado"
+  const evento = ehCorrecao ? `a correção do seu ${tipoBaixo}` : `seu ${tipoBaixo}`
+  const eventoCap = ehCorrecao ? `Correção do ${tipo}` : tipo
+  const kicker = ehCorrecao ? `Correção · ${tipo}` : tipo
 
   const quando = fase === 'vespera'
     ? `é amanhã${hora ? `, às ${formatarHora(hora)}` : ''}`
     : `começa em cerca de 30 minutos${hora ? ` (${formatarHora(hora)})` : ''}`
 
   const assunto = fase === 'vespera'
-    ? `Amanhã tem ${tipoBaixo}: ${titulo}`
-    : `${tipo} em ~30 min: ${titulo}`
+    ? `Amanhã: ${eventoCap} — ${titulo}`
+    : `${eventoCap} em ~30 min: ${titulo}`
 
-  const chamada = fase === 'vespera'
-    ? `Passando pra lembrar: seu ${tipoBaixo} ${quando}. Organize seu tempo e o material que precisar levar.`
-    : `Seu ${tipoBaixo} ${quando}. Prepare-se e fique de olho no horário.`
+  const preparo = ehCorrecao
+    ? 'Deixe suas dúvidas anotadas pra aproveitar.'
+    : (fase === 'vespera' ? 'Organize seu tempo e o material que precisar levar.' : 'Prepare-se e fique de olho no horário.')
+  const chamada = `${fase === 'vespera' ? 'Passando pra lembrar: ' : ''}${evento.charAt(0).toUpperCase()}${evento.slice(1)} ${quando}. ${preparo}`
+
+  const botaoLink = link
+    ? `<a href="${escapar(link)}" style="display:inline-block;margin-right:10px;padding:12px 22px;background:${ROXO};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">${ehCorrecao ? 'Entrar na correção' : 'Abrir link'}</a>`
+    : ''
 
   const html = moldura(
     `<p style="margin:0 0 16px;color:${NAVY};font-size:15px;line-height:1.6;">
@@ -86,15 +100,15 @@ export function montarEmailLembreteSimulado(params: {
      </p>
      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
        <tr><td style="padding:16px 18px;">
-         <div style="color:${DOURADO};font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;">${escapar(tipo)}</div>
+         <div style="color:${DOURADO};font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;">${escapar(kicker)}</div>
          <div style="margin-top:6px;color:${NAVY};font-size:16px;font-weight:700;">${escapar(titulo)}</div>
          <div style="margin-top:4px;color:${ROXO};font-size:15px;font-weight:700;">${escapar(dataLonga)}${hora ? ` · ${escapar(formatarHora(hora))}` : ''}</div>
        </td></tr>
      </table>
      <p style="margin:22px 0 0;">
-       <a href="${link}" style="display:inline-block;padding:12px 22px;background:${ROXO};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">Ver no calendário</a>
+       ${botaoLink}<a href="${linkCalendario}" style="display:inline-block;padding:12px 22px;background:${link ? '#ffffff' : ROXO};color:${link ? ROXO : '#ffffff'};border:1px solid ${ROXO};font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">Ver no calendário</a>
      </p>`,
-    fase === 'vespera' ? `Amanhã tem ${tipo.toLowerCase()}` : `${tipo} começando`,
+    fase === 'vespera' ? `Amanhã: ${eventoCap.toLowerCase()}` : `${eventoCap} começando`,
   )
 
   const texto = [
@@ -102,10 +116,11 @@ export function montarEmailLembreteSimulado(params: {
     '',
     chamada,
     '',
-    `${tipo}: ${titulo}`,
+    `${eventoCap}: ${titulo}`,
     `${dataLonga}${hora ? ` às ${formatarHora(hora)}` : ''}`,
+    ...(link ? ['', `Link: ${link}`] : []),
     '',
-    `Ver no calendário: ${link}`,
+    `Ver no calendário: ${linkCalendario}`,
   ].join('\n')
 
   return { assunto, html, texto }

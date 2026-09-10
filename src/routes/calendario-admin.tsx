@@ -31,7 +31,26 @@ export const Route = createFileRoute('/calendario-admin')({
   component: CalendarioAdminPage,
 })
 
-const EMPTY_FORM = { date: '', time: '', type: 'aula-ao-vivo' as CalendarEventType, title: '', link: '' }
+const EMPTY_CORRECTION = { date: '', time: '', endTime: '', link: '', description: '' }
+const EMPTY_FORM = {
+  date: '',
+  time: '',
+  endTime: '',
+  type: 'aula-ao-vivo' as CalendarEventType,
+  title: '',
+  link: '',
+  correction: EMPTY_CORRECTION,
+}
+
+function isSimuladoType(type: CalendarEventType) {
+  return type === 'simulado' || type === 'simuladao'
+}
+
+// "18h" / "18h30 às 20h" — resumo de horário pra lista da agenda.
+function resumoHorario(time: string, endTime: string) {
+  if (!time) return ''
+  return endTime ? `${formatarHora(time)} às ${formatarHora(endTime)}` : formatarHora(time)
+}
 
 function CalendarioAdminPage() {
   const showToast = useToast()
@@ -42,6 +61,8 @@ function CalendarioAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+
+  const isSimulado = isSimuladoType(form.type)
 
   async function load() {
     setLoading(true)
@@ -64,6 +85,10 @@ function CalendarioAdminPage() {
     setError('')
   }
 
+  function setCorrection(patch: Partial<typeof EMPTY_CORRECTION>) {
+    setForm((current) => ({ ...current, correction: { ...current.correction, ...patch } }))
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
@@ -74,6 +99,19 @@ function CalendarioAdminPage() {
     }
     if (!form.date) {
       setError('Escolha a data.')
+      return
+    }
+    if (isSimulado && form.time && form.endTime && form.endTime <= form.time) {
+      setError('O término da prova precisa ser depois do início.')
+      return
+    }
+    const c = form.correction
+    if (isSimulado && (c.time || c.endTime || c.link || c.description) && !c.date) {
+      setError('Escolha a data da correção (ou limpe os campos da correção).')
+      return
+    }
+    if (isSimulado && c.date && c.time && c.endTime && c.endTime <= c.time) {
+      setError('O término da correção precisa ser depois do início.')
       return
     }
 
@@ -97,7 +135,15 @@ function CalendarioAdminPage() {
 
   function handleEdit(event: CalendarEvent) {
     setEditingId(event.id)
-    setForm({ date: event.date, time: event.time, type: event.type, title: event.title, link: event.link })
+    setForm({
+      date: event.date,
+      time: event.time,
+      endTime: event.endTime ?? '',
+      type: event.type,
+      title: event.title,
+      link: event.link,
+      correction: event.correction ?? { ...EMPTY_CORRECTION },
+    })
     setError('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -123,8 +169,8 @@ function CalendarioAdminPage() {
       </p>
       <p className="panel-subtitle">
         <strong>Simulado</strong> e <strong>Simuladão</strong> ganham destaque no calendário do aluno e disparam
-        lembrete por e-mail automaticamente: um às 18h da véspera e outro 30 minutos antes. Para o lembrete de 30
-        minutos sair, preencha o horário.
+        lembrete por e-mail automaticamente — na véspera às 18h e 30 minutos antes. A correção do simulado, quando
+        cadastrada, entra na agenda e manda os mesmos lembretes.
       </p>
 
       <form onSubmit={handleSubmit} className="calendar-admin-form">
@@ -139,19 +185,33 @@ function CalendarioAdminPage() {
         </div>
 
         <div className="field">
-          <label htmlFor="evento-hora">Horário <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+          <label htmlFor="evento-hora">
+            {isSimulado ? 'Início da prova' : 'Horário'} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span>
+          </label>
           <input
             id="evento-hora"
             type="time"
             value={form.time}
             onChange={(event) => setForm({ ...form, time: event.target.value })}
           />
-          {(form.type === 'simulado' || form.type === 'simuladao') && !form.time && (
+          {isSimulado && !form.time && (
             <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
               Sem horário, o aluno só recebe o lembrete da véspera (18h). Preencha para enviar também o de 30 min antes.
             </p>
           )}
         </div>
+
+        {isSimulado ? (
+          <div className="field">
+            <label htmlFor="evento-fim">Término da prova <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+            <input
+              id="evento-fim"
+              type="time"
+              value={form.endTime}
+              onChange={(event) => setForm({ ...form, endTime: event.target.value })}
+            />
+          </div>
+        ) : null}
 
         <div className="field">
           <label htmlFor="evento-tipo">Tipo</label>
@@ -188,6 +248,65 @@ function CalendarioAdminPage() {
           />
         </div>
 
+        {isSimulado ? (
+          <fieldset className="calendar-admin-wide calendar-admin-fieldset">
+            <legend>Correção do simulado <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></legend>
+            <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '0 0 12px' }}>
+              Preencha se houver uma aula de correção. Ela aparece como um item próprio na agenda do aluno e recebe os
+              mesmos lembretes (véspera às 18h e 30 min antes).
+            </p>
+            <div className="calendar-admin-form" style={{ margin: 0 }}>
+              <div className="field">
+                <label htmlFor="correcao-data">Data da correção</label>
+                <input
+                  id="correcao-data"
+                  type="date"
+                  value={form.correction.date}
+                  onChange={(event) => setCorrection({ date: event.target.value })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="correcao-inicio">Início</label>
+                <input
+                  id="correcao-inicio"
+                  type="time"
+                  value={form.correction.time}
+                  onChange={(event) => setCorrection({ time: event.target.value })}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="correcao-fim">Término</label>
+                <input
+                  id="correcao-fim"
+                  type="time"
+                  value={form.correction.endTime}
+                  onChange={(event) => setCorrection({ endTime: event.target.value })}
+                />
+              </div>
+              <div className="field calendar-admin-wide">
+                <label htmlFor="correcao-link">Link da correção <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional — Zoom)</span></label>
+                <input
+                  id="correcao-link"
+                  type="url"
+                  value={form.correction.link}
+                  onChange={(event) => setCorrection({ link: event.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="field calendar-admin-wide">
+                <label htmlFor="correcao-descricao">Descrição <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+                <textarea
+                  id="correcao-descricao"
+                  rows={2}
+                  value={form.correction.description}
+                  onChange={(event) => setCorrection({ description: event.target.value })}
+                  placeholder="Ex.: Correção ao vivo da prova de linguagens e da redação."
+                />
+              </div>
+            </div>
+          </fieldset>
+        ) : null}
+
         <div className="calendar-admin-actions">
           <button type="submit" disabled={saving} className="btn btn-primary">
             {saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Adicionar à agenda'}
@@ -204,21 +323,30 @@ function CalendarioAdminPage() {
         {loading && <p className="panel-subtitle">Carregando...</p>}
 
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-          {events.map((event) => (
-            <div key={event.id} className="list-row">
-              <div>
-                <div className="list-title">{event.title}</div>
-                <div className="list-meta">
-                  {CALENDAR_EVENT_LABELS[event.type]} · {event.date}
-                  {event.time && ` às ${formatarHora(event.time)}`}
+          {events.map((event) => {
+            const horario = resumoHorario(event.time, event.endTime ?? '')
+            return (
+              <div key={event.id} className="list-row">
+                <div>
+                  <div className="list-title">{event.title}</div>
+                  <div className="list-meta">
+                    {CALENDAR_EVENT_LABELS[event.type]} · {event.date}
+                    {horario && ` · ${horario}`}
+                  </div>
+                  {event.correction && (
+                    <div className="list-meta" style={{ marginTop: 2 }}>
+                      Correção · {event.correction.date}
+                      {event.correction.time && ` · ${resumoHorario(event.correction.time, event.correction.endTime)}`}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => handleEdit(event)} className="btn btn-ghost btn-sm">Editar</button>
+                  <button onClick={() => handleDelete(event.id)} className="btn btn-danger btn-sm">Excluir</button>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => handleEdit(event)} className="btn btn-ghost btn-sm">Editar</button>
-                <button onClick={() => handleDelete(event.id)} className="btn btn-danger btn-sm">Excluir</button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
           {!loading && events.length === 0 && (
             <p className="empty-state">Nenhum evento na agenda ainda.</p>
           )}

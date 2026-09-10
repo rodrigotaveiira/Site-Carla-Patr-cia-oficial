@@ -1146,6 +1146,9 @@ footer .brand b { color: white; }
 .calendar-admin-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
 .calendar-admin-wide { grid-column: 1 / -1; }
 .calendar-admin-actions { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+/* Bloco da "correção do simulado" dentro do formulário. */
+.calendar-admin-fieldset { margin: 4px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); }
+.calendar-admin-fieldset > legend { padding: 0 8px; color: var(--navy); font-size: 13px; font-weight: 700; }
 
 @media (max-width: 620px) {
   .calendar-cell { min-height: 50px; padding: 6px 2px 5px; }
