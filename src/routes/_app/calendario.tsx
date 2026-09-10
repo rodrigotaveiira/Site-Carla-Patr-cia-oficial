@@ -1,12 +1,17 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Star } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, Download, ExternalLink, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { CALENDAR_EVENT_LABELS, listCalendarEvents, type CalendarEvent, type CalendarEventType } from '@/lib/calendario'
+import {
+  CALENDAR_EVENT_LABELS, getSimuladoGabaritoFile, getSimuladoProvaFile, listCalendarEvents,
+  type CalendarEvent, type CalendarEventType,
+} from '@/lib/calendario'
 import { listMentoriaSlots } from '@/lib/mentorias'
 import { listMentoriaGrupoSlots } from '@/lib/mentorias-grupo'
+import { instanteInicioDoDiaSimulado, instanteInicioSimulado } from '@/lib/lembrete-simulado-horario'
+import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { formatarHora } from '@/lib/formato'
 
@@ -41,6 +46,10 @@ type AgendaItem = {
   kind: AgendaKind
   title: string
   link: string
+  // Só no item do simulado: id do evento e nomes dos PDFs anexados ('' = não tem).
+  eventId: string
+  provaFileName: string
+  gabaritoFileName: string
 }
 
 const KIND_LABELS: Record<AgendaKind, string> = {
@@ -97,6 +106,31 @@ function CalendarioPage() {
   const [items, setItems] = useState<AgendaItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [baixando, setBaixando] = useState<string | null>(null)
+
+  // Prova e gabarito só ficam disponíveis a partir do horário do simulado (ou da
+  // meia-noite do dia, quando não tem horário) — a equipe baixa sempre.
+  const equipe = isStaff(user)
+  function podeBaixarArquivos(item: AgendaItem) {
+    if (!item.eventId || !SIMULADO_KINDS.has(item.kind) || item.kind === 'correcao') return false
+    if (equipe) return true
+    const inicio = item.time ? instanteInicioSimulado(item.date, item.time) : instanteInicioDoDiaSimulado(item.date)
+    return Date.now() >= inicio
+  }
+
+  async function handleBaixarArquivo(eventId: string, kind: 'prova' | 'gabarito') {
+    setBaixando(`${eventId}-${kind}`)
+    setError('')
+    try {
+      const fetcher = kind === 'prova' ? getSimuladoProvaFile : getSimuladoGabaritoFile
+      const { fileName, fileDataUrl } = await fetcher({ data: { id: eventId } })
+      downloadDataUrl(fileName, fileDataUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível baixar o arquivo.')
+    } finally {
+      setBaixando(null)
+    }
+  }
 
   const today = new Date()
   const todayKey = toDateKey(today)
@@ -132,6 +166,9 @@ function CalendarioPage() {
               kind: event.type,
               title: event.title,
               link: event.link,
+              eventId: event.id,
+              provaFileName: event.provaFileName ?? '',
+              gabaritoFileName: event.gabaritoFileName ?? '',
             })
             // A correção do simulado vira um item próprio — pode ser outro dia.
             if (event.correction) {
@@ -143,6 +180,9 @@ function CalendarioPage() {
                 kind: 'correcao',
                 title: event.correction.description.trim() || `Correção — ${event.title}`,
                 link: event.correction.link,
+                eventId: event.id,
+                provaFileName: '',
+                gabaritoFileName: '',
               })
             }
           }
@@ -160,6 +200,9 @@ function CalendarioPage() {
               kind: 'mentoria',
               title: `Mentoria individual com a Carla · ${slot.duration} min`,
               link: '',
+              eventId: '',
+              provaFileName: '',
+              gabaritoFileName: '',
             })
           }
         }
@@ -175,6 +218,9 @@ function CalendarioPage() {
               kind: 'mentoria-grupo',
               title: `Mentoria em grupo · ${slot.duration} min`,
               link: '',
+              eventId: '',
+              provaFileName: '',
+              gabaritoFileName: '',
             })
           }
         }
@@ -316,32 +362,57 @@ function CalendarioPage() {
             )}
 
             <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-              {selectedItems.map((item) => (
-                <div key={item.id} className="list-row">
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                    <span className="calendar-item-bar" style={{ background: KIND_COLORS[item.kind] }} />
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <span className="list-title">{item.title}</span>
-                        {SIMULADO_KINDS.has(item.kind) && (
-                          <span className="badge" style={{ color: '#8a6d1f', background: '#faf1d9' }}>
-                            <Star size={11} aria-hidden="true" /> {KIND_LABELS[item.kind]}
-                          </span>
-                        )}
-                      </div>
-                      <div className="list-meta">
-                        {KIND_LABELS[item.kind]}
-                        {item.time && ` · ${formatarHora(item.time)}${item.endTime ? ` às ${formatarHora(item.endTime)}` : ''}`}
+              {selectedItems.map((item) => {
+                const arquivosLiberados = podeBaixarArquivos(item)
+                const temProva = !!item.provaFileName && arquivosLiberados
+                const temGabarito = !!item.gabaritoFileName && arquivosLiberados
+                return (
+                  <div key={item.id} className="list-row">
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                      <span className="calendar-item-bar" style={{ background: KIND_COLORS[item.kind] }} />
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                          <span className="list-title">{item.title}</span>
+                          {SIMULADO_KINDS.has(item.kind) && (
+                            <span className="badge" style={{ color: '#8a6d1f', background: '#faf1d9' }}>
+                              <Star size={11} aria-hidden="true" /> {KIND_LABELS[item.kind]}
+                            </span>
+                          )}
+                        </div>
+                        <div className="list-meta">
+                          {KIND_LABELS[item.kind]}
+                          {item.time && ` · ${formatarHora(item.time)}${item.endTime ? ` às ${formatarHora(item.endTime)}` : ''}`}
+                        </div>
                       </div>
                     </div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {temProva && (
+                        <button
+                          onClick={() => void handleBaixarArquivo(item.eventId, 'prova')}
+                          disabled={baixando === `${item.eventId}-prova`}
+                          className="btn btn-ghost btn-sm"
+                        >
+                          <Download size={13} /> {baixando === `${item.eventId}-prova` ? 'Baixando...' : 'Prova'}
+                        </button>
+                      )}
+                      {temGabarito && (
+                        <button
+                          onClick={() => void handleBaixarArquivo(item.eventId, 'gabarito')}
+                          disabled={baixando === `${item.eventId}-gabarito`}
+                          className="btn btn-ghost btn-sm"
+                        >
+                          <Download size={13} /> {baixando === `${item.eventId}-gabarito` ? 'Baixando...' : 'Gabarito'}
+                        </button>
+                      )}
+                      {item.link && (
+                        <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
+                          Abrir <ExternalLink size={13} />
+                        </a>
+                      )}
+                    </div>
                   </div>
-                  {item.link && (
-                    <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">
-                      Abrir <ExternalLink size={13} />
-                    </a>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           </section>
         </>
