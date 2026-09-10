@@ -4,6 +4,8 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { CONTENT_SECTIONS, type ContentSection } from './content-library'
 import { releaseInstantMs } from './materials'
+import { formatarHora } from './formato'
+import { instanteInicioDoDiaSimulado, instanteInicioSimulado, instanteLembreteVespera } from './lembrete-simulado-horario'
 
 export type ContentNotification = {
   id: string
@@ -144,6 +146,40 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
     }
   } catch (error) {
     console.error('Aviso: falha ao listar recados para o sino de avisos:', error)
+  }
+
+  // Simulado/simuladão chegando: entra no sino a partir das 18h da véspera
+  // (mesmo instante do primeiro lembrete por e-mail) e some quando o simulado
+  // começa. A data do aviso é esse instante de véspera — fixo e no passado
+  // depois de disparado, então o ponto do sino se comporta como nos demais.
+  try {
+    const store = getStore({ name: 'calendar-events', consistency: 'strong' })
+    const { blobs } = await store.list()
+    for (const blob of blobs) {
+      try {
+        const value = (await store.get(blob.key, { type: 'json' })) as
+          | { type: string; title: string; date: string; time: string }
+          | null
+        if (!value || (value.type !== 'simulado' && value.type !== 'simuladao')) continue
+
+        const inicioMs = instanteInicioSimulado(value.date, value.time)
+        const avisoDesdeMs = instanteLembreteVespera(value.date)
+        if (now < avisoDesdeMs || now >= inicioMs) continue
+
+        const rotulo = value.type === 'simuladao' ? 'Simuladão' : 'Simulado'
+        const quando = now >= instanteInicioDoDiaSimulado(value.date) ? 'hoje' : 'amanhã'
+        const hora = value.time ? ` às ${formatarHora(value.time)}` : ''
+        notifications.push({
+          id: `simulado-proximo-${blob.key}`,
+          text: `${rotulo} ${quando}${hora}: "${value.title}"`,
+          date: new Date(avisoDesdeMs).toISOString(),
+        })
+      } catch (error) {
+        console.error(`Aviso: falha ao ler evento "${blob.key}" para o sino de avisos:`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Aviso: falha ao listar a agenda para o sino de avisos:', error)
   }
 
   notifications.sort((a, b) => b.date.localeCompare(a.date))

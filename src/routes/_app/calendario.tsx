@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -45,6 +45,10 @@ const KIND_LABELS: Record<AgendaKind, string> = {
   mentoria: 'Mentoria individual',
   'mentoria-grupo': 'Mentoria em grupo',
 }
+
+// Simulado e simuladão ganham destaque próprio na grade (estrela + dia dourado),
+// além da cor do pontinho — é a data que o aluno mais precisa não perder.
+const SIMULADO_KINDS = new Set<AgendaKind>(['simulado', 'simuladao'])
 
 // Uma cor por tipo, pro aluno bater o olho no mês e entender sem ler.
 const KIND_COLORS: Record<AgendaKind, string> = {
@@ -240,10 +244,12 @@ function CalendarioPage() {
               if (!key) return <div key={`vazio-${index}`} className="calendar-cell is-empty" />
 
               const dayItems = byDate.get(key) ?? []
+              const hasSimulado = dayItems.some((item) => SIMULADO_KINDS.has(item.kind))
               const classes = ['calendar-cell']
               if (key === todayKey) classes.push('is-today')
               if (key === selected) classes.push('is-selected')
               if (dayItems.length > 0) classes.push('has-items')
+              if (hasSimulado) classes.push('has-simulado')
 
               return (
                 <button
@@ -252,8 +258,9 @@ function CalendarioPage() {
                   className={classes.join(' ')}
                   onClick={() => setSelected(key)}
                   aria-pressed={key === selected}
-                  aria-label={`${formatLongDate(key)}${dayItems.length ? ` — ${dayItems.length} evento(s)` : ''}`}
+                  aria-label={`${formatLongDate(key)}${hasSimulado ? ' — dia de simulado' : ''}${dayItems.length ? ` — ${dayItems.length} evento(s)` : ''}`}
                 >
+                  {hasSimulado && <Star className="calendar-cell-star" size={11} aria-hidden="true" />}
                   <span className="calendar-day">{Number(key.slice(8))}</span>
                   <span className="calendar-dots">
                     {dayItems.slice(0, 4).map((item) => (
@@ -293,7 +300,14 @@ function CalendarioPage() {
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <span className="calendar-item-bar" style={{ background: KIND_COLORS[item.kind] }} />
                     <div>
-                      <div className="list-title">{item.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span className="list-title">{item.title}</span>
+                        {SIMULADO_KINDS.has(item.kind) && (
+                          <span className="badge" style={{ color: '#8a6d1f', background: '#faf1d9' }}>
+                            <Star size={11} aria-hidden="true" /> {KIND_LABELS[item.kind]}
+                          </span>
+                        )}
+                      </div>
                       <div className="list-meta">
                         {KIND_LABELS[item.kind]}
                         {item.time && ` · ${formatarHora(item.time)}`}

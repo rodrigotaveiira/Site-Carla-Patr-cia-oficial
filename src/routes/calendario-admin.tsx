@@ -121,6 +121,11 @@ function CalendarioAdminPage() {
         Marque aulas ao vivo, liberação de aulas gravadas, simulados e simuladões. Os alunos veem tudo isso no calendário
         deles. As mentorias entram sozinhas — continue cadastrando elas em Mentoria individual e Mentorias em grupo.
       </p>
+      <p className="panel-subtitle">
+        <strong>Simulado</strong> e <strong>Simuladão</strong> ganham destaque no calendário do aluno e disparam
+        lembrete por e-mail automaticamente: um às 18h da véspera e outro 30 minutos antes. Para o lembrete de 30
+        minutos sair, preencha o horário.
+      </p>
 
       <form onSubmit={handleSubmit} className="calendar-admin-form">
         <div className="field">
@@ -141,6 +146,11 @@ function CalendarioAdminPage() {
             value={form.time}
             onChange={(event) => setForm({ ...form, time: event.target.value })}
           />
+          {(form.type === 'simulado' || form.type === 'simuladao') && !form.time && (
+            <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
+              Sem horário, o aluno só recebe o lembrete da véspera (18h). Preencha para enviar também o de 30 min antes.
+            </p>
+          )}
         </div>
 
         <div className="field">
