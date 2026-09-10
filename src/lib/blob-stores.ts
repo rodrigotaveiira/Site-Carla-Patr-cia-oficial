@@ -10,6 +10,9 @@ export const STORES = {
   mentoriasGrupo: 'mentorias-grupo-slots',
   eventosCalendario: 'calendar-events',
   lembretesMentoria: 'mentoria-reminders',
+  // Um registro por (simulado, aluno, fase) já avisado — chave de idempotência
+  // do lembrete de simulado (ver netlify/functions/lembrete-simulado.mts).
+  lembretesSimulado: 'simulado-reminders',
   // Um registro por aluno com a mentoria individual futura que ele tem
   // marcada agora (no máximo uma) — é a chave que torna essa regra atômica
   // entre pedidos concorrentes de dois horários diferentes (ver mentorias.ts).

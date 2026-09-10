@@ -24,6 +24,12 @@ export const hhmm = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Horário inválido (use HH:MM).')
 
+/** Horário 'HH:MM' opcional — aceita string vazia (evento sem hora marcada). */
+export const optionalHhmm = z.union([hhmm, z.literal('')])
+
+/** Data 'AAAA-MM-DD' opcional — aceita string vazia. */
+export const optionalIsoDate = z.union([isoDate, z.literal('')])
+
 /** Duração de mentoria/aula em minutos — inteiro entre 5 e 480. */
 export const durationMinutes = z.coerce.number().int().min(5).max(480)
 

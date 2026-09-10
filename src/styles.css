@@ -1133,10 +1133,22 @@ footer .brand b { color: white; }
 .calendar-legend i { width: 8px; height: 8px; border-radius: 50%; }
 .calendar-item-bar { flex-shrink: 0; width: 4px; align-self: stretch; min-height: 32px; border-radius: 999px; }
 
+/* Dia com simulado/simuladão: fundo creme, número dourado e estrela no canto —
+   destaque que sobrevive mesmo quando o pontinho se perde entre outros eventos. */
+.calendar-cell.has-simulado { background: #fdf8ec; border-color: var(--gold); }
+.calendar-cell.has-simulado:not(.is-empty):hover { background: #fbf1d8; }
+.calendar-cell.has-simulado.is-selected { background: var(--lilac-tint); }
+.calendar-cell.has-simulado .calendar-day { color: #8a6d1f; font-weight: 800; }
+.calendar-cell.has-simulado.is-today .calendar-day { color: #8a6d1f; }
+.calendar-cell-star { position: absolute; top: 4px; right: 4px; color: var(--gold); fill: var(--gold); }
+
 /* Formulário da aba de admin do calendário. */
 .calendar-admin-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
 .calendar-admin-wide { grid-column: 1 / -1; }
 .calendar-admin-actions { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+/* Bloco da "correção do simulado" dentro do formulário. */
+.calendar-admin-fieldset { margin: 4px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); }
+.calendar-admin-fieldset > legend { padding: 0 8px; color: var(--navy); font-size: 13px; font-weight: 700; }
 
 @media (max-width: 620px) {
   .calendar-cell { min-height: 50px; padding: 6px 2px 5px; }

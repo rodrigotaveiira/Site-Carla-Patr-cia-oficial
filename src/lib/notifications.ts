@@ -4,6 +4,8 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { CONTENT_SECTIONS, type ContentSection } from './content-library'
 import { releaseInstantMs } from './materials'
+import { formatarHora } from './formato'
+import { instanteInicioDoDiaSimulado, instanteInicioSimulado, instanteLembreteVespera } from './lembrete-simulado-horario'
 
 export type ContentNotification = {
   id: string
@@ -144,6 +146,61 @@ export const getRecentContentNotifications = createServerFn({ method: 'GET' }).h
     }
   } catch (error) {
     console.error('Aviso: falha ao listar recados para o sino de avisos:', error)
+  }
+
+  // Simulado/simuladão (e a correção dele) chegando: entra no sino a partir das
+  // 18h da véspera (mesmo instante do primeiro lembrete por e-mail) e some
+  // quando começa. A data do aviso é esse instante de véspera — fixo e no
+  // passado depois de disparado, então o ponto do sino se comporta como nos demais.
+  try {
+    const store = getStore({ name: 'calendar-events', consistency: 'strong' })
+    const { blobs } = await store.list()
+    for (const blob of blobs) {
+      try {
+        const value = (await store.get(blob.key, { type: 'json' })) as
+          | {
+              type: string
+              title: string
+              date: string
+              time: string
+              correction?: { date: string; time: string; description: string } | null
+            }
+          | null
+        if (!value || (value.type !== 'simulado' && value.type !== 'simuladao')) continue
+
+        const rotulo = value.type === 'simuladao' ? 'Simuladão' : 'Simulado'
+        const alvos: Array<{ id: string; rotulo: string; titulo: string; date: string; time: string }> = [
+          { id: blob.key, rotulo, titulo: value.title, date: value.date, time: value.time },
+        ]
+        if (value.correction?.date) {
+          alvos.push({
+            id: `${blob.key}-correcao`,
+            rotulo: `Correção do ${rotulo.toLowerCase()}`,
+            titulo: value.correction.description?.trim() || value.title,
+            date: value.correction.date,
+            time: value.correction.time || '',
+          })
+        }
+
+        for (const alvo of alvos) {
+          const inicioMs = instanteInicioSimulado(alvo.date, alvo.time)
+          const avisoDesdeMs = instanteLembreteVespera(alvo.date)
+          if (now < avisoDesdeMs || now >= inicioMs) continue
+
+          const quando = now >= instanteInicioDoDiaSimulado(alvo.date) ? 'hoje' : 'amanhã'
+          const hora = alvo.time ? ` às ${formatarHora(alvo.time)}` : ''
+          notifications.push({
+            id: `simulado-proximo-${alvo.id}`,
+            text: `${alvo.rotulo} ${quando}${hora}: "${alvo.titulo}"`,
+            date: new Date(avisoDesdeMs).toISOString(),
+          })
+        }
+      } catch (error) {
+        console.error(`Aviso: falha ao ler evento "${blob.key}" para o sino de avisos:`, error)
+      }
+    }
+  } catch (error) {
+    console.error('Aviso: falha ao listar a agenda para o sino de avisos:', error)
   }
 
   notifications.sort((a, b) => b.date.localeCompare(a.date))

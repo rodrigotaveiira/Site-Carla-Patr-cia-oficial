@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react'
+import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -28,13 +28,16 @@ export const Route = createFileRoute('/_app/calendario')({
 })
 
 // As mentorias entram na agenda junto com os eventos cadastrados pela Carla,
-// então os dois viram o mesmo formato antes de ir pra tela.
-type AgendaKind = CalendarEventType | 'mentoria' | 'mentoria-grupo'
+// então os dois viram o mesmo formato antes de ir pra tela. 'correcao' é a aula
+// de correção de um simulado — nasce dentro do evento de simulado, mas vira um
+// item próprio aqui (pode cair em outro dia).
+type AgendaKind = CalendarEventType | 'mentoria' | 'mentoria-grupo' | 'correcao'
 
 type AgendaItem = {
   id: string
   date: string
   time: string
+  endTime: string
   kind: AgendaKind
   title: string
   link: string
@@ -44,7 +47,13 @@ const KIND_LABELS: Record<AgendaKind, string> = {
   ...CALENDAR_EVENT_LABELS,
   mentoria: 'Mentoria individual',
   'mentoria-grupo': 'Mentoria em grupo',
+  correcao: 'Correção de simulado',
 }
+
+// Simulado, simuladão e a correção deles ganham destaque próprio na grade
+// (estrela + dia dourado), além da cor do pontinho — é a data que o aluno mais
+// precisa não perder.
+const SIMULADO_KINDS = new Set<AgendaKind>(['simulado', 'simuladao', 'correcao'])
 
 // Uma cor por tipo, pro aluno bater o olho no mês e entender sem ler.
 const KIND_COLORS: Record<AgendaKind, string> = {
@@ -52,6 +61,7 @@ const KIND_COLORS: Record<AgendaKind, string> = {
   aula: '#0f2d52',
   simulado: '#c8a24d',
   simuladao: '#b45309',
+  correcao: '#a16207',
   outro: '#667085',
   mentoria: '#0e7490',
   'mentoria-grupo': '#15803d',
@@ -118,10 +128,23 @@ function CalendarioPage() {
               id: `evento-${event.id}`,
               date: event.date,
               time: event.time,
+              endTime: event.endTime ?? '',
               kind: event.type,
               title: event.title,
               link: event.link,
             })
+            // A correção do simulado vira um item próprio — pode ser outro dia.
+            if (event.correction) {
+              merged.push({
+                id: `correcao-${event.id}`,
+                date: event.correction.date,
+                time: event.correction.time,
+                endTime: event.correction.endTime,
+                kind: 'correcao',
+                title: event.correction.description.trim() || `Correção — ${event.title}`,
+                link: event.correction.link,
+              })
+            }
           }
         }
 
@@ -133,6 +156,7 @@ function CalendarioPage() {
               id: `mentoria-${slot.id}`,
               date: slot.date,
               time: slot.time,
+              endTime: '',
               kind: 'mentoria',
               title: `Mentoria individual com a Carla · ${slot.duration} min`,
               link: '',
@@ -147,6 +171,7 @@ function CalendarioPage() {
               id: `grupo-${slot.id}`,
               date: slot.date,
               time: slot.time,
+              endTime: '',
               kind: 'mentoria-grupo',
               title: `Mentoria em grupo · ${slot.duration} min`,
               link: '',
@@ -240,10 +265,12 @@ function CalendarioPage() {
               if (!key) return <div key={`vazio-${index}`} className="calendar-cell is-empty" />
 
               const dayItems = byDate.get(key) ?? []
+              const hasSimulado = dayItems.some((item) => SIMULADO_KINDS.has(item.kind))
               const classes = ['calendar-cell']
               if (key === todayKey) classes.push('is-today')
               if (key === selected) classes.push('is-selected')
               if (dayItems.length > 0) classes.push('has-items')
+              if (hasSimulado) classes.push('has-simulado')
 
               return (
                 <button
@@ -252,8 +279,9 @@ function CalendarioPage() {
                   className={classes.join(' ')}
                   onClick={() => setSelected(key)}
                   aria-pressed={key === selected}
-                  aria-label={`${formatLongDate(key)}${dayItems.length ? ` — ${dayItems.length} evento(s)` : ''}`}
+                  aria-label={`${formatLongDate(key)}${hasSimulado ? ' — dia de simulado' : ''}${dayItems.length ? ` — ${dayItems.length} evento(s)` : ''}`}
                 >
+                  {hasSimulado && <Star className="calendar-cell-star" size={11} aria-hidden="true" />}
                   <span className="calendar-day">{Number(key.slice(8))}</span>
                   <span className="calendar-dots">
                     {dayItems.slice(0, 4).map((item) => (
@@ -293,10 +321,17 @@ function CalendarioPage() {
                   <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                     <span className="calendar-item-bar" style={{ background: KIND_COLORS[item.kind] }} />
                     <div>
-                      <div className="list-title">{item.title}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span className="list-title">{item.title}</span>
+                        {SIMULADO_KINDS.has(item.kind) && (
+                          <span className="badge" style={{ color: '#8a6d1f', background: '#faf1d9' }}>
+                            <Star size={11} aria-hidden="true" /> {KIND_LABELS[item.kind]}
+                          </span>
+                        )}
+                      </div>
                       <div className="list-meta">
                         {KIND_LABELS[item.kind]}
-                        {item.time && ` · ${formatarHora(item.time)}`}
+                        {item.time && ` · ${formatarHora(item.time)}${item.endTime ? ` às ${formatarHora(item.endTime)}` : ''}`}
                       </div>
                     </div>
                   </div>

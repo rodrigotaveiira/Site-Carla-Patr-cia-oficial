@@ -4,14 +4,27 @@ import { z } from 'zod'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
-import { boundedText, hhmm, id as idSchema, isoDate } from './schemas'
+import { boundedText, id as idSchema, isoDate, optionalHhmm, optionalIsoDate } from './schemas'
+
+// A correção de um simulado é uma "sub-agenda" dentro do próprio evento: pode
+// cair em outro dia, tem seu próprio horário, link (Zoom) e descrição, e gera
+// os mesmos lembretes que o simulado. Só simulado/simuladão têm correção.
+const correctionInput = z.object({
+  date: optionalIsoDate,
+  time: optionalHhmm,
+  endTime: optionalHhmm,
+  link: z.string().trim().max(2000),
+  description: z.string().trim().max(2000),
+})
 
 const calendarEventInput = z.object({
   date: isoDate,
-  time: hhmm,
+  time: optionalHhmm,
+  endTime: optionalHhmm,
   type: z.string().trim().min(1).max(50),
   title: boundedText(300),
   link: z.string().trim().max(2000),
+  correction: correctionInput.nullable(),
 })
 
 // Eventos da agenda ficam num store próprio em vez de virarem campo de data
@@ -30,14 +43,49 @@ export const CALENDAR_EVENT_LABELS: Record<CalendarEventType, string> = {
   outro: 'Outro',
 }
 
+// Correção do simulado, quando cadastrada. Campos de data/hora seguem o mesmo
+// formato do evento; '' quando não informado.
+export type CalendarCorrection = {
+  date: string // 'AAAA-MM-DD'
+  time: string // 'HH:MM' — início
+  endTime: string // 'HH:MM' — término
+  link: string
+  description: string
+}
+
 export type CalendarEvent = {
   id: string
   date: string // formato 'AAAA-MM-DD'
   time: string // formato 'HH:MM', ou '' quando o evento não tem hora marcada
+  endTime: string // 'HH:MM' de término, ou '' — só simulado/simuladão usam
   type: CalendarEventType
   title: string
   link: string // opcional: Zoom da aula ao vivo, material de apoio, etc.
+  correction: CalendarCorrection | null // só simulado/simuladão
   createdAt: string
+}
+
+function isSimuladoType(type: string) {
+  return type === 'simulado' || type === 'simuladao'
+}
+
+// Normaliza os campos de simulado: fim da prova e correção só valem pra
+// simulado/simuladão, e a correção só "existe" quando tem data.
+function normalizeSimuladoFields(input: z.infer<typeof calendarEventInput>) {
+  if (!isSimuladoType(input.type)) {
+    return { endTime: '', correction: null }
+  }
+  const correction: CalendarCorrection | null =
+    input.correction && input.correction.date
+      ? {
+          date: input.correction.date,
+          time: input.correction.time,
+          endTime: input.correction.endTime,
+          link: input.correction.link,
+          description: input.correction.description,
+        }
+      : null
+  return { endTime: input.endTime, correction }
 }
 
 function eventsStore() {
@@ -46,16 +94,6 @@ function eventsStore() {
 
 function isValidType(value: unknown): value is CalendarEventType {
   return CALENDAR_EVENT_TYPES.includes(value as CalendarEventType)
-}
-
-// 'AAAA-MM-DD' — barra data escrita errada antes de gravar no store.
-function isValidDate(value: string) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value)
-}
-
-// 'HH:MM' ou vazio (evento do dia inteiro).
-function isValidTime(value: string) {
-  return value === '' || /^\d{2}:\d{2}$/.test(value)
 }
 
 function makeId() {
@@ -78,7 +116,12 @@ export const listCalendarEvents = createServerFn({ method: 'GET' }).handler(asyn
 
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    if (value) events.push(value as CalendarEvent)
+    // Eventos antigos não têm `endTime`/`correction` — completa o formato pra
+    // que a tela não precise checar `undefined` em todo lugar.
+    if (value) {
+      const raw = value as Partial<CalendarEvent>
+      events.push({ endTime: '', correction: null, ...raw } as CalendarEvent)
+    }
   }
 
   events.sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
@@ -93,13 +136,16 @@ export const createCalendarEvent = createServerFn({ method: 'POST' })
 
     if (!isValidType(data.type)) throw new Error('Tipo de evento inválido.')
 
+    const { endTime, correction } = normalizeSimuladoFields(data)
     const event: CalendarEvent = {
       id: makeId(),
       date: data.date,
       time: data.time,
+      endTime,
       type: data.type,
       title: data.title,
       link: data.link,
+      correction,
       createdAt: new Date().toISOString(),
     }
 
@@ -119,13 +165,16 @@ export const updateCalendarEvent = createServerFn({ method: 'POST' })
     const existing = (await store.get(data.id, { type: 'json' })) as CalendarEvent | null
     if (!existing) throw new Error('Esse evento não existe mais. Atualize a página.')
 
+    const { endTime, correction } = normalizeSimuladoFields(data)
     const updated: CalendarEvent = {
       ...existing,
       date: data.date,
       time: data.time,
+      endTime,
       type: data.type,
       title: data.title,
       link: data.link,
+      correction,
     }
 
     await store.setJSON(data.id, updated)
