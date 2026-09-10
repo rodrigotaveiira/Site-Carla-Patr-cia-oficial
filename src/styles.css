@@ -1244,3 +1244,54 @@ footer .brand b { color: white; }
   .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
   .aprovado-name-overlay h3 { font-size: 15px; }
 }
+
+/* ---- Documentos legais (/termos, /privacidade, /lgpd) ------------------- */
+/* São páginas públicas fora do `_app`, então trazem cabeçalho e rodapé
+   próprios. A medida do texto fica em ~720px porque documento legal se lê em
+   coluna estreita — linha longa faz perder a linha entre um artigo e outro. */
+.legal-page { display: flex; flex-direction: column; min-height: 100vh; background: white; }
+.legal-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 82px; padding: 0 clamp(24px, 5vw, 78px); border-bottom: 1px solid rgba(15,45,82,.08); }
+.legal-bar .text-link { color: var(--purple); }
+.legal-bar .text-link:hover { text-decoration: underline; }
+
+.legal-doc { flex: 1; width: 100%; max-width: 720px; margin: 0 auto; padding: clamp(48px, 7vw, 84px) 24px 90px; }
+.legal-doc h1 { margin: 0; color: var(--navy); font-family: var(--serif); font-size: clamp(34px, 4.6vw, 47px); font-weight: 400; line-height: 1.06; letter-spacing: -.03em; }
+.legal-vigencia { margin: 20px 0 0; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.legal-resumo { margin: 24px 0 0; padding-bottom: 34px; border-bottom: 1px solid var(--line); color: #3c4a61; font-size: 16px; line-height: 1.75; }
+
+.legal-doc section { margin-top: 42px; }
+.legal-doc h2 { margin: 0 0 14px; color: var(--navy); font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.legal-doc h3 { margin: 26px 0 8px; color: var(--navy); font-size: 14px; font-weight: 800; }
+.legal-doc p { margin: 0 0 14px; color: #47546b; font-size: 14.5px; line-height: 1.8; }
+.legal-doc p:last-child { margin-bottom: 0; }
+.legal-doc b { color: var(--navy); font-weight: 800; }
+.legal-doc a { color: var(--purple); font-weight: 700; }
+.legal-doc a:hover { text-decoration: underline; }
+.legal-doc ul { margin: 0 0 14px; padding-left: 20px; color: #47546b; font-size: 14.5px; line-height: 1.8; }
+.legal-doc ul li { margin-bottom: 7px; }
+.legal-doc ul li::marker { color: var(--gold); }
+
+/* "Base legal: art. 7º, V, da LGPD" — fecha a seção amarrando o tratamento
+   descrito ao dispositivo que o autoriza. */
+.legal-doc .legal-base { margin: 12px 0 0; padding: 11px 14px; background: var(--cream); border: 1px solid var(--line); border-radius: 8px; font-size: 13px; line-height: 1.65; }
+
+/* Princípios do art. 6º e direitos do art. 18: termo + explicação. */
+.legal-lista { display: grid; gap: 2px; margin: 0; }
+.legal-lista > div { padding: 14px 0; border-top: 1px solid var(--line); }
+.legal-lista > div:last-child { border-bottom: 1px solid var(--line); }
+.legal-lista dt { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 5px; color: var(--navy); font-size: 14.5px; font-weight: 800; }
+.legal-lista dd { margin: 0; color: #47546b; font-size: 14px; line-height: 1.75; }
+.legal-inciso { color: var(--purple); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+
+.legal-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 26px clamp(24px, 5vw, 78px); border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.legal-outros { display: flex; flex-wrap: wrap; gap: 22px; }
+.legal-outros a { color: var(--navy); font-weight: 700; }
+.legal-outros a:hover { color: var(--purple); }
+
+@media (max-width: 720px) {
+  .legal-bar { height: 68px; }
+  .legal-bar .brand small { display: none; }
+  .legal-doc { padding-bottom: 64px; }
+  .legal-doc section { margin-top: 34px; }
+  .legal-foot { flex-direction: column; align-items: flex-start; }
+}
