@@ -22,8 +22,11 @@ function watermarkShortLabel(name: string, cpf: string) {
 const TILE_COLUMNS = 3
 const TILE_ROWS = 6
 
-// Carimba nome e CPF do aluno em todas as páginas do PDF: uma marca central de destaque,
-// uma grade de marcas repetidas cobrindo a página inteira, e uma linha discreta no rodapé.
+// Carimba nome e CPF do aluno em todas as páginas do PDF: uma grade de marcas repetidas
+// cobrindo a página inteira e uma linha discreta no rodapé.
+// Havia também uma marca central grande, mas ela atravessava o meio da página por cima do
+// conteúdo e atrapalhava a leitura. Foi removida: as 18 marcas da grade e o rodapé já
+// deixam o arquivo rastreável até o aluno, sem passar por cima do texto.
 export async function watermarkPdfDataUrl(dataUrl: string, name: string, cpf: string): Promise<string> {
   const bytes = dataUrlToBuffer(dataUrl)
   const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false })
@@ -51,17 +54,6 @@ export async function watermarkPdfDataUrl(dataUrl: string, name: string, cpf: st
         })
       }
     }
-
-    // Marca central maior, com o texto completo, mais visível que as repetições da grade.
-    page.drawText(label, {
-      x: width * 0.12,
-      y: height * 0.45,
-      size: 16,
-      font,
-      color: rgb(0.55, 0.55, 0.6),
-      opacity: 0.3,
-      rotate: degrees(35),
-    })
 
     // Linha discreta e legível no rodapé, para identificação rápida sem precisar procurar na página.
     page.drawText(label, {
