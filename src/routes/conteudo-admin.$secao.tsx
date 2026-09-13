@@ -160,12 +160,8 @@ function ConteudoAdminPage() {
       <h1>{sectionLabel} · Arquivos em PDF</h1>
       <p className="panel-subtitle">Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
 
-      {/* Dicas tem o dobro de campos das outras seções; sem o respiro os rótulos colam no campo de cima. */}
-      <form
-        onSubmit={handleSubmit}
-        className="panel-card"
-        style={{ maxWidth: 480, ...(isDicas ? { display: 'grid', gap: 16 } : {}) }}
-      >
+      {/* Sem o respiro entre os campos, cada rótulo cola no campo de cima. */}
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480, display: 'grid', gap: 16 }}>
         {isDicas && (
           <div className="field">
             <label>Tipo da dica</label>
@@ -198,22 +194,21 @@ function ConteudoAdminPage() {
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </div>
 
-        {isDicas && (
-          <>
-            <ColorPicker label="Cor do título" value={titleColor} onChange={setTitleColor} />
-            <ColorPicker label="Cor da descrição" value={descriptionColor} onChange={setDescriptionColor} />
+        <ColorPicker label="Cor do título" value={titleColor} onChange={setTitleColor} />
+        <ColorPicker label="Cor da descrição" value={descriptionColor} onChange={setDescriptionColor} />
 
-            <div className="field">
-              <label>Como o aluno vai ver</label>
-              <div className="content-preview">
-                <b style={{ color: textColorValue(titleColor, DEFAULT_TITLE_COLOR), fontSize: 14 }}>{nextLabel}</b>
-                <div style={{ color: textColorValue(descriptionColor, DEFAULT_DESCRIPTION_COLOR), fontSize: 13, marginTop: 4 }}>
-                  {description.trim() || 'A descrição que você escrever aparece aqui.'}
-                </div>
-              </div>
+        <div className="field">
+          <label>Como o aluno vai ver</label>
+          <div className="content-preview">
+            {/* Em Dicas o nome é automático; nas outras seções é o título digitado aqui em cima. */}
+            <b style={{ color: textColorValue(titleColor, DEFAULT_TITLE_COLOR), fontSize: 14 }}>
+              {isDicas ? nextLabel : (title.trim() || 'O título que você escrever aparece aqui.')}
+            </b>
+            <div style={{ color: textColorValue(descriptionColor, DEFAULT_DESCRIPTION_COLOR), fontSize: 13, marginTop: 4 }}>
+              {description.trim() || 'A descrição que você escrever aparece aqui.'}
             </div>
-          </>
-        )}
+          </div>
+        </div>
 
         <div className="field">
           <label>Arquivo (PDF)</label>
