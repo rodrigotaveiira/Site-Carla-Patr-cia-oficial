@@ -266,79 +266,94 @@ function CalendarioAdminPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="calendar-admin-form">
-        <div className="field">
-          <label htmlFor="evento-data">Data</label>
-          <input
-            id="evento-data"
-            type="date"
-            value={form.date}
-            onChange={(event) => setForm({ ...form, date: event.target.value })}
-          />
-        </div>
+        {/* O tipo vem primeiro porque é ele que decide quais campos existem daqui
+            pra baixo: escolher "Simulado" faz aparecer término, prova, gabarito e
+            correção. Perguntar depois deixava a pessoa preenchendo um formulário
+            que muda embaixo dela. */}
+        <fieldset className="calendar-admin-wide calendar-admin-fieldset">
+          <legend>O evento</legend>
+          <div className="calendar-admin-form" style={{ margin: 0 }}>
+            <div className="field">
+              <label htmlFor="evento-tipo">Tipo</label>
+              <select
+                id="evento-tipo"
+                value={form.type}
+                onChange={(event) => setForm({ ...form, type: event.target.value as CalendarEventType })}
+              >
+                {CALENDAR_EVENT_TYPES.map((type) => (
+                  <option key={type} value={type}>{CALENDAR_EVENT_LABELS[type]}</option>
+                ))}
+              </select>
+            </div>
 
-        <div className="field">
-          <label htmlFor="evento-hora">
-            {isSimulado ? 'Início da prova' : 'Horário'} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span>
-          </label>
-          <input
-            id="evento-hora"
-            type="time"
-            value={form.time}
-            onChange={(event) => setForm({ ...form, time: event.target.value })}
-          />
-          {isSimulado && !form.time && (
-            <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
-              Sem horário, o aluno só recebe o lembrete da véspera (18h). Preencha para enviar também o de 30 min antes.
-            </p>
-          )}
-        </div>
+            <div className="field calendar-admin-wide">
+              <label htmlFor="evento-titulo">O que acontece</label>
+              <input
+                id="evento-titulo"
+                type="text"
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                placeholder="Ex.: Simuladão de Redação — tema surpresa"
+              />
+            </div>
 
-        {isSimulado ? (
-          <div className="field">
-            <label htmlFor="evento-fim">Término da prova <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
-            <input
-              id="evento-fim"
-              type="time"
-              value={form.endTime}
-              onChange={(event) => setForm({ ...form, endTime: event.target.value })}
-            />
+            <div className="field calendar-admin-wide">
+              <label htmlFor="evento-link">Link <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional — Zoom, material de apoio)</span></label>
+              <input
+                id="evento-link"
+                type="url"
+                value={form.link}
+                onChange={(event) => setForm({ ...form, link: event.target.value })}
+                placeholder="https://..."
+              />
+            </div>
           </div>
-        ) : null}
+        </fieldset>
 
-        <div className="field">
-          <label htmlFor="evento-tipo">Tipo</label>
-          <select
-            id="evento-tipo"
-            value={form.type}
-            onChange={(event) => setForm({ ...form, type: event.target.value as CalendarEventType })}
-          >
-            {CALENDAR_EVENT_TYPES.map((type) => (
-              <option key={type} value={type}>{CALENDAR_EVENT_LABELS[type]}</option>
-            ))}
-          </select>
-        </div>
+        <fieldset className="calendar-admin-wide calendar-admin-fieldset">
+          <legend>{isSimulado ? 'Quando é a prova' : 'Quando'}</legend>
+          <div className="calendar-admin-form" style={{ margin: 0 }}>
+            <div className="field">
+              <label htmlFor="evento-data">Data</label>
+              <input
+                id="evento-data"
+                type="date"
+                value={form.date}
+                onChange={(event) => setForm({ ...form, date: event.target.value })}
+              />
+            </div>
 
-        <div className="field calendar-admin-wide">
-          <label htmlFor="evento-titulo">O que acontece</label>
-          <input
-            id="evento-titulo"
-            type="text"
-            value={form.title}
-            onChange={(event) => setForm({ ...form, title: event.target.value })}
-            placeholder="Ex.: Simuladão de Redação — tema surpresa"
-          />
-        </div>
+            <div className="field">
+              <label htmlFor="evento-hora">
+                {isSimulado ? 'Início da prova' : 'Horário'} <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span>
+              </label>
+              <input
+                id="evento-hora"
+                type="time"
+                value={form.time}
+                onChange={(event) => setForm({ ...form, time: event.target.value })}
+              />
+            </div>
 
-        <div className="field calendar-admin-wide">
-          <label htmlFor="evento-link">Link <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional — Zoom, material de apoio)</span></label>
-          <input
-            id="evento-link"
-            type="url"
-            value={form.link}
-            onChange={(event) => setForm({ ...form, link: event.target.value })}
-            placeholder="https://..."
-          />
-        </div>
+            {isSimulado ? (
+              <div className="field">
+                <label htmlFor="evento-fim">Término da prova <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+                <input
+                  id="evento-fim"
+                  type="time"
+                  value={form.endTime}
+                  onChange={(event) => setForm({ ...form, endTime: event.target.value })}
+                />
+              </div>
+            ) : null}
+
+            {isSimulado && !form.time && (
+              <p className="field-hint calendar-admin-wide" style={{ margin: 0 }}>
+                Sem horário, o aluno só recebe o lembrete da véspera (18h). Preencha para enviar também o de 30 min antes.
+              </p>
+            )}
+          </div>
+        </fieldset>
 
         {isSimulado ? (
           <fieldset className="calendar-admin-wide calendar-admin-fieldset">
