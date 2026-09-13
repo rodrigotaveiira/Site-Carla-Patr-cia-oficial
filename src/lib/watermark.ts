@@ -22,35 +22,124 @@ function watermarkShortLabel(name: string, cpf: string) {
 const TILE_COLUMNS = 3
 const TILE_ROWS = 6
 
+// Com a faixa central reservada, boa parte das posições da grade normal é descartada
+// (a marca é comprida e inclinada, então invade o centro de longe). Uma grade mais
+// densa compensa: sobram marcas suficientes nas bordas, sem nenhuma no meio.
+const CLEAR_CENTER_TILE_COLUMNS = 4
+const CLEAR_CENTER_TILE_ROWS = 8
+
+const TILE_FONT_SIZE = 10
+const TILE_ANGLE_DEGREES = 35
+/** Respiro entre a marca e a borda do papel, pra ela não encostar no corte da folha. */
+const TILE_EDGE_PADDING = 12
+
+// Faixa central reservada (em fração da página) quando `clearCenter` está ligado.
+// É onde a professora põe a marca d'água dela no próprio documento, então nenhuma
+// marca de segurança pode encostar aí — senão fica marca sobre marca.
+const CLEAR_CENTER_AREA = { x0: 0.30, x1: 0.70, y0: 0.28, y1: 0.72 }
+
+/**
+ * Caixa que o texto ocupa depois de girado. Sem isso a checagem erraria feio: a
+ * marca é desenhada a partir de um ponto, mas com ~200pt de comprimento inclinados
+ * em 35° ela se espalha bem longe dele.
+ */
+function rotatedTextBox(x: number, y: number, textWidth: number, fontSize: number, angleDegrees: number) {
+  const radians = (angleDegrees * Math.PI) / 180
+  const cos = Math.cos(radians)
+  const sin = Math.sin(radians)
+  return {
+    x0: x - fontSize * sin,
+    x1: x + textWidth * cos,
+    y0: y,
+    y1: y + textWidth * sin + fontSize * cos,
+  }
+}
+
+function boxesOverlap(
+  a: { x0: number; x1: number; y0: number; y1: number },
+  b: { x0: number; x1: number; y0: number; y1: number },
+) {
+  return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0
+}
+
+export type PdfWatermarkOptions = {
+  /**
+   * Deixa a faixa central da página livre de marcas de segurança. Usado na seção
+   * Dicas, onde a professora já põe a marca d'água dela no meio do documento.
+   */
+  clearCenter?: boolean
+}
+
 // Carimba nome e CPF do aluno em todas as páginas do PDF: uma grade de marcas repetidas
 // cobrindo a página inteira e uma linha discreta no rodapé.
 // Havia também uma marca central grande, mas ela atravessava o meio da página por cima do
-// conteúdo e atrapalhava a leitura. Foi removida: as 18 marcas da grade e o rodapé já
+// conteúdo e atrapalhava a leitura. Foi removida: as marcas da grade e o rodapé já
 // deixam o arquivo rastreável até o aluno, sem passar por cima do texto.
-export async function watermarkPdfDataUrl(dataUrl: string, name: string, cpf: string): Promise<string> {
+// Com `clearCenter`, a faixa central também fica livre — é o caso da seção Dicas, onde a
+// professora põe a marca d'água dela no próprio documento e duas marcas sobrepostas ficariam ruins.
+export async function watermarkPdfDataUrl(
+  dataUrl: string,
+  name: string,
+  cpf: string,
+  options: PdfWatermarkOptions = {},
+): Promise<string> {
   const bytes = dataUrlToBuffer(dataUrl)
   const pdfDoc = await PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false })
   const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
   const label = watermarkLabel(name, cpf)
   const shortLabel = watermarkShortLabel(name, cpf)
+  const shortLabelWidth = font.widthOfTextAtSize(shortLabel, TILE_FONT_SIZE)
   const pages = pdfDoc.getPages()
 
   for (const page of pages) {
     const { width, height } = page.getSize()
 
+    const reserved = options.clearCenter
+      ? {
+        x0: width * CLEAR_CENTER_AREA.x0,
+        x1: width * CLEAR_CENTER_AREA.x1,
+        y0: height * CLEAR_CENTER_AREA.y0,
+        y1: height * CLEAR_CENTER_AREA.y1,
+      }
+      : null
+
+    const columns = reserved ? CLEAR_CENTER_TILE_COLUMNS : TILE_COLUMNS
+    const rows = reserved ? CLEAR_CENTER_TILE_ROWS : TILE_ROWS
+
+    // Com o centro reservado só sobram as bordas, então cada marca precisa caber
+    // inteira: uma marca cortada na borda perde justamente o CPF, que é o fim dela.
+    // As posições são espalhadas dentro do espaço em que a marca cabe por completo.
+    const fitted = reserved
+      ? (() => {
+        const box = rotatedTextBox(0, 0, shortLabelWidth, TILE_FONT_SIZE, TILE_ANGLE_DEGREES)
+        const spanX = Math.max(width - (box.x1 - box.x0) - TILE_EDGE_PADDING * 2, 0)
+        const spanY = Math.max(height - (box.y1 - box.y0) - TILE_EDGE_PADDING * 2, 0)
+        return {
+          x: (col: number) => TILE_EDGE_PADDING - box.x0 + (columns > 1 ? (spanX * col) / (columns - 1) : 0),
+          y: (row: number) => TILE_EDGE_PADDING + (rows > 1 ? (spanY * row) / (rows - 1) : 0),
+        }
+      })()
+      : null
+
     // Grade de marcas repetidas cobrindo a página inteira (a "maior quantidade" pedida).
-    for (let row = 0; row < TILE_ROWS; row++) {
-      for (let col = 0; col < TILE_COLUMNS; col++) {
-        const x = (width / TILE_COLUMNS) * (col + 0.15)
-        const y = (height / TILE_ROWS) * (row + 0.4)
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        const x = fitted ? fitted.x(col) : (width / columns) * (col + 0.15)
+        const y = fitted ? fitted.y(row) : (height / rows) * (row + 0.4)
+
+        if (reserved) {
+          const box = rotatedTextBox(x, y, shortLabelWidth, TILE_FONT_SIZE, TILE_ANGLE_DEGREES)
+          if (boxesOverlap(box, reserved)) continue
+        }
+
         page.drawText(shortLabel, {
           x,
           y,
-          size: 10,
+          size: TILE_FONT_SIZE,
           font,
           color: rgb(0.55, 0.55, 0.6),
           opacity: 0.13,
-          rotate: degrees(35),
+          rotate: degrees(TILE_ANGLE_DEGREES),
         })
       }
     }
