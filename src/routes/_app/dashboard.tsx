@@ -22,7 +22,7 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
-import { downloadDataUrl } from '@/lib/download-file'
+import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
@@ -65,8 +65,8 @@ export const Route = createFileRoute('/_app/dashboard')({
 })
 
 async function downloadMaterial(id: string) {
-  const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-  downloadDataUrl(fileName, fileDataUrl)
+  // Arquivo grande volta em pedaços e é remontado aqui (ver baixar-arquivo.ts).
+  await baixarArquivoPreparado(await getMaterialFile({ data: { id } }))
 }
 
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'
