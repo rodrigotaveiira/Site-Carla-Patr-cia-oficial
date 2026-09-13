@@ -1,12 +1,13 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { BookCheck, BookMarked, CircleHelp, Download, Library, ScrollText, Target, Zap, type LucideIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import {
-  CONTENT_SECTIONS, getContentItemFile, isContentSection,
-  listContentItems, type ContentItem, type ContentSection,
+  CONTENT_SECTIONS, DEFAULT_DESCRIPTION_COLOR, DEFAULT_TITLE_COLOR, DICA_CATEGORIES,
+  getContentItemFile, isContentSection, listContentItems, resolveDicaCategory, textColorValue,
+  type ContentItemMeta, type ContentSection, type DicaCategory,
 } from '@/lib/content-library'
 import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
@@ -28,8 +29,6 @@ export const Route = createFileRoute('/_app/conteudo/$secao')({
   },
   component: ConteudoPage,
 })
-
-type ItemMeta = Omit<ContentItem, 'fileDataUrl'>
 
 // Cada seção usa o mesmo componente de lista, mas tem seu próprio ícone e sua própria
 // razão de existir — sem isso, as 5 abas viravam a mesma página com o título trocado.
@@ -65,7 +64,7 @@ const SECTION_META: Record<ContentSection, {
   },
   dicas: {
     icon: Zap,
-    description: 'Recados rápidos e orientações da professora Carla sobre redação e rotina de estudo.',
+    description: 'Orientações rápidas da professora Carla, separadas em gramática e redação. Escolha a aba e baixe as dicas.',
     emptyTitle: 'Nenhuma dica publicada ainda',
     emptyDescription: 'Assim que a professora enviar uma dica, ela aparece aqui.',
   },
@@ -89,19 +88,27 @@ function ConteudoPage() {
   const sectionLabel = CONTENT_SECTIONS[section]
   const meta = SECTION_META[section]
   const Icon = meta.icon
+  const isDicas = section === 'dicas'
 
-  const [items, setItems] = useState<ItemMeta[]>([])
+  const [items, setItems] = useState<ContentItemMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [category, setCategory] = useState<DicaCategory>('gramatica')
 
   useEffect(() => {
     setLoading(true)
     listContentItems({ data: { section } })
-      .then((data) => setItems(data as ItemMeta[]))
+      .then((data) => setItems(data))
       .catch(() => setError('Não foi possível carregar os arquivos agora.'))
       .finally(() => setLoading(false))
   }, [section])
+
+  // Em Dicas o aluno vê uma aba por vez; nas outras seções a lista inteira.
+  const visibleItems = useMemo(
+    () => (isDicas ? items.filter((item) => resolveDicaCategory(item) === category) : items),
+    [items, isDicas, category],
+  )
 
   async function handleDownload(id: string) {
     setDownloadingId(id)
@@ -122,26 +129,53 @@ function ConteudoPage() {
       <p className="panel-subtitle">{meta.description}</p>
       {!loading && !error && (
         <p className="panel-meta-strip">
-          {items.length === 0
+          {visibleItems.length === 0
             ? 'Protegido com seu nome e CPF em cada download.'
-            : `${items.length} ${items.length === 1 ? 'arquivo disponível' : 'arquivos disponíveis'} · o mais recente é de ${new Date(items[0].createdAt).toLocaleDateString('pt-BR')}`}
+            : `${visibleItems.length} ${visibleItems.length === 1 ? 'arquivo disponível' : 'arquivos disponíveis'} · o mais recente é de ${new Date(visibleItems[0].createdAt).toLocaleDateString('pt-BR')}`}
         </p>
+      )}
+
+      {isDicas && (
+        <div className="tab-switch" style={{ marginTop: 16 }} role="tablist">
+          {(Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => {
+            const count = items.filter((item) => resolveDicaCategory(item) === key).length
+            return (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={category === key}
+                onClick={() => setCategory(key)}
+                className={`tab-switch-btn${category === key ? ' is-active' : ''}`}
+              >
+                {DICA_CATEGORIES[key]}
+                {!loading && count > 0 && <span className="tab-switch-count">{count}</span>}
+              </button>
+            )
+          })}
+        </div>
       )}
 
       {error && <p className="form-error">{error}</p>}
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={3} /></div>}
 
       <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <div key={item.id} className="list-row">
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
               <Icon color="var(--purple)" style={{ marginTop: 2, flexShrink: 0 }} />
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span className="list-title">{item.title}</span>
+                  <span className="list-title" style={{ color: textColorValue(item.titleColor, DEFAULT_TITLE_COLOR) }}>
+                    {item.label}
+                  </span>
                   <span className="badge badge-brand" style={{ padding: '2px 9px', fontSize: 11 }}>PDF</span>
                 </div>
-                {item.description && <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{item.description}</div>}
+                {item.description && (
+                  <div style={{ color: textColorValue(item.descriptionColor, DEFAULT_DESCRIPTION_COLOR), fontSize: 13, marginTop: 4 }}>
+                    {item.description}
+                  </div>
+                )}
                 <div className="list-meta">Adicionado em {new Date(item.createdAt).toLocaleDateString('pt-BR')}</div>
               </div>
             </div>
@@ -150,8 +184,12 @@ function ConteudoPage() {
             </button>
           </div>
         ))}
-        {!loading && items.length === 0 && (
-          <EmptyState icon={Icon} title={meta.emptyTitle} description={meta.emptyDescription} />
+        {!loading && visibleItems.length === 0 && (
+          <EmptyState
+            icon={Icon}
+            title={isDicas ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda` : meta.emptyTitle}
+            description={meta.emptyDescription}
+          />
         )}
       </div>
     </div>

@@ -26,6 +26,41 @@ export function isContentSection(value: string): value is ContentSection {
   return Object.prototype.hasOwnProperty.call(CONTENT_SECTIONS, value)
 }
 
+// Dicas é a única seção dividida em duas frentes: a professora publica material de
+// gramática e material de redação, e o aluno escolhe qual quer ver.
+export const DICA_CATEGORIES = {
+  gramatica: 'Gramática',
+  redacao: 'Redação',
+} as const
+
+export type DicaCategory = keyof typeof DICA_CATEGORIES
+
+const dicaCategorySchema = z.enum(['gramatica', 'redacao'])
+
+// Paleta fechada para o título e a descrição. São tokens, não hex livre: assim a
+// professora não consegue escolher uma cor ilegível e o site mantém a identidade visual.
+export const CONTENT_TEXT_COLORS = {
+  navy: { label: 'Azul-marinho', value: '#0f2d52' },
+  purple: { label: 'Roxo', value: '#6d28d9' },
+  gold: { label: 'Dourado', value: '#8a6d1f' },
+  green: { label: 'Verde', value: '#15803d' },
+  red: { label: 'Vermelho', value: '#c0392b' },
+  muted: { label: 'Cinza', value: '#667085' },
+} as const
+
+export type ContentTextColor = keyof typeof CONTENT_TEXT_COLORS
+
+const contentTextColorSchema = z.enum(['navy', 'purple', 'gold', 'green', 'red', 'muted'])
+
+// Cores usadas hoje pela lista — mantidas como padrão para que um item sem cor
+// escolhida continue aparecendo exatamente como antes.
+export const DEFAULT_TITLE_COLOR: ContentTextColor = 'navy'
+export const DEFAULT_DESCRIPTION_COLOR: ContentTextColor = 'muted'
+
+export function textColorValue(color: ContentTextColor | undefined, fallback: ContentTextColor) {
+  return CONTENT_TEXT_COLORS[color ?? fallback].value
+}
+
 export type ContentItem = {
   id: string
   title: string
@@ -33,12 +68,51 @@ export type ContentItem = {
   fileName: string
   fileDataUrl: string
   createdAt: string
+  /** Só em Dicas. Ausente nos PDFs enviados antes das categorias existirem. */
+  category?: DicaCategory
+  titleColor?: ContentTextColor
+  descriptionColor?: ContentTextColor
 }
+
+/** O que as telas recebem: o item sem o arquivo, mais o nome já montado. */
+export type ContentItemMeta = Omit<ContentItem, 'fileDataUrl'> & { label: string }
 
 const MAX_FILE_DATA_URL_LENGTH = 16_000_000
 
 function storeFor(section: ContentSection) {
   return getStore({ name: `content-library-${section}`, consistency: 'strong' })
+}
+
+/** PDF de Dicas enviado antes das categorias existirem entra em Redação. */
+export function resolveDicaCategory(item: { category?: DicaCategory }): DicaCategory {
+  return item.category ?? 'redacao'
+}
+
+// A numeração é calculada na hora de listar, e não gravada no arquivo: assim, se a
+// professora excluir a "Dica 2", as seguintes se renumeram sozinhas e a lista nunca
+// fica com buraco no meio.
+function dicaLabels(items: ContentItem[]) {
+  const ascending = [...items].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  const counters: Record<DicaCategory, number> = { gramatica: 0, redacao: 0 }
+  const labels = new Map<string, string>()
+  for (const item of ascending) {
+    if (!item.category) {
+      // Item antigo: mantém o título que a professora tinha escrito, para nada sumir.
+      labels.set(item.id, item.title)
+      continue
+    }
+    counters[item.category] += 1
+    labels.set(item.id, `Dica ${counters[item.category]} · ${DICA_CATEGORIES[item.category]}`)
+  }
+  return labels
+}
+
+function toMeta(section: ContentSection, items: ContentItem[]): ContentItemMeta[] {
+  const labels = section === 'dicas' ? dicaLabels(items) : null
+  return items.map(({ fileDataUrl: _omit, ...meta }) => ({
+    ...meta,
+    label: labels?.get(meta.id) ?? meta.title,
+  }))
 }
 
 async function requireAdmin(section: ContentSection) {
@@ -61,7 +135,7 @@ async function requireStudent() {
 
 export const listContentItems = createServerFn({ method: 'GET' })
   .validator(z.object({ section: contentSectionSchema }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<ContentItemMeta[]> => {
     await requireStudent()
     if (!isContentSection(data.section)) throw new Error('Seção inválida.')
 
@@ -73,7 +147,7 @@ export const listContentItems = createServerFn({ method: 'GET' })
       if (value) items.push(value as ContentItem)
     }
     items.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    return items.map(({ fileDataUrl: _omit, ...meta }) => meta)
+    return toMeta(data.section, items)
   })
 
 export const getContentItemFile = createServerFn({ method: 'GET' })
@@ -98,13 +172,29 @@ export const getContentItemFile = createServerFn({ method: 'GET' })
 
 export const addContentItem = createServerFn({ method: 'POST' })
   .validator(
-    z.object({
-      section: contentSectionSchema,
-      title: boundedText(300),
-      description: z.string().trim().max(2000),
-      fileName: fileNameSchema,
-      fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
-    }),
+    z
+      .object({
+        section: contentSectionSchema,
+        // Em Dicas o título é gerado ("Dica 1 · Gramática"), então chega vazio.
+        title: z.string().trim().max(300),
+        description: z.string().trim().max(2000),
+        fileName: fileNameSchema,
+        fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
+        category: dicaCategorySchema.optional(),
+        titleColor: contentTextColorSchema.optional(),
+        descriptionColor: contentTextColorSchema.optional(),
+      })
+      .superRefine((data, ctx) => {
+        if (data.section === 'dicas') {
+          if (!data.category) {
+            ctx.addIssue({ code: 'custom', path: ['category'], message: 'Escolha se a dica é de Gramática ou de Redação.' })
+          }
+          return
+        }
+        if (!boundedText(300).safeParse(data.title).success) {
+          ctx.addIssue({ code: 'custom', path: ['title'], message: 'Dê um título para o arquivo.' })
+        }
+      }),
   )
   .handler(async ({ data }) => {
     await requireAdmin(data.section)
@@ -125,6 +215,9 @@ export const addContentItem = createServerFn({ method: 'POST' })
       fileName: data.fileName,
       fileDataUrl: data.fileDataUrl,
       createdAt: new Date().toISOString(),
+      ...(data.section === 'dicas' && data.category ? { category: data.category } : {}),
+      ...(data.titleColor ? { titleColor: data.titleColor } : {}),
+      ...(data.descriptionColor ? { descriptionColor: data.descriptionColor } : {}),
     }
     await store.setJSON(id, item)
     const { fileDataUrl: _omit, ...meta } = item
