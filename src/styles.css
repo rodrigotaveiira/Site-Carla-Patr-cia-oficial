@@ -936,6 +936,33 @@ footer .brand b { color: white; }
 
 .field { display: grid; gap: 5px; }
 .field label, .field-label { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .02em; }
+.field-hint { margin: 2px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.field-hint b { color: var(--purple-dark); }
+
+/* Alternador Gramática / Redação — usado no painel de envio e na página do aluno. */
+.tab-switch { display: inline-flex; width: fit-content; gap: 4px; padding: 4px; background: var(--lilac-tint); border-radius: 999px; }
+.tab-switch-btn {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px; border: none; border-radius: 999px;
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--muted); background: none; cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.tab-switch-btn:hover:not(.is-active) { color: var(--purple); }
+.tab-switch-btn.is-active { color: var(--purple-dark); background: #fff; box-shadow: 0 1px 3px rgba(15,35,66,.12); }
+.tab-switch-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
+.tab-switch-count { padding: 1px 7px; border-radius: 999px; background: #f1e9fd; color: var(--purple-dark); font-size: 11px; }
+.tab-switch-btn:not(.is-active) .tab-switch-count { background: #fff; color: var(--muted); }
+
+/* Paleta fechada de cores do título e da descrição. */
+.color-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-swatch {
+  width: 30px; height: 30px; padding: 0; border: 2px solid #fff; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 0 0 1px var(--line); transition: box-shadow .15s, transform .15s;
+}
+.color-swatch:hover { transform: scale(1.08); }
+.color-swatch.is-selected { box-shadow: 0 0 0 2px var(--purple); }
+.color-swatch:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.35); }
+
+.content-preview { padding: 14px 16px; background: var(--cream); border: 1px solid var(--line); border-radius: 12px; }
 
 .panel input[type="text"], .panel input[type="email"], .panel input[type="date"],
 .panel input[type="time"], .panel input[type="number"], .panel input[type="url"],

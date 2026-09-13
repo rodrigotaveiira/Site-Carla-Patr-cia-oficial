@@ -1,12 +1,13 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { Upload } from 'lucide-react'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
-  addContentItem, CONTENT_SECTIONS, deleteContentItem, isContentSection,
-  listContentItems, type ContentItem, type ContentSection,
+  addContentItem, CONTENT_SECTIONS, CONTENT_TEXT_COLORS, DEFAULT_DESCRIPTION_COLOR, DEFAULT_TITLE_COLOR,
+  deleteContentItem, DICA_CATEGORIES, isContentSection, listContentItems, resolveDicaCategory, textColorValue,
+  type ContentItemMeta, type ContentSection, type ContentTextColor, type DicaCategory,
 } from '@/lib/content-library'
 import { useToast } from '@/lib/toast'
 
@@ -32,8 +33,6 @@ export const Route = createFileRoute('/conteudo-admin/$secao')({
   component: ConteudoAdminPage,
 })
 
-type ItemMeta = Omit<ContentItem, 'fileDataUrl'>
-
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -43,16 +42,47 @@ function readFileAsDataUrl(file: File): Promise<string> {
   })
 }
 
+/** Paleta fechada: a professora clica na bolinha em vez de digitar um código de cor. */
+function ColorPicker({ label, value, onChange }: {
+  label: string
+  value: ContentTextColor
+  onChange: (color: ContentTextColor) => void
+}) {
+  return (
+    <div className="field">
+      <label>{label}</label>
+      <div className="color-swatches">
+        {(Object.keys(CONTENT_TEXT_COLORS) as ContentTextColor[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onChange(key)}
+            className={`color-swatch${value === key ? ' is-selected' : ''}`}
+            style={{ background: CONTENT_TEXT_COLORS[key].value }}
+            aria-label={CONTENT_TEXT_COLORS[key].label}
+            aria-pressed={value === key}
+            title={CONTENT_TEXT_COLORS[key].label}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function ConteudoAdminPage() {
   const showToast = useToast()
   const { secao } = Route.useParams()
   const section = secao as ContentSection
   const sectionLabel = CONTENT_SECTIONS[section]
+  const isDicas = section === 'dicas'
 
-  const [items, setItems] = useState<ItemMeta[]>([])
+  const [items, setItems] = useState<ContentItemMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [category, setCategory] = useState<DicaCategory>('gramatica')
+  const [titleColor, setTitleColor] = useState<ContentTextColor>(DEFAULT_TITLE_COLOR)
+  const [descriptionColor, setDescriptionColor] = useState<ContentTextColor>(DEFAULT_DESCRIPTION_COLOR)
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -62,7 +92,7 @@ function ConteudoAdminPage() {
     setLoading(true)
     try {
       const data = await listContentItems({ data: { section } })
-      setItems(data as ItemMeta[])
+      setItems(data)
     } finally {
       setLoading(false)
     }
@@ -73,16 +103,33 @@ function ConteudoAdminPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section])
 
+  // Mesma conta que o servidor faz: itens antigos (sem categoria) não entram na numeração.
+  const nextLabel = useMemo(() => {
+    const used = items.filter((item) => item.category === category).length
+    return `Dica ${used + 1} · ${DICA_CATEGORIES[category]}`
+  }, [items, category])
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
-    if (!title.trim()) { setError('Dê um título para o arquivo.'); return }
+    if (!isDicas && !title.trim()) { setError('Dê um título para o arquivo.'); return }
     if (!file) { setError('Escolha um arquivo PDF para enviar.'); return }
 
     setSaving(true)
     try {
       const fileDataUrl = await readFileAsDataUrl(file)
-      await addContentItem({ data: { section, title, description, fileName: file.name, fileDataUrl } })
+      await addContentItem({
+        data: {
+          section,
+          title: isDicas ? '' : title,
+          description,
+          fileName: file.name,
+          fileDataUrl,
+          ...(isDicas ? { category } : {}),
+          titleColor,
+          descriptionColor,
+        },
+      })
       setTitle('')
       setDescription('')
       setFile(null)
@@ -113,15 +160,56 @@ function ConteudoAdminPage() {
       <h1>{sectionLabel} · Arquivos em PDF</h1>
       <p className="panel-subtitle">Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
 
-      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
-        <div className="field">
-          <label>Título</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} />
-        </div>
+      {/* Sem o respiro entre os campos, cada rótulo cola no campo de cima. */}
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480, display: 'grid', gap: 16 }}>
+        {isDicas && (
+          <div className="field">
+            <label>Tipo da dica</label>
+            <div className="tab-switch">
+              {(Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setCategory(key)}
+                  className={`tab-switch-btn${category === key ? ' is-active' : ''}`}
+                  aria-pressed={category === key}
+                >
+                  {DICA_CATEGORIES[key]}
+                </button>
+              ))}
+            </div>
+            <p className="field-hint">O nome é automático: este arquivo vai entrar como <b>{nextLabel}</b>.</p>
+          </div>
+        )}
+
+        {!isDicas && (
+          <div className="field">
+            <label>Título</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+        )}
+
         <div className="field">
           <label>Descrição</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
         </div>
+
+        <ColorPicker label="Cor do título" value={titleColor} onChange={setTitleColor} />
+        <ColorPicker label="Cor da descrição" value={descriptionColor} onChange={setDescriptionColor} />
+
+        <div className="field">
+          <label>Como o aluno vai ver</label>
+          <div className="content-preview">
+            {/* Em Dicas o nome é automático; nas outras seções é o título digitado aqui em cima. */}
+            <b style={{ color: textColorValue(titleColor, DEFAULT_TITLE_COLOR), fontSize: 14 }}>
+              {isDicas ? nextLabel : (title.trim() || 'O título que você escrever aparece aqui.')}
+            </b>
+            <div style={{ color: textColorValue(descriptionColor, DEFAULT_DESCRIPTION_COLOR), fontSize: 13, marginTop: 4 }}>
+              {description.trim() || 'A descrição que você escrever aparece aqui.'}
+            </div>
+          </div>
+        </div>
+
         <div className="field">
           <label>Arquivo (PDF)</label>
           <input
@@ -148,19 +236,49 @@ function ConteudoAdminPage() {
       <section>
         <h2 className="panel-section-title">Arquivos enviados</h2>
         {loading && <p className="panel-subtitle">Carregando...</p>}
-        <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-          {items.map((item) => (
-            <div key={item.id} className="list-row">
-              <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
-                <b style={{ color: 'var(--navy)' }}>{item.title}</b>
-                <div className="list-meta" style={{ marginTop: 4 }}>{item.fileName}</div>
+        {isDicas
+          ? (Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => {
+            const rows = items.filter((item) => resolveDicaCategory(item) === key)
+            return (
+              <div key={key} style={{ marginTop: 16 }}>
+                <h3 className="panel-section-title" style={{ margin: '0 0 8px', fontSize: 15 }}>{DICA_CATEGORIES[key]}</h3>
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {rows.map((item) => (
+                    <ItemRow key={item.id} item={item} onDelete={handleDelete} />
+                  ))}
+                  {!loading && rows.length === 0 && (
+                    <p className="empty-state">Nenhuma dica de {DICA_CATEGORIES[key].toLowerCase()} ainda.</p>
+                  )}
+                </div>
               </div>
-              <button onClick={() => handleDelete(item.id)} className="btn btn-danger btn-sm">Excluir</button>
+            )
+          })
+          : (
+            <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+              {items.map((item) => (
+                <ItemRow key={item.id} item={item} onDelete={handleDelete} />
+              ))}
+              {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo enviado ainda.</p>}
             </div>
-          ))}
-          {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo enviado ainda.</p>}
-        </div>
+          )}
       </section>
     </main>
+  )
+}
+
+function ItemRow({ item, onDelete }: { item: ContentItemMeta, onDelete: (id: string) => void }) {
+  return (
+    <div className="list-row">
+      <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
+        <b style={{ color: textColorValue(item.titleColor, DEFAULT_TITLE_COLOR) }}>{item.label}</b>
+        {item.description && (
+          <div style={{ color: textColorValue(item.descriptionColor, DEFAULT_DESCRIPTION_COLOR), fontSize: 13, marginTop: 4 }}>
+            {item.description}
+          </div>
+        )}
+        <div className="list-meta" style={{ marginTop: 4 }}>{item.fileName}</div>
+      </div>
+      <button onClick={() => onDelete(item.id)} className="btn btn-danger btn-sm">Excluir</button>
+    </div>
   )
 }
