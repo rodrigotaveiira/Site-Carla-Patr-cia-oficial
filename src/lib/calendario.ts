@@ -6,11 +6,12 @@ import { userHasRole, isStaff, getStudentIdentity } from './roles'
 import { STORES } from './blob-stores'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema, isoDate, optionalHhmm, optionalIsoDate } from './schemas'
 import { instanteInicioDoDiaSimulado, instanteInicioSimulado } from './lembrete-simulado-horario'
 
-const MAX_FILE_DATA_URL_LENGTH = 16_000_000
-const MAX_PDF_BYTES = 12 * 1024 * 1024
+const MAX_FILE_DATA_URL_LENGTH = MAX_UPLOAD_DATA_URL_LENGTH
+const MAX_PDF_BYTES = MAX_UPLOAD_BYTES
 
 // A correção de um simulado é uma "sub-agenda" dentro do próprio evento: pode
 // cair em outro dia, tem seu próprio horário, link (Zoom) e descrição, e gera

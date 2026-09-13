@@ -5,6 +5,7 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
 import { notificarNovoConteudo } from './notificar-conteudo'
 import { MATERIAS, materiaSchema, type Materia } from './materias'
@@ -76,7 +77,7 @@ export type ContentItem = {
 /** O que as telas recebem: o item sem o arquivo, mais o nome já montado. */
 export type ContentItemMeta = Omit<ContentItem, 'fileDataUrl'> & { label: string }
 
-const MAX_FILE_DATA_URL_LENGTH = 16_000_000
+const MAX_FILE_DATA_URL_LENGTH = MAX_UPLOAD_DATA_URL_LENGTH
 
 function storeFor(section: ContentSection) {
   return getStore({ name: `content-library-${section}`, consistency: 'strong' })
@@ -224,7 +225,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
       dataUrl: data.fileDataUrl,
       fileName: data.fileName,
       allowed: ['pdf'],
-      maxDecodedBytes: 12 * 1024 * 1024,
+      maxDecodedBytes: MAX_UPLOAD_BYTES,
     })
 
     const store = storeFor(data.section)

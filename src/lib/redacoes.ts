@@ -6,6 +6,7 @@ import { userHasRole, isStaff } from './roles'
 import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
 import { validateUpload } from './upload-validation'
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
 import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
 import type { Competency } from './competencies'
 import { notificarNovaRedacao } from './notificar-redacao'
@@ -31,8 +32,8 @@ export type RedacaoSubmission = {
   correctedFileDataUrl: string | null
 }
 
-const MAX_FILE_DATA_URL_LENGTH = 10_000_000
-const MAX_DECODED_BYTES = 8 * 1024 * 1024 // 8MB de arquivo de verdade (depois do base64)
+const MAX_FILE_DATA_URL_LENGTH = MAX_UPLOAD_DATA_URL_LENGTH
+const MAX_DECODED_BYTES = MAX_UPLOAD_BYTES
 const REDACAO_ALLOWED = ['image', 'pdf', 'docx', 'doc'] as const
 const REDACAO_RATE_LIMIT = { action: 'redacao', windowMs: 24 * 60 * 60 * 1000, max: 6 } as const
 

@@ -5,6 +5,7 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { notificarNovoMaterial } from './notificar-material'
 import { logMaterialDownload } from './material-downloads'
@@ -45,7 +46,7 @@ export type MaterialListItem = Omit<Material, 'fileDataUrl'> & {
 }
 
 // Tamanho máximo aceito para o arquivo em base64 (~12MB de arquivo original).
-const MAX_FILE_DATA_URL_LENGTH = 16_000_000
+const MAX_FILE_DATA_URL_LENGTH = MAX_UPLOAD_DATA_URL_LENGTH
 
 // Quanto antes do início da aula o material já fica disponível pra download.
 const RELEASE_LEAD_MS = 15 * 60 * 1000
@@ -187,7 +188,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       dataUrl: data.fileDataUrl,
       fileName: data.fileName,
       allowed: ['pdf', 'docx'],
-      maxDecodedBytes: 12 * 1024 * 1024,
+      maxDecodedBytes: MAX_UPLOAD_BYTES,
     })
 
     const classTime = data.classTime?.trim() || ''
