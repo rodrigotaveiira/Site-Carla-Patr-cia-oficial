@@ -6,6 +6,7 @@ import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
+import { notificarNovoConteudo } from './notificar-conteudo'
 
 const contentSectionSchema = z.enum(['biblioteca', 'questoes', 'simulados', 'repertorios', 'dicas', 'gabaritos', 'edital'])
 
@@ -105,6 +106,24 @@ function dicaLabels(items: ContentItem[]) {
     labels.set(item.id, `Dica ${counters[item.category]} · ${DICA_CATEGORIES[item.category]}`)
   }
   return labels
+}
+
+/**
+ * Nome do arquivo como o aluno vê. Em Dicas o nome é montado na hora de listar
+ * ("Dica 1 · Gramática") e o campo `title` fica vazio no que foi salvo — usar
+ * `item.title` direto faria o e-mail sair sem nome nenhum.
+ */
+async function displayNameFor(section: ContentSection, item: ContentItem): Promise<string> {
+  if (section !== 'dicas') return item.title
+
+  const store = storeFor(section)
+  const { blobs } = await store.list()
+  const items: ContentItem[] = []
+  for (const blob of blobs) {
+    const value = await store.get(blob.key, { type: 'json' })
+    if (value) items.push(value as ContentItem)
+  }
+  return dicaLabels(items).get(item.id) ?? item.title
 }
 
 function toMeta(section: ContentSection, items: ContentItem[]): ContentItemMeta[] {
@@ -224,6 +243,21 @@ export const addContentItem = createServerFn({ method: 'POST' })
       ...(data.descriptionColor ? { descriptionColor: data.descriptionColor } : {}),
     }
     await store.setJSON(id, item)
+
+    // Aviso por e-mail vem DEPOIS de salvar e nunca derruba a publicação: se
+    // algo aqui falhar, o arquivo continua no ar e o erro fica só no log, em
+    // vez de virar erro na tela da professora depois que ela já enviou.
+    try {
+      await notificarNovoConteudo({
+        secaoLabel: CONTENT_SECTIONS[data.section],
+        secaoSlug: data.section,
+        titulo: await displayNameFor(data.section, item),
+        descricao: item.description,
+      })
+    } catch (error) {
+      console.error('[conteúdo] não foi possível avisar sobre o arquivo novo:', error)
+    }
+
     const { fileDataUrl: _omit, ...meta } = item
     return meta
   })
