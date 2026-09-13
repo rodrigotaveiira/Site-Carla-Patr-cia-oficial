@@ -1,7 +1,8 @@
-// E-mail disparado quando a professora adiciona um material novo que já
-// nasce liberado (sem trava de data de aula futura) — avisa o aluno na caixa
-// de entrada, além do aviso que já aparece no sino do dashboard. Separado do
-// envio pra poder ser conferido sem chave do Resend e sem rede.
+// E-mails de publicação nova, avisando o aluno na caixa de entrada além do
+// aviso que já aparece no sino do dashboard. São dois, com a mesma moldura:
+// um de material novo (seção Materiais) e um de arquivo novo nas seções de
+// conteúdo (Dicas, Biblioteca, Simulados...). Separados do envio pra poder
+// ser conferidos sem chave do Resend e sem rede.
 
 const NAVY = '#0f2d52'
 const ROXO = '#6d28d9'
@@ -64,6 +65,49 @@ export function montarEmailNovoMaterial(params: { nomeAluno: string; titulo: str
 
   const texto = `Olá, ${primeiroNome}!\n\n`
     + `A Carla acabou de liberar um material novo pra você: ${titulo}\n`
+    + (descricao ? `${descricao}\n\n` : '\n')
+    + `Acesse: ${link}`
+
+  return { assunto, html, texto }
+}
+
+/**
+ * Aviso de arquivo novo numa seção de conteúdo (Dicas, Biblioteca, Simulados...).
+ * Diferente do de material, o assunto e o botão citam a seção — é o que dá ao
+ * aluno a pista de onde procurar, e casa com o texto que o sino já mostra.
+ */
+export function montarEmailNovoConteudo(params: {
+  nomeAluno: string
+  secaoLabel: string
+  secaoSlug: string
+  titulo: string
+  descricao: string
+}) {
+  const { nomeAluno, secaoLabel, secaoSlug, titulo, descricao } = params
+  const primeiroNome = nomeAluno.trim().split(/\s+/)[0] || 'Aluno(a)'
+  const link = `${SITE_URL}/conteudo/${secaoSlug}`
+
+  const assunto = `Novo arquivo em ${secaoLabel}: ${titulo}`
+
+  const html = moldura(
+    `<p style="margin:0 0 16px;color:${NAVY};font-size:15px;line-height:1.6;">
+       Olá, ${escapar(primeiroNome)}! A Carla acabou de publicar um arquivo novo em
+       <strong>${escapar(secaoLabel)}</strong>.
+     </p>
+     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
+       <tr><td style="padding:16px 18px;">
+         <div style="color:${NAVY};font-size:16px;font-weight:700;">${escapar(titulo)}</div>
+         ${descricao ? `<div style="margin-top:4px;color:#667085;font-size:13px;line-height:1.5;">${escapar(descricao)}</div>` : ''}
+       </td></tr>
+     </table>
+     <p style="margin:22px 0 0;">
+       <a href="${link}" style="display:inline-block;padding:12px 22px;background:${ROXO};color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;border-radius:8px;">Ver em ${escapar(secaoLabel)}</a>
+     </p>`,
+    `Novidade em ${secaoLabel}`,
+  )
+
+  const texto = `Olá, ${primeiroNome}!\n\n`
+    + `A Carla acabou de publicar um arquivo novo em ${secaoLabel}: ${titulo}\n`
     + (descricao ? `${descricao}\n\n` : '\n')
     + `Acesse: ${link}`
 
