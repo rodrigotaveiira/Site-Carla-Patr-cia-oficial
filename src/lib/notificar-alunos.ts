@@ -11,6 +11,9 @@ function sessionHistoryStore() {
   return getStore({ name: 'session-history', consistency: 'strong' })
 }
 
+/** Teto de espera pelo lote de avisos. Ver a explicação no `Promise.race` abaixo. */
+const LOTE_TIMEOUT_MS = 6000
+
 /**
  * Manda um e-mail para todo aluno conhecido, montado individualmente (o texto
  * costuma trazer o primeiro nome de quem recebe).
@@ -29,7 +32,7 @@ export async function avisarTodosOsAlunos(
     const store = sessionHistoryStore()
     const { blobs } = await store.list()
 
-    await Promise.allSettled(
+    const envios = Promise.allSettled(
       blobs.map(async (blob) => {
         const registro = (await store.get(blob.key, { type: 'json' })) as { email?: string; name?: string } | null
         if (!registro?.email) return
@@ -41,6 +44,19 @@ export async function avisarTodosOsAlunos(
         }
       }),
     )
+
+    // Teto de tempo pro lote inteiro. Com turma grande, mesmo cada envio tendo
+    // seu próprio timeout, a soma pode passar do tempo que a função tem pra
+    // responder — e aí quem publicou o arquivo trava esperando. Estourado o
+    // teto, o aviso é abandonado e a publicação responde na mesma hora.
+    const estourou = Symbol('tempo esgotado')
+    const resultado = await Promise.race([
+      envios,
+      new Promise<typeof estourou>((resolve) => setTimeout(() => resolve(estourou), LOTE_TIMEOUT_MS)),
+    ])
+    if (resultado === estourou) {
+      console.error(`[${contexto}] aviso por e-mail passou de ${LOTE_TIMEOUT_MS}ms e foi abandonado.`)
+    }
   } catch (error) {
     console.error(`[${contexto}] não foi possível avisar os alunos:`, error)
   }

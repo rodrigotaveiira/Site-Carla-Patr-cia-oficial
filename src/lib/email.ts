@@ -8,6 +8,9 @@
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 
+/** Teto de espera por envio. Curto de propósito: ver abaixo, no `signal`. */
+const ENVIO_TIMEOUT_MS = 5000
+
 // Precisa ser um endereço do domínio verificado no Resend, senão o envio é
 // recusado. Dá pra sobrescrever por variável de ambiente sem mexer no código.
 const REMETENTE_PADRAO = 'Carla Patrícia Medina <noreply@carlapatriciamedina.com>'
@@ -37,6 +40,10 @@ export async function enviarEmail(params: {
   try {
     const response = await fetch(RESEND_ENDPOINT, {
       method: 'POST',
+      // Sem timeout, um Resend lento segura a função inteira até a plataforma
+      // matá-la — e quem publicou o arquivo fica preso em "Enviando..." sem
+      // nunca receber resposta. Melhor desistir do aviso do que travar a tela.
+      signal: AbortSignal.timeout(ENVIO_TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',

@@ -9,6 +9,7 @@ import {
   type Materia, type MaterialCategory, type MaterialListItem,
 } from '@/lib/materials'
 import { useToast } from '@/lib/toast'
+import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
 
 export const Route = createFileRoute('/materiais-admin')({
   beforeLoad: async () => {
@@ -100,6 +101,11 @@ function MateriaisAdminPage() {
     }
     if (!file) {
       setError('Escolha um arquivo Word (.docx) ou PDF para enviar.')
+      return
+    }
+    const tamanhoInvalido = erroDeTamanhoDeUpload(file)
+    if (tamanhoInvalido) {
+      setError(tamanhoInvalido)
       return
     }
     if (classDate && !classTime) {
@@ -248,7 +254,15 @@ function MateriaisAdminPage() {
             ref={fileInputRef}
             type="file"
             accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            onChange={(event) => {
+              // Confere o tamanho já na escolha: acima do teto a requisição morre
+              // na borda da Netlify e o formulário ficaria preso em "Enviando...".
+              const escolhido = event.target.files?.[0] ?? null
+              const problema = escolhido ? erroDeTamanhoDeUpload(escolhido) : null
+              setError(problema ?? '')
+              setFile(problema ? null : escolhido)
+              if (problema) event.target.value = ''
+            }}
             style={{ display: 'none' }}
           />
           <button

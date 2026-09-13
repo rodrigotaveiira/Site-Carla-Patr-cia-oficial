@@ -10,6 +10,7 @@ import {
   type ContentItemMeta, type ContentSection, type ContentTextColor, type DicaCategory,
 } from '@/lib/content-library'
 import { useToast } from '@/lib/toast'
+import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
 
 export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
@@ -114,6 +115,8 @@ function ConteudoAdminPage() {
     setError('')
     if (!isDicas && !title.trim()) { setError('Dê um título para o arquivo.'); return }
     if (!file) { setError('Escolha um arquivo PDF para enviar.'); return }
+    const tamanhoInvalido = erroDeTamanhoDeUpload(file)
+    if (tamanhoInvalido) { setError(tamanhoInvalido); return }
 
     setSaving(true)
     try {
@@ -216,7 +219,15 @@ function ConteudoAdminPage() {
             ref={fileInputRef}
             type="file"
             accept=".pdf,application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              // Confere o tamanho já na escolha: acima do teto a requisição morre
+              // na borda da Netlify e o formulário ficaria preso em "Enviando...".
+              const escolhido = e.target.files?.[0] ?? null
+              const problema = escolhido ? erroDeTamanhoDeUpload(escolhido) : null
+              setError(problema ?? '')
+              setFile(problema ? null : escolhido)
+              if (problema) e.target.value = ''
+            }}
             style={{ display: 'none' }}
           />
           <button
