@@ -163,7 +163,11 @@ export const getContentItemFile = createServerFn({ method: 'GET' })
     const { name, cpf } = getStudentIdentity(user)
     let watermarked = fileDataUrl
     try {
-      watermarked = await watermarkPdfDataUrl(fileDataUrl, name, cpf)
+      // Em Dicas a professora põe a marca d'água dela no meio da página, então a
+      // faixa central fica livre das marcas de segurança pra não sobrepor as duas.
+      watermarked = await watermarkPdfDataUrl(fileDataUrl, name, cpf, {
+        clearCenter: data.section === 'dicas',
+      })
     } catch {
       // se a marca d'água falhar, o aluno ainda recebe o arquivo original
     }
