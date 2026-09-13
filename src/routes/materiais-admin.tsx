@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { addMaterial, deleteMaterial, listMaterials, type MaterialCategory, type MaterialListItem } from '@/lib/materials'
+import {
+  addMaterial, deleteMaterial, listMaterials, MATERIAS, resolveMateria,
+  type Materia, type MaterialCategory, type MaterialListItem,
+} from '@/lib/materials'
 import { useToast } from '@/lib/toast'
 
 export const Route = createFileRoute('/materiais-admin')({
@@ -67,6 +70,7 @@ function MateriaisAdminPage() {
   const [classDate, setClassDate] = useState('')
   const [classTime, setClassTime] = useState('')
   const [category, setCategory] = useState<MaterialCategory>('geral')
+  const [subject, setSubject] = useState<Materia>('gramatica')
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
@@ -111,6 +115,8 @@ function MateriaisAdminPage() {
           title, description, tag, accent, fileName: file.name, fileDataUrl, category,
           classDate: classDate || undefined,
           classTime: classTime || undefined,
+          // A folha de redação fica fora da divisão — não faz sentido marcar frente nela.
+          subject: category === 'folha_redacao' ? undefined : subject,
         },
       })
       setTitle('')
@@ -186,6 +192,28 @@ function MateriaisAdminPage() {
             ))}
           </div>
         </div>
+
+        {/* A folha de redação serve às duas frentes, então não tem frente própria. */}
+        {category !== 'folha_redacao' && (
+          <div className="field">
+            <label>Frente</label>
+            <div className="tab-switch">
+              {(Object.keys(MATERIAS) as Materia[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSubject(key)}
+                  className={`tab-switch-btn${subject === key ? ' is-active' : ''}`}
+                  aria-pressed={subject === key}
+                >
+                  {MATERIAS[key]}
+                </button>
+              ))}
+            </div>
+            <p className="field-hint">O aluno encontra este material na aba <b>{MATERIAS[subject]}</b>.</p>
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <div className="field" style={{ flex: 1, minWidth: 140 }}>
             <label>Data da aula (opcional)</label>
@@ -245,9 +273,13 @@ function MateriaisAdminPage() {
             <div key={material.id} className="list-row">
               <div style={{ minWidth: 0, wordBreak: 'break-word' }}>
                 <b style={{ color: 'var(--navy)' }}>{material.title}</b>
-                {material.category === 'folha_redacao' && (
+                {material.category === 'folha_redacao' ? (
                   <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: '#0f7890', background: '#0f78901a', padding: '2px 8px', borderRadius: 20 }}>
                     Folha de redação · sem marca d'água
+                  </span>
+                ) : (
+                  <span className="badge badge-brand" style={{ marginLeft: 8, padding: '2px 9px', fontSize: 11 }}>
+                    {MATERIAS[resolveMateria(material)]}
                   </span>
                 )}
                 <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{material.fileName} · {material.tag}</div>

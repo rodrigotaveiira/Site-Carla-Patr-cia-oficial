@@ -8,6 +8,9 @@ import { validateUpload } from './upload-validation'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { notificarNovoMaterial } from './notificar-material'
 import { logMaterialDownload } from './material-downloads'
+import { materiaSchema, type Materia } from './materias'
+
+export { MATERIAS, resolveMateria, type Materia } from './materias'
 
 // 'geral' = material normal (baixa com marca d'água de nome+CPF do aluno).
 // 'folha_redacao' = folha de redação em branco pra usar nas produções — sem marca d'água,
@@ -26,6 +29,13 @@ export type Material = {
   classDate: string | null // data da aula (YYYY-MM-DD). null = sem restrição.
   classTime: string | null // horário de início da aula (HH:MM, horário de Brasília). material libera 15min antes.
   category: MaterialCategory
+  /**
+   * Frente do curso: gramática ou redação. Eixo diferente de `category`, que
+   * decide se o arquivo é material normal ou folha de redação em branco.
+   * Ausente nos materiais enviados antes das frentes existirem (caem em
+   * Redação) e na folha de redação, que fica fora da divisão de propósito.
+   */
+  subject?: Materia
 }
 
 // Formato devolvido pela listagem: sem o arquivo (pesado), com o status de liberação calculado.
@@ -167,6 +177,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       classDate: z.union([isoDate, z.literal('')]).optional(),
       classTime: z.union([hhmm, z.literal('')]).optional(),
       category: z.string().trim().max(30).optional(),
+      subject: materiaSchema.optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -199,6 +210,9 @@ export const addMaterial = createServerFn({ method: 'POST' })
       classDate: data.classDate?.trim() || null,
       classTime: classTime || null,
       category,
+      // A folha de redação fica fora da divisão Gramática/Redação: ela é um
+      // modelo em branco pra imprimir, e o aluno precisa dela nas duas frentes.
+      ...(category !== 'folha_redacao' && data.subject ? { subject: data.subject } : {}),
     }
 
     await store.setJSON(id, material)

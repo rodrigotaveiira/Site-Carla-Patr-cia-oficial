@@ -7,6 +7,7 @@ import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
 import { notificarNovoConteudo } from './notificar-conteudo'
+import { MATERIAS, materiaSchema, type Materia } from './materias'
 
 const contentSectionSchema = z.enum(['biblioteca', 'questoes', 'simulados', 'repertorios', 'dicas', 'gabaritos', 'edital'])
 
@@ -27,16 +28,13 @@ export function isContentSection(value: string): value is ContentSection {
   return Object.prototype.hasOwnProperty.call(CONTENT_SECTIONS, value)
 }
 
-// Dicas é a única seção dividida em duas frentes: a professora publica material de
-// gramática e material de redação, e o aluno escolhe qual quer ver.
-export const DICA_CATEGORIES = {
-  gramatica: 'Gramática',
-  redacao: 'Redação',
-} as const
-
-export type DicaCategory = keyof typeof DICA_CATEGORIES
-
-const dicaCategorySchema = z.enum(['gramatica', 'redacao'])
+// Dicas é dividida nas duas frentes que a professora ensina: o aluno escolhe se
+// quer ver o material de gramática ou o de redação. Materiais usa as mesmas
+// frentes, por isso os rótulos moram em `materias.ts` — os nomes daqui seguem
+// exportados como apelido pra não mexer nas telas que já os importam.
+export const DICA_CATEGORIES = MATERIAS
+export type DicaCategory = Materia
+const dicaCategorySchema = materiaSchema
 
 // Paleta fechada para o título e a descrição. São tokens, não hex livre: assim a
 // professora não consegue escolher uma cor ilegível e o site mantém a identidade visual.

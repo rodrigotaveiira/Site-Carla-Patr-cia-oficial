@@ -1,10 +1,13 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Download, FileEdit, Files, ShieldCheck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import {
+  getMaterialFile, listMaterials, MATERIAS, resolveMateria,
+  type Materia, type MaterialListItem,
+} from '@/lib/materials'
 import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
@@ -29,6 +32,7 @@ function MateriaisPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [frente, setFrente] = useState<Materia>('gramatica')
 
   useEffect(() => {
     listMaterials()
@@ -52,6 +56,13 @@ function MateriaisPage() {
 
   const folhasRedacao = materials.filter((material) => material.category === 'folha_redacao')
   const outrosMateriais = materials.filter((material) => material.category !== 'folha_redacao')
+
+  // A folha de redação fica fora da divisão e segue visível nas duas abas: é um
+  // modelo em branco pra imprimir, que o aluno usa nas duas frentes.
+  const materiaisDaFrente = useMemo(
+    () => outrosMateriais.filter((material) => resolveMateria(material) === frente),
+    [outrosMateriais, frente],
+  )
 
   return (
     <div className="panel">
@@ -84,12 +95,38 @@ function MateriaisPage() {
 
       <section style={{ marginTop: 20 }}>
         {folhasRedacao.length > 0 && <h2 className="panel-section-title">Materiais</h2>}
-        <div style={{ display: 'grid', gap: 12, marginTop: folhasRedacao.length > 0 ? 12 : 0 }}>
-          {outrosMateriais.map((material) => (
+
+        {!loading && (
+          <div className="tab-switch" style={{ marginTop: folhasRedacao.length > 0 ? 10 : 0 }} role="tablist">
+            {(Object.keys(MATERIAS) as Materia[]).map((key) => {
+              const quantos = outrosMateriais.filter((material) => resolveMateria(material) === key).length
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={frente === key}
+                  onClick={() => setFrente(key)}
+                  className={`tab-switch-btn${frente === key ? ' is-active' : ''}`}
+                >
+                  {MATERIAS[key]}
+                  {quantos > 0 && <span className="tab-switch-count">{quantos}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gap: 12, marginTop: 14 }}>
+          {materiaisDaFrente.map((material) => (
             <MaterialRow key={material.id} material={material} downloadingId={downloadingId} onDownload={handleDownload} />
           ))}
-          {!loading && materials.length === 0 && (
-            <EmptyState icon={Files} title="Nenhum material disponível ainda" description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui." />
+          {!loading && materiaisDaFrente.length === 0 && (
+            <EmptyState
+              icon={Files}
+              title={`Nenhum material de ${MATERIAS[frente].toLowerCase()} ainda`}
+              description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui."
+            />
           )}
         </div>
       </section>
