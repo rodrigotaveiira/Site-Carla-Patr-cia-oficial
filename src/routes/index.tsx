@@ -232,7 +232,7 @@ function HomePage() {
         <motion.div className="hero-visual" initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .9, delay: .15 }}>
           <div className="portrait-frame">
             <div className="portrait-label"><br /><b></b></div>
-            <img src="/carla-hero.webp" alt="Carla Patrícia Medina" width={1020} height={1360} fetchPriority="high" />
+            <img src="/carla-hero.webp" alt="Carla Patrícia Medina" width={1322} height={1188} fetchPriority="high" />
             <div className="floating-card experience-card"><Award size={22} /><div><b>22+ anos</b><span>de experiência</span></div></div>
           </div>
         </motion.div>
