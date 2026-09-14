@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CalendarCheck2, ChevronRight, Flame, Lock, Sparkles, Target, Trophy } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronRight, Lock, Sparkles, Trophy } from 'lucide-react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
@@ -43,11 +43,29 @@ function textoDaProxima(proxima: ProximaConquista, conquista: Conquista) {
   return { nome, chamada: `${dias} para desbloquear.` }
 }
 
+// Cabeçalho de seção: título em serifa, fio dourado até o contador.
+function CabecalhoDeSecao({ titulo, contador, hint }: { titulo: string; contador: string; hint: string }) {
+  return (
+    <>
+      <div className="conquistas-secao-head">
+        <h2>{titulo}</h2>
+        <i aria-hidden="true" />
+        <span className="conquistas-contador">{contador}</span>
+      </div>
+      <p className="conquistas-secao-hint">{hint}</p>
+    </>
+  )
+}
+
 function ConquistasPage() {
   const [estado, setEstado] = useState<EstadoConquistas | null>(null)
   const [progresso, setProgresso] = useState<StudentProgress | null>(null)
   const [erro, setErro] = useState(false)
   const [celebrando, setCelebrando] = useState<string[]>([])
+  // Um único momento animado na chegada: a barra da semana e o fio da trilha
+  // saem de zero juntos, com a mesma curva. Sai do zero só depois que os
+  // dados chegam, senão a transição do CSS não teria de onde partir.
+  const [revelado, setRevelado] = useState(false)
 
   useEffect(() => {
     getMyAchievements()
@@ -59,8 +77,14 @@ function ConquistasPage() {
       .catch(() => setErro(true))
     getStudentProgress()
       .then(setProgresso)
-      .catch(() => { /* o cartão de progresso geral some, o resto da página continua */ })
+      .catch(() => { /* o número de progresso vira "—", o resto da página continua */ })
   }, [])
+
+  useEffect(() => {
+    if (!estado) return
+    const quadro = requestAnimationFrame(() => setRevelado(true))
+    return () => cancelAnimationFrame(quadro)
+  }, [estado])
 
   // Fecha a celebração e avisa o servidor, pra a animação não repetir na próxima visita.
   function encerrarCelebracao() {
@@ -92,65 +116,57 @@ function ConquistasPage() {
     return `${estado.sequencia.recorde} de ${conquista.dias} dias`
   }
 
-  const totalDesbloqueadas = desbloqueadas.size
   const totalConquistas = JORNADA_SEMANAL.length + SEQUENCIAS.length + ESPECIAIS.length
 
   const proximaConquista = estado?.proxima ? conquistaPorId(estado.proxima.id) : undefined
   const proximoTexto = estado?.proxima && proximaConquista ? textoDaProxima(estado.proxima, proximaConquista) : null
 
+  // Fração do fio da trilha que fica preenchida: são 5 medalhões, logo 4
+  // trechos entre eles — com 3 dias feitos, 2 trechos estão vencidos.
+  const trechosDaTrilha = JORNADA_SEMANAL.length - 1
+  const fracaoDaTrilha = estado
+    ? Math.max(0, Math.min(1, (estado.semana.diasConcluidos - 1) / trechosDaTrilha))
+    : 0
+
   return (
-    <div className="panel panel-wide">
+    <div className="panel panel-wide conquistas">
       <h1 style={{ marginBottom: 4 }}><Trophy /> Minhas conquistas</h1>
       <p className="panel-subtitle">
         Sua jornada da semana, sua sequência de estudos e a coleção de selos que você já desbloqueou.
       </p>
 
       {erro && (
-        <div className="panel-card" style={{ marginTop: 20 }}>
+        <div className="panel-card" style={{ marginTop: 24 }}>
           Não foi possível carregar suas conquistas agora. Atualize a página em alguns instantes.
         </div>
       )}
 
       {!estado && !erro && (
         <div className="conquistas-carregando">
-          <div className="skeleton skeleton-block" style={{ height: 118 }} />
-          <div className="skeleton skeleton-block" style={{ height: 188 }} />
-          <div className="skeleton skeleton-block" style={{ height: 188 }} />
+          <div className="skeleton skeleton-block" style={{ height: 92 }} />
+          <div className="skeleton skeleton-block" style={{ height: 116 }} />
+          <div className="skeleton skeleton-block" style={{ height: 240 }} />
         </div>
       )}
 
       {estado && (
         <>
-          {/* Painel de números: sequência, recorde, meta da semana e progresso do curso. */}
-          <div className="conquistas-resumo">
-            <div className="conquistas-metrica destaque">
-              <span className="conquistas-metrica-icone"><Flame size={18} /></span>
+          {/* Os quatro números que respondem "como eu estou indo". */}
+          <div className="conquistas-numeros">
+            <div>
               <b>{estado.sequencia.atual}</b>
-              <small>{estado.sequencia.atual === 1 ? 'dia consecutivo estudando' : 'dias consecutivos estudando'}</small>
+              <span>{estado.sequencia.atual === 1 ? 'dia seguido' : 'dias seguidos'}</span>
             </div>
-            <div className="conquistas-metrica">
-              <span className="conquistas-metrica-icone"><Trophy size={18} /></span>
-              <b>{estado.sequencia.recorde}</b>
-              <small>maior sequência já alcançada</small>
-            </div>
-            <div className="conquistas-metrica">
-              <span className="conquistas-metrica-icone"><CalendarCheck2 size={18} /></span>
-              <b>{estado.semana.diasConcluidos}/{estado.semana.meta}</b>
-              <small>meta desta semana</small>
-            </div>
-            <div className="conquistas-metrica">
-              <span className="conquistas-metrica-icone"><Target size={18} /></span>
-              <b>{progresso ? `${progresso.overallPercent}%` : '—'}</b>
-              <small>progresso geral do curso</small>
-            </div>
+            <div><b>{estado.sequencia.recorde}</b><span>maior sequência</span></div>
+            <div><b>{estado.semana.diasConcluidos}/{estado.semana.meta}</b><span>meta da semana</span></div>
+            <div><b>{progresso ? `${progresso.overallPercent}%` : '—'}</b><span>progresso do curso</span></div>
           </div>
 
-          {/* Missão de hoje: uma tarefa curta e objetiva, com ação direta. */}
+          {/* A única superfície sólida e escura da página, porque é a única ação. */}
           <section className="conquistas-missao">
             <div>
-              <span className="conquistas-missao-tag"><Sparkles size={13} /> Missão de hoje</span>
               <h2>{estado.missao.titulo}</h2>
-              <p>{estado.missao.descricao}</p>
+              <p>Sua missão de hoje. {estado.missao.descricao}</p>
             </div>
             <Link className="conquistas-missao-cta" to={estado.missao.href as never}>
               {estado.missao.cta} <ChevronRight size={16} />
@@ -158,23 +174,22 @@ function ConquistasPage() {
           </section>
 
           {/* Jornada da semana: 5 dias, uma recompensa por dia. */}
-          <section className="conquistas-bloco">
-            <header className="conquistas-bloco-head">
-              <div>
-                <h2>Jornada da semana</h2>
-                <p>Estude {estado.semana.meta} dias e desbloqueie uma recompensa a cada dia.</p>
-              </div>
-              <span className="conquistas-contador">
-                {estado.semana.diasConcluidos} de {estado.semana.meta} dias concluídos — {estado.semana.percentual}%
-              </span>
-            </header>
+          <section className="conquistas-secao">
+            <CabecalhoDeSecao
+              titulo="Jornada da semana"
+              contador={`${estado.semana.diasConcluidos} de ${estado.semana.meta} dias — ${estado.semana.percentual}%`}
+              hint={`Estude ${estado.semana.meta} dias e desbloqueie uma recompensa a cada dia.`}
+            />
 
-            <div className="conquistas-barra" role="progressbar" aria-valuenow={estado.semana.percentual} aria-valuemin={0} aria-valuemax={100}>
-              <motion.i
-                initial={{ width: 0 }}
-                animate={{ width: `${estado.semana.percentual}%` }}
-                transition={{ duration: .7, ease: 'easeOut' }}
-              />
+            <div
+              className="conquistas-barra"
+              role="progressbar"
+              aria-label="Progresso da meta semanal"
+              aria-valuenow={estado.semana.percentual}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
+              <i style={{ width: `${revelado ? estado.semana.percentual : 0}%` }} />
             </div>
 
             <div className="conquistas-semana-dias">
@@ -186,33 +201,27 @@ function ConquistasPage() {
               ))}
             </div>
 
-            <ol className="conquistas-trilha">
-              {JORNADA_SEMANAL.map((etapa, indice) => {
+            <ol className="conquistas-trilha" style={{ '--trilha': revelado ? fracaoDaTrilha : 0 } as CSSProperties}>
+              {JORNADA_SEMANAL.map((etapa) => {
                 const conquistada = desbloqueadas.has(etapa.id)
                 return (
-                  <motion.li
-                    key={etapa.id}
-                    className={conquistada ? `raridade-${etapa.raridade} conquistada` : `raridade-${etapa.raridade}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: indice * .06, duration: .35 }}
-                  >
+                  <li key={etapa.id} className={conquistada ? `raridade-${etapa.raridade} conquistada` : `raridade-${etapa.raridade}`}>
                     <span className="conquistas-trilha-selo">
-                      {conquistada ? <IconeDaConquista icone={etapa.icone} size={20} /> : <Lock size={15} />}
+                      {conquistada ? <IconeDaConquista icone={etapa.icone} size={22} /> : <Lock size={16} />}
                     </span>
                     <b>{etapa.nome}</b>
                     <small>{conquistada ? etapa.mensagem : `Dia ${etapa.dias}`}</small>
-                  </motion.li>
+                  </li>
                 )
               })}
             </ol>
 
             {proximoTexto && (
-              <div className="conquistas-proxima">
+              <div className={`conquistas-proxima raridade-${proximaConquista!.raridade}`}>
                 <span className="conquistas-proxima-selo">
-                  {proximaConquista?.misteriosa
-                    ? <Sparkles size={18} />
-                    : <IconeDaConquista icone={proximaConquista!.icone} size={18} />}
+                  {proximaConquista!.misteriosa
+                    ? <Sparkles size={19} />
+                    : <IconeDaConquista icone={proximaConquista!.icone} size={19} />}
                 </span>
                 <div>
                   <b>Próxima conquista: {proximoTexto.nome}</b>
@@ -223,14 +232,12 @@ function ConquistasPage() {
           </section>
 
           {/* Sequência: a camada que continua depois dos 5 dias. */}
-          <section className="conquistas-bloco">
-            <header className="conquistas-bloco-head">
-              <div>
-                <h2>Sequência de estudos</h2>
-                <p>Não reinicia depois da meta semanal — cada dia seguido soma na sua sequência.</p>
-              </div>
-              <span className="conquistas-contador">{estado.sequencia.recorde} dia(s) no seu recorde</span>
-            </header>
+          <section className="conquistas-secao">
+            <CabecalhoDeSecao
+              titulo="Sequência de estudos"
+              contador={`recorde de ${estado.sequencia.recorde} dia(s)`}
+              hint="Não reinicia depois da meta semanal — cada dia seguido soma na sua sequência."
+            />
             <div className="conquistas-colecao">
               {SEQUENCIAS.map((conquista) => (
                 <ConquistaBadge
@@ -246,14 +253,12 @@ function ConquistasPage() {
           </section>
 
           {/* Especiais: não dependem só de dias estudados. */}
-          <section className="conquistas-bloco">
-            <header className="conquistas-bloco-head">
-              <div>
-                <h2>Conquistas especiais</h2>
-                <p>Aulas, questões, revisões e desempenho — cada uma com sua própria regra.</p>
-              </div>
-              <span className="conquistas-contador">{totalDesbloqueadas} de {totalConquistas} no total</span>
-            </header>
+          <section className="conquistas-secao">
+            <CabecalhoDeSecao
+              titulo="Conquistas especiais"
+              contador={`${desbloqueadas.size} de ${totalConquistas} selos`}
+              hint="Aulas, questões, revisões e desempenho — cada uma com sua própria regra."
+            />
             <div className="conquistas-colecao">
               {ESPECIAIS.map((conquista) => (
                 <ConquistaBadge
@@ -275,8 +280,8 @@ function ConquistasPage() {
   )
 }
 
-// Animação leve de desbloqueio. Quando várias saem de uma vez (primeira visita
-// de um aluno que já estudava), mostra um resumo em vez de uma janela por selo.
+// Animação de desbloqueio. Quando várias saem de uma vez (primeira visita de
+// um aluno que já estudava), mostra um resumo em vez de uma janela por selo.
 function CelebracaoDeConquista({ ids, onFechar }: { ids: string[]; onFechar: () => void }) {
   const conquistas = ids.map(conquistaPorId).filter((item): item is Conquista => !!item)
 
@@ -295,9 +300,9 @@ function CelebracaoDeConquista({ ids, onFechar }: { ids: string[]; onFechar: () 
         >
           <motion.div
             className="conquista-celebracao"
-            initial={{ opacity: 0, scale: .9, y: 16 }}
+            initial={{ opacity: 0, scale: .92, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: .95 }}
+            exit={{ opacity: 0, scale: .96 }}
             transition={{ type: 'spring', stiffness: 260, damping: 22 }}
             onClick={(evento) => evento.stopPropagation()}
           >
@@ -310,11 +315,11 @@ function CelebracaoDeConquista({ ids, onFechar }: { ids: string[]; onFechar: () 
                 <motion.span
                   key={conquista.id}
                   className={`conquista-celebracao-selo raridade-${conquista.raridade}`}
-                  initial={{ scale: .5, rotate: -8, opacity: 0 }}
+                  initial={{ scale: .5, rotate: -10, opacity: 0 }}
                   animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                  transition={{ delay: .1 + indice * .12, type: 'spring', stiffness: 300, damping: 18 }}
+                  transition={{ delay: .12 + indice * .12, type: 'spring', stiffness: 300, damping: 18 }}
                 >
-                  <IconeDaConquista icone={conquista.icone} size={30} />
+                  <IconeDaConquista icone={conquista.icone} size={31} />
                 </motion.span>
               ))}
             </div>
