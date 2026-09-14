@@ -655,7 +655,10 @@ footer .brand b { color: white; }
 .grade { color: #15803d !important; font-family: var(--serif); font-size: 24px !important; font-variant-numeric: tabular-nums; }
 .material-card { grid-column: span 3; }
 .material-intro { margin: 14px 0 0; color: #687588; font-size: 13px; line-height: 1.7; }
-.material-list { display: grid; gap: 14px; margin-top: 18px; }
+/* Alternador Gramática / Redação dentro do card do dashboard — o mesmo da
+   página de Materiais, só com o respiro que o card precisa. */
+.material-frentes { margin-top: 16px; }
+.material-list { display: grid; gap: 14px; margin-top: 16px; }
 .material-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 16px 18px; background: #f9f8fd; border: 1px solid #ece8f7; border-radius: 8px; }
 .material-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 72px; padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .material-item > div:nth-child(2) { display: flex; flex-direction: column; }

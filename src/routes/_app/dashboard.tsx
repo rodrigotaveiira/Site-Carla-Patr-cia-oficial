@@ -10,7 +10,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { getMonthlyActivity, getStreak, getWeeklyGoal, registerAccessAndGetWeeklyGoal, type MonthlyActivity, type WeeklyGoal } from '@/lib/weekly-activity'
-import { getMaterialFile, listMaterials, type MaterialListItem } from '@/lib/materials'
+import { getMaterialFile, listMaterials, MATERIAS, resolveMateria, type Materia, type MaterialListItem } from '@/lib/materials'
 import { listLessons, type Lesson } from '@/lib/aulas'
 import { getMyWatchedLessons } from '@/lib/lesson-progress'
 import { getStudentProgress, REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
@@ -147,14 +147,34 @@ function DashboardPage() {
   }
 
   const [materials, setMaterials] = useState<MaterialMeta[]>([])
+  const [materialsLoaded, setMaterialsLoaded] = useState(false)
   const [materialsError, setMaterialsError] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [frenteMateriais, setFrenteMateriais] = useState<Materia>('gramatica')
 
   useEffect(() => {
     listMaterials()
       .then((data) => setMaterials(data as MaterialMeta[]))
       .catch(() => setMaterialsError('Não foi possível carregar os materiais agora.'))
+      .finally(() => setMaterialsLoaded(true))
   }, [])
+
+  // Mesma divisão da página de Materiais: folha de redação fica fora das
+  // frentes (é modelo em branco pra imprimir, não conteúdo de aula) e só
+  // aparece lá, em "Ver todos".
+  const materiaisPorFrente = useMemo(() => {
+    const porFrente = { gramatica: [] as MaterialMeta[], redacao: [] as MaterialMeta[] }
+    for (const material of materials) {
+      if (material.category === 'folha_redacao') continue
+      porFrente[resolveMateria(material)].push(material)
+    }
+    return porFrente
+  }, [materials])
+
+  // O dashboard é resumo, não catálogo: só os mais recentes de cada frente.
+  // `listMaterials` já devolve do mais novo pro mais antigo.
+  const MATERIAIS_NO_RESUMO = 2
+  const materiaisVisiveis = materiaisPorFrente[frenteMateriais].slice(0, MATERIAIS_NO_RESUMO)
 
   async function handleDownload(id: string) {
     setDownloadingId(id)
@@ -687,10 +707,34 @@ function DashboardPage() {
               <div><span>Arquivos exclusivos</span><h3>Material protegido</h3></div>
               <Link to="/materiais">Ver todos</Link>
             </div>
-            <p className="material-intro">Baixe os materiais do curso enviados pela professora, em Word ou PDF. Cada download é protegido com seu nome e CPF.</p>
+            <p className="material-intro">Os mais recentes de cada frente, em Word ou PDF. Cada download é protegido com seu nome e CPF.</p>
             {materialsError && <p className="avatar-edit-error">{materialsError}</p>}
+
+            {materialsLoaded && (
+              <div className="tab-switch material-frentes" role="tablist">
+                {(Object.keys(MATERIAS) as Materia[]).map((key) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={frenteMateriais === key}
+                    onClick={() => setFrenteMateriais(key)}
+                    className={`tab-switch-btn${frenteMateriais === key ? ' is-active' : ''}`}
+                  >
+                    {MATERIAS[key]}
+                    {materiaisPorFrente[key].length > 0 && (
+                      <span className="tab-switch-count">{materiaisPorFrente[key].length}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="material-list">
-              {materials.map((material) => (
+              {!materialsLoaded && Array.from({ length: MATERIAIS_NO_RESUMO }).map((_, index) => (
+                <div className="skeleton skeleton-block" style={{ height: 78 }} key={index} />
+              ))}
+              {materiaisVisiveis.map((material) => (
                 <div className="material-item" key={material.id}>
                   <div className="material-badge" style={{ background: `${material.accent}1a`, color: material.accent }}>{material.tag}</div>
                   <div>
@@ -702,7 +746,11 @@ function DashboardPage() {
                   </button>
                 </div>
               ))}
-              {materials.length === 0 && <p className="material-intro">Nenhum material disponível ainda. A professora vai adicionar em breve.</p>}
+              {materialsLoaded && materiaisVisiveis.length === 0 && (
+                <p className="material-intro">
+                  Nenhum material de {MATERIAS[frenteMateriais].toLowerCase()} ainda. A professora vai adicionar em breve.
+                </p>
+              )}
             </div>
           </section>
 
