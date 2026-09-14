@@ -915,6 +915,10 @@ footer .brand b { color: white; }
 .panel-wide { max-width: 920px; }
 .panel-back { display: inline-flex; align-items: center; gap: 6px; color: var(--purple); font-weight: 700; font-size: 14px; text-decoration: none; background: none; border: 0; padding: 0; cursor: pointer; }
 .panel-back:hover { color: var(--purple-dark); }
+/* Virou <button> (anda um passo atrás no histórico), então precisa do mesmo
+   anel de foco que os demais controles — o contorno padrão do navegador não
+   pertence a nenhum sistema de design. */
+.panel-back:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); border-radius: 6px; }
 .panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }

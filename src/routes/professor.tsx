@@ -5,6 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/admin-notifications'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/professor')({
   beforeLoad: async () => {
@@ -38,7 +39,7 @@ function ProfessorHubPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Painel do professor</h1>
       <p className="panel-subtitle">Correção de redações, lembretes para os alunos e dicas.</p>
 

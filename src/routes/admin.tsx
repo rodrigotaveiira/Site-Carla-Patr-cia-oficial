@@ -7,6 +7,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { getAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/admin-notifications'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/admin')({
   beforeLoad: async () => {
@@ -55,7 +56,7 @@ function AdminHubPage() {
 
   return (
     <main className="panel panel-wide">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Painel admin</h1>
       <p className="panel-subtitle">Gerencie todo o conteúdo da área do aluno a partir daqui.</p>
 

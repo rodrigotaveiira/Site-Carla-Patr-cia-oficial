@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { CalendarDays, PenLine } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { addTema, deleteTema, listTemas, type TemaRedacao } from '@/lib/temas-redacao'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/temas-redacao-admin')({
   beforeLoad: async () => {
@@ -76,7 +77,7 @@ function TemasRedacaoAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/redacoes-admin" className="panel-back">← Voltar para correção de redações</Link>
+      <VoltarAoPainel />
       <h1><PenLine /> Temas de redação</h1>
       <p className="panel-subtitle">
         Cadastre os temas e as propostas de redação que os alunos devem desenvolver. Eles aparecem, em ordem

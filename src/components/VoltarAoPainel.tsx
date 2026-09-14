@@ -1,25 +1,41 @@
-import { Link } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { useIdentity } from '@/lib/identity-context'
 import { userHasRole } from '@/lib/roles'
 
-// Link de volta das telas de administração.
+// Botão de voltar das telas de administração.
 //
-// Existem dois painéis: `/admin`, só para admin, e `/professor`, para admin ou
-// professora. Várias telas são alcançáveis pelos dois, e o link fixo que havia
-// antes quebrava para a professora: em Dicas e em Redações ele apontava para
-// `/admin`, onde ela não tem permissão — clicar em "Voltar" a expulsava para o
-// dashboard do aluno. Outras cinco telas mandavam todo mundo para o dashboard,
-// tirando de dentro da ferramenta quem estava no meio de uma tarefa.
+// Anda UM passo atrás no histórico, devolvendo a pessoa exatamente de onde ela
+// veio. Antes era um link fixo, e destino fixo mente: quem entrava em Materiais
+// vindo de outro lugar era mandado pro painel; e no próprio painel o link
+// levava pro dashboard do ALUNO, que é sair da ferramenta inteira em vez de
+// voltar um passo.
 //
-// O destino vem do papel de quem está logado, pelo mesmo `useIdentity` que o
-// menu do aluno já usa. Enquanto a identidade não carregou, o padrão é
-// `/professor`: admin também tem acesso a ele, então nesse instante o link
-// ainda leva a um painel válido — ao contrário de `/admin`, que devolveria a
-// professora ao dashboard.
+// Sem página anterior — link aberto direto, ou recarregado — não dá pra andar
+// pra trás sem jogar a pessoa pra fora do site. Aí o destino é o painel do
+// papel dela: `/admin` para admin, `/professor` para a professora, que não tem
+// permissão no primeiro.
 export function VoltarAoPainel() {
+  const router = useRouter()
   const { user } = useIdentity()
+  // `canGoBack` depende do histórico do navegador, que não existe no servidor.
+  // Começa `false` nos dois lados e se ajusta depois de montar, senão o HTML
+  // do servidor e o do cliente divergem.
+  const [podeVoltar, setPodeVoltar] = useState(false)
 
-  return userHasRole(user, 'admin')
-    ? <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
-    : <Link to="/professor" className="panel-back">← Voltar ao painel</Link>
+  useEffect(() => {
+    setPodeVoltar(router.history.canGoBack())
+  }, [router])
+
+  const painel = userHasRole(user, 'admin') ? '/admin' : '/professor'
+
+  return (
+    <button
+      type="button"
+      className="panel-back"
+      onClick={() => (podeVoltar ? router.history.back() : router.navigate({ to: painel }))}
+    >
+      ← Voltar
+    </button>
+  )
 }
