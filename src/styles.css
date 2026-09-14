@@ -102,7 +102,6 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .quote-card svg { color: var(--gold); opacity: .8; }
 .quote-card p { margin: 10px 0 0; font-family: var(--serif); font-size: 17px; line-height: 1.35; }
 .gold-seal { position: absolute; top: 48px; right: 9%; width: 98px; height: 98px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; background: var(--gold); border: 6px solid #fff; border-radius: 50%; box-shadow: 0 10px 30px #0002; }
-.gold-seal span { font-family: var(--serif); font-size: 23px; }
 .gold-seal small { font-size: 7px; text-align: center; text-transform: uppercase; letter-spacing: .06em; }
 .about-copy h2, .section-heading h2, .results h2, .faq h2, .contact h2, .platform-copy h2 { margin: 0; color: var(--navy); font-family: var(--serif); font-size: clamp(38px, 4vw, 56px); line-height: 1.06; font-weight: 400; letter-spacing: -.02em; }
 .about-copy > p { margin: 22px 0 0; color: #667085; line-height: 1.8; font-size: 14px; }
