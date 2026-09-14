@@ -2,7 +2,7 @@ import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-r
 import {
   BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
   LogOut, Menu, MessageCircleHeart, MessageSquareText, ScrollText, Settings, Target, TrendingUp, User, Users, X, Zap,
-  ChevronDown, FileCheck2,
+  ChevronDown, FileCheck2, Trophy,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useIdentity } from '@/lib/identity-context'
@@ -46,6 +46,7 @@ const sidebarGroups = [
     items: [
       { icon: CalendarClock, label: 'Calendário', href: '/calendario' },
       { icon: TrendingUp, label: 'Meu progresso', href: '/progresso' },
+      { icon: Trophy, label: 'Minhas conquistas', href: '/conquistas' },
       { icon: CalendarDays, label: 'Mentoria individual', href: '/mentorias' },
       { icon: Users, label: 'Mentorias em grupo', href: '/mentorias-grupo' },
       { icon: MessageCircleHeart, label: 'Fale com a Carlinha', href: '/perfil' },

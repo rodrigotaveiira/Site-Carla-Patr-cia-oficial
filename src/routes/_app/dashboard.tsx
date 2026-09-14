@@ -22,6 +22,8 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
+import { JORNADA_SEMANAL } from '@/lib/conquistas-catalogo'
+import { IconeDaConquista } from '@/components/ConquistaBadge'
 import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { useToast } from '@/lib/toast'
 import { OnboardingModal } from '@/components/OnboardingModal'
@@ -472,6 +474,11 @@ function DashboardPage() {
   // Troféu da meta semanal: prata a partir de 3 dias, dourado só quando a meta (5 dias) é batida.
   const weeklyDaysDone = weeklyGoal ? weeklyGoal.completedDates.length : 0
 
+  // Próxima recompensa da jornada da semana — a mesma trilha da área "Minhas
+  // conquistas". Aqui o cálculo é só com os dias da semana, então não precisa
+  // de outra ida ao servidor: o card já tem o número que importa.
+  const proximaRecompensa = JORNADA_SEMANAL.find((etapa) => weeklyDaysDone < (etapa.dias ?? 0))
+
   return (
     <>
       {showOnboarding && <OnboardingModal studentName={studentName.trim() || 'Aluno(a)'} onDismiss={dismissOnboarding} />}
@@ -621,9 +628,27 @@ function DashboardPage() {
           ) : (
             <div className="skeleton skeleton-line sm w-60" style={{ marginTop: 4 }} />
           )}
+          {weeklyGoal && proximaRecompensa && (
+            <div className="weekly-next-reward">
+              <span className={`raridade-${proximaRecompensa.raridade}`}>
+                <IconeDaConquista icone={proximaRecompensa.icone} size={16} />
+              </span>
+              <div>
+                <b>Próxima conquista: {proximaRecompensa.nome}</b>
+                <small>
+                  {(proximaRecompensa.dias ?? 0) - weeklyDaysDone === 1
+                    ? 'Falta apenas 1 dia de estudo para desbloquear.'
+                    : `Faltam ${(proximaRecompensa.dias ?? 0) - weeklyDaysDone} dias de estudo para desbloquear.`}
+                </small>
+              </div>
+            </div>
+          )}
           <button type="button" className="weekly-goal-month-link" onClick={openMonthReview}>
             <CalendarCheck size={14} /> Ver como foi meu mês <ChevronRight size={14} />
           </button>
+          <Link className="weekly-goal-month-link" to="/conquistas">
+            <Trophy size={14} /> Minhas conquistas <ChevronRight size={14} />
+          </Link>
           </section>
 
           <section className="dashboard-card recent-content"><div className="card-title"><div><span>Continue de onde parou</span><h3>Últimas aulas</h3></div><Link to="/aulas">Ver todas</Link></div>
