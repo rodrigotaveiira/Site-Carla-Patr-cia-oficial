@@ -8,6 +8,7 @@ import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/
 import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
 import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/redacoes-admin')({
   beforeLoad: async () => {
@@ -232,7 +233,7 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
       <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
       </button>
-      {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+      {error && <p className="form-error">{error}</p>}
     </div>
   )
 }
@@ -315,7 +316,7 @@ function RedacoesAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1>Correção de redações</h1>
       <p className="panel-subtitle">Veja as redações enviadas pelos alunos e envie a nota (critérios da banca Econ Rio) e o comentário.</p>
 

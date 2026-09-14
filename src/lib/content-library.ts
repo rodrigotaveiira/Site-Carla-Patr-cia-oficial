@@ -5,7 +5,9 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
+import { MAX_CHUNKED_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
+import { assembleUpload, chunkedUploadRefSchema } from './upload-chunks'
+import { prepareDownload } from './download-chunks'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, id as idSchema } from './schemas'
 import { notificarNovoConteudo } from './notificar-conteudo'
 import { MATERIAS, materiaSchema, type Materia } from './materias'
@@ -189,7 +191,8 @@ export const getContentItemFile = createServerFn({ method: 'GET' })
     } catch {
       // se a marca d'água falhar, o aluno ainda recebe o arquivo original
     }
-    return { fileName, fileDataUrl: watermarked }
+    // Arquivo grande não cabe numa resposta só: volta em pedaços (ver download-chunks.ts).
+    return prepareDownload(user, fileName, watermarked)
   })
 
 export const addContentItem = createServerFn({ method: 'POST' })
@@ -201,12 +204,18 @@ export const addContentItem = createServerFn({ method: 'POST' })
         title: z.string().trim().max(300),
         description: z.string().trim().max(2000),
         fileName: fileNameSchema,
-        fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
+        // Arquivo pequeno vem inteiro aqui; grande vem em `upload`, já enviado
+        // em pedaços, porque não caberia nesta requisição (ver upload-chunks.ts).
+        fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH).optional(),
+        upload: chunkedUploadRefSchema.optional(),
         category: dicaCategorySchema.optional(),
         titleColor: contentTextColorSchema.optional(),
         descriptionColor: contentTextColorSchema.optional(),
       })
       .superRefine((data, ctx) => {
+        if (!data.fileDataUrl === !data.upload) {
+          ctx.addIssue({ code: 'custom', path: ['fileDataUrl'], message: 'Envie um arquivo.' })
+        }
         if (data.section === 'dicas') {
           if (!data.category) {
             ctx.addIssue({ code: 'custom', path: ['category'], message: 'Escolha se a dica é de Gramática ou de Redação.' })
@@ -221,11 +230,16 @@ export const addContentItem = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     await requireAdmin(data.section)
 
+    // Arquivo grande chegou em pedaços; remonta antes de validar, pra que a
+    // conferência de formato e tamanho valha sobre o arquivo inteiro.
+    const fileDataUrl = data.fileDataUrl
+      ?? await assembleUpload(data.upload!.uploadId, data.upload!.mime)
+
     validateUpload({
-      dataUrl: data.fileDataUrl,
+      dataUrl: fileDataUrl,
       fileName: data.fileName,
       allowed: ['pdf'],
-      maxDecodedBytes: MAX_UPLOAD_BYTES,
+      maxDecodedBytes: MAX_CHUNKED_UPLOAD_BYTES,
     })
 
     const store = storeFor(data.section)
@@ -235,7 +249,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
       title: data.title.trim(),
       description: data.description.trim(),
       fileName: data.fileName,
-      fileDataUrl: data.fileDataUrl,
+      fileDataUrl,
       createdAt: new Date().toISOString(),
       ...(data.section === 'dicas' && data.category ? { category: data.category } : {}),
       ...(data.titleColor ? { titleColor: data.titleColor } : {}),

@@ -915,6 +915,10 @@ footer .brand b { color: white; }
 .panel-wide { max-width: 920px; }
 .panel-back { display: inline-flex; align-items: center; gap: 6px; color: var(--purple); font-weight: 700; font-size: 14px; text-decoration: none; background: none; border: 0; padding: 0; cursor: pointer; }
 .panel-back:hover { color: var(--purple-dark); }
+/* Virou <button> (anda um passo atrás no histórico), então precisa do mesmo
+   anel de foco que os demais controles — o contorno padrão do navegador não
+   pertence a nenhum sistema de design. */
+.panel-back:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); border-radius: 6px; }
 .panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
@@ -933,6 +937,15 @@ footer .brand b { color: white; }
 
 .panel-section-title { display: flex; align-items: center; gap: 8px; margin: 32px 0 4px; color: var(--navy); font-size: 18px; font-family: var(--serif); font-weight: 400; }
 .panel-section-hint { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+
+/* Ritmo dos formulários empilhados dentro de um .panel-card.
+   O card é `display: block` e `.field` não tem margem, então cada rótulo colava
+   no campo de cima — seis telas de administração tinham esse problema, e a de
+   Conteúdo tinha um `gap` inline só dela, remendando o sintoma numa tela só.
+   Vale só para `form`: `.panel-card` também veste blocos de leitura nas telas
+   do aluno, que têm o próprio espaçamento. E o filho direto (`>`) mantém de
+   fora os campos agrupados em linha dentro de uma div, que já usam `gap`. */
+form.panel-card > * + * { margin-top: 16px; }
 
 .field { display: grid; gap: 5px; }
 .field label, .field-label { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .02em; }
@@ -971,6 +984,10 @@ footer .brand b { color: white; }
   width: 100%; box-sizing: border-box; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px;
   font-family: inherit; font-size: 14px; color: var(--ink); background: #fff;
   transition: border-color .15s, box-shadow .15s;
+  /* O cursor de digitação vinha preto, do navegador. Numa tela de administração,
+     que é quase toda formulário, ele é a única parte do campo que não falava a
+     língua da marca — a borda de foco já é roxa. */
+  caret-color: var(--purple);
 }
 .panel textarea { resize: vertical; }
 .panel input:focus, .panel textarea:focus, .panel select:focus {

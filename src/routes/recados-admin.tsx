@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { MessageCircleHeart, Send } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { listAllRecados, markRecadoRead, replyRecado, type Recado } from '@/lib/recados'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/recados-admin')({
   beforeLoad: async () => {
@@ -110,7 +111,7 @@ function RecadoCard({ recado, onMarkRead, markingId, onReplied }: {
               </button>
             )}
           </div>
-          {replyError && <p className="form-error" style={{ margin: 0 }}>{replyError}</p>}
+          {replyError && <p className="form-error">{replyError}</p>}
         </div>
       )}
     </div>
@@ -154,7 +155,7 @@ function RecadosAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><MessageCircleHeart /> Recados dos alunos</h1>
       <p className="panel-subtitle">
         Mensagens que os alunos mandaram pelo perfil deles.

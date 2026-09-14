@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Bell } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { createLembrete, deleteLembrete, listLembretes, type Lembrete } from '@/lib/lembretes'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/lembretes-admin')({
   beforeLoad: async () => {
@@ -72,7 +73,7 @@ function LembretesAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1><Bell /> Lembretes para os alunos</h1>
       <p className="panel-subtitle">Escreva um aviso curto. Ele aparece no sininho de notificações de todos os alunos, no dashboard.</p>
 
@@ -86,7 +87,7 @@ function LembretesAdminPage() {
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Enviar lembrete'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

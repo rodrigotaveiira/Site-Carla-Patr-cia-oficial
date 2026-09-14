@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots, type MentoriaGrupoSlot } from '@/lib/mentorias-grupo'
+import {
+  joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots,
+  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, type MentoriaGrupoSlot,
+} from '@/lib/mentorias-grupo'
 import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
@@ -117,14 +120,20 @@ function MentoriasGrupoPage() {
           <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
             {mySlots.map((slot) => (
               <div key={slot.id} className="list-row" style={{ background: 'var(--lilac-tint)', borderColor: '#e0dcf0' }}>
-                <div>
-                  <div className="list-title" style={{ textTransform: 'capitalize' }}>{formatDate(slot.date)}</div>
-                  <div className="list-meta" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                    <Clock3 size={14} /> {formatarHora(slot.time)} · {slot.duration} min
-                    <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="list-title">{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</div>
+                  <div className="list-meta" style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <span style={{ textTransform: 'capitalize' }}>{formatDate(slot.date)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <Clock3 size={14} /> {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       <Users size={14} /> {slot.students.length}/{slot.capacity}
                     </span>
                   </div>
+                  {slot.description && (
+                    <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
+                  )}
                 </div>
                 <button onClick={() => handleLeave(slot.id)} disabled={actionLoadingId === slot.id} className="btn btn-danger btn-sm">
                   {actionLoadingId === slot.id ? 'Saindo...' : 'Sair do grupo'}
@@ -147,14 +156,30 @@ function MentoriasGrupoPage() {
               <div style={{ fontWeight: 700, textTransform: 'capitalize', color: 'var(--navy)', marginBottom: 8, display: 'flex', gap: 6, alignItems: 'center' }}>
                 <CalendarDays size={16} /> {formatDate(date)}
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {/* Cada grupo agora é uma linha, e não um botão só com a hora: o
+                  aluno precisa saber do que a mentoria trata antes de ocupar uma
+                  vaga, e título e descrição não cabiam numa etiqueta de horário. */}
+              <div style={{ display: 'grid', gap: 10 }}>
                 {dateSlots.map((slot) => (
-                  <button key={slot.id} onClick={() => setPendingSlot(slot)} className="btn btn-ghost">
-                    <Clock3 size={14} /> {formatarHora(slot.time)}
-                    <span style={{ color: '#8e98a5', fontWeight: 600 }}>
-                      ({slot.students.length}/{slot.capacity})
-                    </span>
-                  </button>
+                  <div key={slot.id} className="list-row">
+                    <div style={{ minWidth: 0 }}>
+                      <div className="list-title">{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</div>
+                      <div className="list-meta" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Clock3 size={14} /> {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Users size={14} /> {slot.students.length}/{slot.capacity} vagas
+                        </span>
+                      </div>
+                      {slot.description && (
+                        <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
+                      )}
+                    </div>
+                    <button onClick={() => setPendingSlot(slot)} className="btn btn-primary btn-sm">
+                      Entrar no grupo
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -164,7 +189,7 @@ function MentoriasGrupoPage() {
 
       {pendingSlot && (
         <ConfirmPasswordModal
-          detail={`${formatDate(pendingSlot.date)} às ${formatarHora(pendingSlot.time)} · ${pendingSlot.duration} min · ${pendingSlot.students.length}/${pendingSlot.capacity} vagas ocupadas`}
+          detail={`${pendingSlot.title || MENTORIA_GRUPO_TITULO_PADRAO} — ${formatDate(pendingSlot.date)}, ${formatarHora(pendingSlot.time)} às ${formatarHora(terminoDoGrupo(pendingSlot))} · ${pendingSlot.students.length}/${pendingSlot.capacity} vagas ocupadas`}
           confirmLabel="Confirmar entrada no grupo"
           onConfirm={handleConfirmJoin}
           onCancel={() => setPendingSlot(null)}

@@ -1,10 +1,11 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { ChevronDown, ChevronUp, GraduationCap, Search } from 'lucide-react'
 import { useMemo, useState, useEffect } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { listAllRedacoes, type RedacaoSubmission } from '@/lib/redacoes'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/notas-admin')({
   beforeLoad: async () => {
@@ -136,7 +137,7 @@ function NotasAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><GraduationCap /> Notas dos alunos</h1>
       <p className="panel-subtitle">Todas as notas de redação, organizadas por aluno. Toque em um aluno para ver o histórico completo.</p>
 

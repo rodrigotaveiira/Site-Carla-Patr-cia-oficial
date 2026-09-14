@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { ChevronDown, ChevronUp, FolderPlus, Pencil, Trash2, Video, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -9,6 +9,7 @@ import {
   moveLessonModule, renameLessonModule, updateLesson, type Lesson, type LessonModule,
 } from '@/lib/aulas'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/aulas-admin')({
   beforeLoad: async () => {
@@ -199,7 +200,7 @@ function AulasAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><Video /> Aulas em vídeo</h1>
       <p className="panel-subtitle">
         Cadastre suas aulas aqui. Como os vídeos são arquivos grandes, o recomendado é subir o vídeo primeiro no
@@ -305,7 +306,7 @@ function AulasAdminPage() {
             <button type="button" onClick={resetForm} className="btn btn-ghost" style={{ width: 'fit-content' }}>Cancelar</button>
           )}
         </div>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

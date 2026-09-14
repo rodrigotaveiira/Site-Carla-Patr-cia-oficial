@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -9,7 +9,9 @@ import {
   type Materia, type MaterialCategory, type MaterialListItem,
 } from '@/lib/materials'
 import { useToast } from '@/lib/toast'
-import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
+import { erroDeTamanhoDeUploadGrande } from '@/lib/upload-limits'
+import { enviarArquivo } from '@/lib/enviar-arquivo'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/materiais-admin')({
   beforeLoad: async () => {
@@ -51,15 +53,6 @@ function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'))
-    reader.readAsDataURL(file)
-  })
-}
-
 function MateriaisAdminPage() {
   const showToast = useToast()
   const [materials, setMaterials] = useState<MaterialMeta[]>([])
@@ -76,6 +69,7 @@ function MateriaisAdminPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [progresso, setProgresso] = useState(0)
 
   async function load() {
     setLoading(true)
@@ -103,7 +97,7 @@ function MateriaisAdminPage() {
       setError('Escolha um arquivo Word (.docx) ou PDF para enviar.')
       return
     }
-    const tamanhoInvalido = erroDeTamanhoDeUpload(file)
+    const tamanhoInvalido = erroDeTamanhoDeUploadGrande(file)
     if (tamanhoInvalido) {
       setError(tamanhoInvalido)
       return
@@ -114,11 +108,17 @@ function MateriaisAdminPage() {
     }
 
     setSaving(true)
+    setProgresso(0)
     try {
-      const fileDataUrl = await readFileAsDataUrl(file)
+      // Arquivo grande sobe em pedaços; o progresso é o que evita a sensação de
+      // travamento numa espera que agora pode passar de meio minuto.
+      const enviado = await enviarArquivo(file, setProgresso)
       await addMaterial({
         data: {
-          title, description, tag, accent, fileName: file.name, fileDataUrl, category,
+          title, description, tag, accent, fileName: file.name, category,
+          ...(enviado.modo === 'direto'
+            ? { fileDataUrl: enviado.fileDataUrl }
+            : { upload: { uploadId: enviado.uploadId, mime: enviado.mime } }),
           classDate: classDate || undefined,
           classTime: classTime || undefined,
           // A folha de redação fica fora da divisão — não faz sentido marcar frente nela.
@@ -139,6 +139,7 @@ function MateriaisAdminPage() {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
     } finally {
       setSaving(false)
+      setProgresso(0)
     }
   }
 
@@ -155,7 +156,7 @@ function MateriaisAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Materiais dos alunos</h1>
       <p className="panel-subtitle">
         Envie arquivos em Word (.docx) ou PDF. Eles aparecem na área do aluno, em "Arquivos exclusivos", já
@@ -230,7 +231,7 @@ function MateriaisAdminPage() {
             <input type="time" value={classTime} onChange={(event) => setClassTime(event.target.value)} disabled={!classDate} />
           </div>
         </div>
-        <p className="panel-card-hint" style={{ margin: '-8px 0 0' }}>
+        <p className="panel-card-hint" style={{ margin: '6px 0 0' }}>
           Se preenchida, o material só fica disponível para download 15 minutos antes do horário da aula. Depois
           disso, fica liberado para sempre. Deixe em branco pra liberar o material imediatamente.
         </p>
@@ -258,7 +259,7 @@ function MateriaisAdminPage() {
               // Confere o tamanho já na escolha: acima do teto a requisição morre
               // na borda da Netlify e o formulário ficaria preso em "Enviando...".
               const escolhido = event.target.files?.[0] ?? null
-              const problema = escolhido ? erroDeTamanhoDeUpload(escolhido) : null
+              const problema = escolhido ? erroDeTamanhoDeUploadGrande(escolhido) : null
               setError(problema ?? '')
               setFile(problema ? null : escolhido)
               if (problema) event.target.value = ''
@@ -274,9 +275,9 @@ function MateriaisAdminPage() {
           </button>
         </div>
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
-          {saving ? 'Enviando...' : 'Adicionar material'}
+          {saving ? (progresso > 0 && progresso < 1 ? `Enviando... ${Math.round(progresso * 100)}%` : 'Enviando...') : 'Adicionar material'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

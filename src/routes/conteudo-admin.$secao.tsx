@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -10,7 +10,9 @@ import {
   type ContentItemMeta, type ContentSection, type ContentTextColor, type DicaCategory,
 } from '@/lib/content-library'
 import { useToast } from '@/lib/toast'
-import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
+import { erroDeTamanhoDeUploadGrande } from '@/lib/upload-limits'
+import { enviarArquivo } from '@/lib/enviar-arquivo'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
@@ -33,15 +35,6 @@ export const Route = createFileRoute('/conteudo-admin/$secao')({
   },
   component: ConteudoAdminPage,
 })
-
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'))
-    reader.readAsDataURL(file)
-  })
-}
 
 /** Paleta fechada: a professora clica na bolinha em vez de digitar um código de cor. */
 function ColorPicker({ label, value, onChange }: {
@@ -88,6 +81,7 @@ function ConteudoAdminPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [progresso, setProgresso] = useState(0)
 
   async function load() {
     setLoading(true)
@@ -115,19 +109,24 @@ function ConteudoAdminPage() {
     setError('')
     if (!isDicas && !title.trim()) { setError('Dê um título para o arquivo.'); return }
     if (!file) { setError('Escolha um arquivo PDF para enviar.'); return }
-    const tamanhoInvalido = erroDeTamanhoDeUpload(file)
+    const tamanhoInvalido = erroDeTamanhoDeUploadGrande(file)
     if (tamanhoInvalido) { setError(tamanhoInvalido); return }
 
     setSaving(true)
+    setProgresso(0)
     try {
-      const fileDataUrl = await readFileAsDataUrl(file)
+      // Arquivo grande sobe em pedaços; o progresso é o que evita a sensação de
+      // travamento numa espera que agora pode passar de meio minuto.
+      const enviado = await enviarArquivo(file, setProgresso)
       await addContentItem({
         data: {
           section,
           title: isDicas ? '' : title,
           description,
           fileName: file.name,
-          fileDataUrl,
+          ...(enviado.modo === 'direto'
+            ? { fileDataUrl: enviado.fileDataUrl }
+            : { upload: { uploadId: enviado.uploadId, mime: enviado.mime } }),
           ...(isDicas ? { category } : {}),
           titleColor,
           descriptionColor,
@@ -143,6 +142,7 @@ function ConteudoAdminPage() {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
     } finally {
       setSaving(false)
+      setProgresso(0)
     }
   }
 
@@ -159,12 +159,12 @@ function ConteudoAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1>{sectionLabel} · Arquivos em PDF</h1>
       <p className="panel-subtitle">Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
 
       {/* Sem o respiro entre os campos, cada rótulo cola no campo de cima. */}
-      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480, display: 'grid', gap: 16 }}>
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
         {isDicas && (
           <div className="field">
             <label>Tipo da dica</label>
@@ -223,7 +223,7 @@ function ConteudoAdminPage() {
               // Confere o tamanho já na escolha: acima do teto a requisição morre
               // na borda da Netlify e o formulário ficaria preso em "Enviando...".
               const escolhido = e.target.files?.[0] ?? null
-              const problema = escolhido ? erroDeTamanhoDeUpload(escolhido) : null
+              const problema = escolhido ? erroDeTamanhoDeUploadGrande(escolhido) : null
               setError(problema ?? '')
               setFile(problema ? null : escolhido)
               if (problema) e.target.value = ''
@@ -239,9 +239,9 @@ function ConteudoAdminPage() {
           </button>
         </div>
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
-          {saving ? 'Enviando...' : 'Adicionar arquivo'}
+          {saving ? (progresso > 0 && progresso < 1 ? `Enviando... ${Math.round(progresso * 100)}%` : 'Enviando...') : 'Adicionar arquivo'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>
