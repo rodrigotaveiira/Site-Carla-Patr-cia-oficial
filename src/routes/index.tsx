@@ -232,7 +232,7 @@ function HomePage() {
         <motion.div className="hero-visual" initial={{ opacity: 0, scale: .94 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: .9, delay: .15 }}>
           <div className="portrait-frame">
             <div className="portrait-label"><br /><b></b></div>
-            <img src="/carla-hero.webp" alt="Carla Patrícia Medina" width={1322} height={1188} fetchPriority="high" />
+            <img src="/carla-hero.webp" alt="Carla Patrícia Medina" width={1100} height={1467} fetchPriority="high" />
             <div className="floating-card experience-card"><Award size={22} /><div><b>22+ anos</b><span>de experiência</span></div></div>
           </div>
         </motion.div>
@@ -246,7 +246,7 @@ function HomePage() {
 
       <section className="section about" id="sobre">
         <motion.div className="about-collage" {...reveal}>
-          <div className="about-main-image"><img src="/carla-sobre.webp" alt="Professora Carla Patrícia Medina" width={1000} height={1333} loading="lazy" /></div>
+          <div className="about-main-image"><img src="/carla-sobre.webp" alt="Professora Carla Patrícia Medina" width={1322} height={1188} loading="lazy" /></div>
           <div className="quote-card"><Quote size={28} /><p>Ensinar a escrever é ensinar a organizar ideias, defender sonhos e ocupar espaços.</p></div>
           <div className="gold-seal"><small>Excelência<br />em educação</small></div>
         </motion.div>
