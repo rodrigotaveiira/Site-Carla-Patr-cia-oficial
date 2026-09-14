@@ -36,6 +36,7 @@ import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-ad
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AppAulasRouteImport } from './routes/_app/aulas'
 import { Route as AppCalendarioRouteImport } from './routes/_app/calendario'
+import { Route as AppConquistasRouteImport } from './routes/_app/conquistas'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppMateriaisRouteImport } from './routes/_app/materiais'
 import { Route as AppMentoriasRouteImport } from './routes/_app/mentorias'
@@ -182,6 +183,11 @@ const AppCalendarioRoute = AppCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => AppRoute,
 } as any)
+const AppConquistasRoute = AppConquistasRouteImport.update({
+  id: '/conquistas',
+  path: '/conquistas',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
+  '/conquistas': typeof AppConquistasRoute
   '/dashboard': typeof AppDashboardRoute
   '/materiais': typeof AppMateriaisRoute
   '/mentorias': typeof AppMentoriasRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/aulas': typeof AppAulasRoute
   '/calendario': typeof AppCalendarioRoute
+  '/conquistas': typeof AppConquistasRoute
   '/dashboard': typeof AppDashboardRoute
   '/materiais': typeof AppMateriaisRoute
   '/mentorias': typeof AppMentoriasRoute
@@ -345,6 +353,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/_app/aulas': typeof AppAulasRoute
   '/_app/calendario': typeof AppCalendarioRoute
+  '/_app/conquistas': typeof AppConquistasRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/materiais': typeof AppMateriaisRoute
   '/_app/mentorias': typeof AppMentoriasRoute
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/aulas'
     | '/calendario'
+    | '/conquistas'
     | '/dashboard'
     | '/materiais'
     | '/mentorias'
@@ -425,6 +435,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/aulas'
     | '/calendario'
+    | '/conquistas'
     | '/dashboard'
     | '/materiais'
     | '/mentorias'
@@ -465,6 +476,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/_app/aulas'
     | '/_app/calendario'
+    | '/_app/conquistas'
     | '/_app/dashboard'
     | '/_app/materiais'
     | '/_app/mentorias'
@@ -699,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCalendarioRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/conquistas': {
+      id: '/_app/conquistas'
+      path: '/conquistas'
+      fullPath: '/conquistas'
+      preLoaderRoute: typeof AppConquistasRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -782,6 +801,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAulasRoute: typeof AppAulasRoute
   AppCalendarioRoute: typeof AppCalendarioRoute
+  AppConquistasRoute: typeof AppConquistasRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppMateriaisRoute: typeof AppMateriaisRoute
   AppMentoriasRoute: typeof AppMentoriasRoute
@@ -796,6 +816,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAulasRoute: AppAulasRoute,
   AppCalendarioRoute: AppCalendarioRoute,
+  AppConquistasRoute: AppConquistasRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppMateriaisRoute: AppMateriaisRoute,
   AppMentoriasRoute: AppMentoriasRoute,

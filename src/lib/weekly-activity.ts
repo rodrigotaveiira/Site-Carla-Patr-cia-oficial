@@ -9,12 +9,12 @@ function activityStore() {
   return getStore({ name: 'weekly-activity', consistency: 'strong' })
 }
 
-function toISODate(date: Date) {
+export function toISODate(date: Date) {
   return date.toISOString().slice(0, 10) // 'AAAA-MM-DD'
 }
 
 // Retorna a segunda-feira da semana que contém "date"
-function startOfWeek(date: Date) {
+export function startOfWeek(date: Date) {
   const d = new Date(date)
   const day = d.getDay() // 0 = domingo, 1 = segunda, ...
   const diff = day === 0 ? -6 : 1 - day
@@ -24,7 +24,7 @@ function startOfWeek(date: Date) {
 }
 
 // Lista as 7 datas (segunda a domingo) da semana atual
-function weekDates(date: Date) {
+export function weekDates(date: Date) {
   const monday = startOfWeek(date)
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday)
