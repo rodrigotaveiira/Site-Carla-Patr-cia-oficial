@@ -18,6 +18,7 @@ import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
 import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
+import { Route as EvolucaoAdminRouteImport } from './routes/evolucao-admin'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as LoginRouteImport } from './routes/login'
@@ -89,6 +90,11 @@ const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
 const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
   id: '/confirmar-presenca',
   path: '/confirmar-presenca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EvolucaoAdminRoute = EvolucaoAdminRouteImport.update({
+  id: '/evolucao-admin',
+  path: '/evolucao-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LembretesAdminRoute = LembretesAdminRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
     | '/login'
@@ -476,6 +488,7 @@ export interface RootRouteChildren {
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
   ConfirmarPresencaRoute: typeof ConfirmarPresencaRoute
+  EvolucaoAdminRoute: typeof EvolucaoAdminRoute
   LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
@@ -558,6 +571,13 @@ declare module '@tanstack/react-router' {
       path: '/confirmar-presenca'
       fullPath: '/confirmar-presenca'
       preLoaderRoute: typeof ConfirmarPresencaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evolucao-admin': {
+      id: '/evolucao-admin'
+      path: '/evolucao-admin'
+      fullPath: '/evolucao-admin'
+      preLoaderRoute: typeof EvolucaoAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lembretes-admin': {
@@ -799,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,
   ConfirmarPresencaRoute: ConfirmarPresencaRoute,
+  EvolucaoAdminRoute: EvolucaoAdminRoute,
   LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,

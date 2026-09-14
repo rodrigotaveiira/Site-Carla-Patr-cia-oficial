@@ -9,7 +9,7 @@ import {
   getContentItemFile, isContentSection, listContentItems, resolveDicaCategory, textColorValue,
   type ContentItemMeta, type ContentSection, type DicaCategory,
 } from '@/lib/content-library'
-import { downloadDataUrl } from '@/lib/download-file'
+import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -114,8 +114,8 @@ function ConteudoPage() {
     setDownloadingId(id)
     setError('')
     try {
-      const { fileName, fileDataUrl } = await getContentItemFile({ data: { section, id } })
-      downloadDataUrl(fileName, fileDataUrl)
+      // Arquivo grande volta em pedaços e é remontado aqui (ver baixar-arquivo.ts).
+      await baixarArquivoPreparado(await getContentItemFile({ data: { section, id } }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível baixar o arquivo.')
     } finally {

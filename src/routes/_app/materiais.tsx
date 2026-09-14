@@ -8,7 +8,7 @@ import {
   getMaterialFile, listMaterials, MATERIAS, resolveMateria,
   type Materia, type MaterialListItem,
 } from '@/lib/materials'
-import { downloadDataUrl } from '@/lib/download-file'
+import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 
@@ -45,8 +45,8 @@ function MateriaisPage() {
     setDownloadingId(id)
     setError('')
     try {
-      const { fileName, fileDataUrl } = await getMaterialFile({ data: { id } })
-      downloadDataUrl(fileName, fileDataUrl)
+      // Arquivo grande volta em pedaços e é remontado aqui (ver baixar-arquivo.ts).
+      await baixarArquivoPreparado(await getMaterialFile({ data: { id } }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível baixar o material.')
     } finally {

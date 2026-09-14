@@ -5,7 +5,9 @@ import { getServerUser } from './auth'
 import { userHasRole, getStudentIdentity } from './roles'
 import { watermarkFileDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
+import { MAX_CHUNKED_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
+import { assembleUpload, chunkedUploadRefSchema } from './upload-chunks'
+import { prepareDownload } from './download-chunks'
 import { boundedText, dataUrl as dataUrlSchema, fileName as fileNameSchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { notificarNovoMaterial } from './notificar-material'
 import { logMaterialDownload } from './material-downloads'
@@ -157,11 +159,12 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     // Folha de redação é um modelo em branco, não conteúdo protegido/corrigido —
     // não leva a marca d'água de nome+CPF que os demais materiais recebem.
     if (materialData.category === 'folha_redacao') {
-      return { fileName, fileDataUrl }
+      return prepareDownload(user, fileName, fileDataUrl)
     }
 
     const watermarked = await watermarkFileDataUrl(fileDataUrl, fileName, name, cpf)
-    return { fileName, fileDataUrl: watermarked }
+    // Arquivo grande não cabe numa resposta só: volta em pedaços (ver download-chunks.ts).
+    return prepareDownload(user, fileName, watermarked)
   })
 
 const MATERIAL_CATEGORIES: MaterialCategory[] = ['geral', 'folha_redacao']
@@ -174,21 +177,34 @@ export const addMaterial = createServerFn({ method: 'POST' })
       tag: z.string().trim().max(60),
       accent: z.string().trim().max(20),
       fileName: fileNameSchema,
-      fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH),
+      // Arquivo pequeno vem inteiro aqui; grande vem em `upload`, já enviado
+      // em pedaços, porque não caberia nesta requisição (ver upload-chunks.ts).
+      fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH).optional(),
+      upload: chunkedUploadRefSchema.optional(),
       classDate: z.union([isoDate, z.literal('')]).optional(),
       classTime: z.union([hhmm, z.literal('')]).optional(),
       category: z.string().trim().max(30).optional(),
       subject: materiaSchema.optional(),
-    }),
+    })
+      .superRefine((data, ctx) => {
+        if (!data.fileDataUrl === !data.upload) {
+          ctx.addIssue({ code: 'custom', path: ['fileDataUrl'], message: 'Envie um arquivo.' })
+        }
+      }),
   )
   .handler(async ({ data }) => {
     await requireAdmin()
 
+    // Arquivo grande chegou em pedaços; remonta antes de validar, pra que a
+    // conferência de formato e tamanho valha sobre o arquivo inteiro.
+    const fileDataUrl = data.fileDataUrl
+      ?? await assembleUpload(data.upload!.uploadId, data.upload!.mime)
+
     validateUpload({
-      dataUrl: data.fileDataUrl,
+      dataUrl: fileDataUrl,
       fileName: data.fileName,
       allowed: ['pdf', 'docx'],
-      maxDecodedBytes: MAX_UPLOAD_BYTES,
+      maxDecodedBytes: MAX_CHUNKED_UPLOAD_BYTES,
     })
 
     const classTime = data.classTime?.trim() || ''
@@ -206,7 +222,7 @@ export const addMaterial = createServerFn({ method: 'POST' })
       tag: data.tag.trim() || 'Material',
       accent: data.accent || '#6d28d9',
       fileName: data.fileName,
-      fileDataUrl: data.fileDataUrl,
+      fileDataUrl,
       createdAt: new Date().toISOString(),
       classDate: data.classDate?.trim() || null,
       classTime: classTime || null,
