@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { getContentCounts, getStudentProgress, type ContentCounts, type StudentProgress } from '@/lib/progress'
+import { getContentCounts, getStudentProgress, REDACOES_META_PROGRESSO, type ContentCounts, type StudentProgress } from '@/lib/progress'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/progresso')({
   beforeLoad: async () => {
@@ -15,7 +16,10 @@ export const Route = createFileRoute('/_app/progresso')({
 
     const user = await getServerUser()
     if (!user) throw redirect({ to: '/login' })
-    if (!userHasRole(user, 'aprovado') && !isStaff(user)) throw redirect({ to: '/aguardando-aprovacao' })
+    // `debug` e opcional na tela de espera — vai undefined pra nao sujar a URL.
+    if (!userHasRole(user, 'aprovado') && !isStaff(user)) {
+      throw redirect({ to: '/aguardando-aprovacao', search: { debug: undefined } })
+    }
     return { user }
   },
   component: ProgressoPage,
@@ -49,33 +53,54 @@ function ProgressoPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Meu progresso</h1>
-      <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas e nas redações entregues.</p>
+      <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas, nos materiais baixados e nas redações entregues.</p>
 
       {progress && (
         <div style={{ marginTop: 20, padding: '20px', background: 'linear-gradient(135deg, var(--purple), #9333ea)', borderRadius: 12, color: '#fff' }}>
           <div style={{ fontSize: 32, fontWeight: 800 }}>{progress.overallPercent}%</div>
           <div style={{ opacity: 0.9, fontSize: 14, marginBottom: 14 }}>progresso geral</div>
           <div style={{ display: 'grid', gap: 10 }}>
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                <span>Aulas assistidas</span>
-                <span>{progress.aulasAssistidas} de {progress.aulasDisponiveis}</span>
+            {/* Só entra a fatia que tem o que contar — é a mesma regra da média
+                em progress.ts, pra a soma exibida bater com o número de cima. */}
+            {progress.aulasTracked && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span>Aulas assistidas</span>
+                  <span>{progress.aulasAssistidas} de {progress.aulasDisponiveis}</span>
+                </div>
+                <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${progress.aulasPercent}%`, height: '100%', background: '#fff' }} />
+                </div>
               </div>
-              <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
-                <div style={{ width: `${progress.aulasPercent}%`, height: '100%', background: '#fff' }} />
+            )}
+            {progress.materiaisTracked && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span>Materiais baixados</span>
+                  <span>{progress.materiaisBaixados} de {progress.materiaisDisponiveis}</span>
+                </div>
+                <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${progress.materiaisPercent}%`, height: '100%', background: '#fff' }} />
+                </div>
               </div>
-            </div>
+            )}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                 <span>Redações entregues</span>
-                <span>{progress.redacoesEntregues}</span>
+                <span>{progress.redacoesEntregues} de {REDACOES_META_PROGRESSO}</span>
               </div>
               <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{ width: `${progress.redacoesPercent}%`, height: '100%', background: '#fff' }} />
               </div>
             </div>
           </div>
+          {!progress.aulasTracked && !progress.materiaisTracked && (
+            <p style={{ margin: '14px 0 0', fontSize: 12.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)' }}>
+              Aulas e materiais entram nesta conta assim que a professora publicar os primeiros do curso.
+            </p>
+          )}
         </div>
       )}
 
