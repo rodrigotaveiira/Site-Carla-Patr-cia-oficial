@@ -1196,9 +1196,21 @@ form.panel-card > * + * { margin-top: 16px; }
 .calendar-admin-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
 .calendar-admin-wide { grid-column: 1 / -1; }
 .calendar-admin-actions { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
-/* Bloco da "correção do simulado" dentro do formulário. */
+/* Blocos do formulário de data (o evento, quando é a prova, prova e gabarito,
+   correção do simulado). */
 .calendar-admin-fieldset { margin: 4px 0 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--cream); }
-.calendar-admin-fieldset > legend { padding: 0 8px; color: var(--navy); font-size: 13px; font-weight: 700; }
+
+/* O navegador centraliza o <legend> EM CIMA da borda do <fieldset>: metade das
+   letras fica fora da caixa, como se estivessem saltando. `float` tira o título
+   desse encaixe e o devolve pro fluxo normal, dentro do bloco — que é como os
+   demais cartões do painel se comportam. A marcação continua fieldset/legend,
+   então o leitor de tela segue anunciando o grupo; muda só a posição. */
+.calendar-admin-fieldset > legend {
+  float: left; width: 100%; margin: 0 0 12px; padding: 0;
+  color: var(--navy); font-size: 13px; font-weight: 700;
+}
+/* Sem limpar o float, o primeiro campo subiria pro lado do título. */
+.calendar-admin-fieldset > legend + * { clear: both; }
 
 @media (max-width: 620px) {
   .calendar-cell { min-height: 50px; padding: 6px 2px 5px; }
