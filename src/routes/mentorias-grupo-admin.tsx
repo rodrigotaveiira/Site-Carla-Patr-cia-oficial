@@ -5,6 +5,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
   createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, updateMentoriaGrupoSlot,
+  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo,
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { formatarHora } from '@/lib/formato'
@@ -30,14 +31,20 @@ function MentoriasGrupoAdminPage() {
   const showToast = useToast()
   const [slots, setSlots] = useState<MentoriaGrupoSlot[]>([])
   const [loading, setLoading] = useState(true)
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [endTime, setEndTime] = useState('')
   const [capacity, setCapacity] = useState('6')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDescription, setEditDescription] = useState('')
   const [editTime, setEditTime] = useState('')
+  const [editEndTime, setEditEndTime] = useState('')
   const [editCapacity, setEditCapacity] = useState('')
   const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
@@ -62,8 +69,20 @@ function MentoriasGrupoAdminPage() {
     event.preventDefault()
     setError('')
     const capacityNumber = Number(capacity)
-    if (!date || !time) {
-      setError('Preencha a data e o horário.')
+    if (!title.trim()) {
+      setError('Dê um título para a mentoria.')
+      return
+    }
+    if (!description.trim()) {
+      setError('Escreva do que a mentoria trata.')
+      return
+    }
+    if (!date || !time || !endTime) {
+      setError('Preencha a data, o horário de início e o de término.')
+      return
+    }
+    if (endTime <= time) {
+      setError('O término precisa ser depois do início.')
       return
     }
     if (!capacityNumber || capacityNumber < 1) {
@@ -72,9 +91,12 @@ function MentoriasGrupoAdminPage() {
     }
     setSaving(true)
     try {
-      await createMentoriaGrupoSlot({ data: { date, time, duration: 40, capacity: capacityNumber } })
+      await createMentoriaGrupoSlot({ data: { date, time, endTime, title, description, capacity: capacityNumber } })
+      setTitle('')
+      setDescription('')
       setDate('')
       setTime('')
+      setEndTime('')
       setCapacity('6')
       await load()
       showToast('Grupo adicionado.')
@@ -97,7 +119,12 @@ function MentoriasGrupoAdminPage() {
 
   function startEdit(slot: MentoriaGrupoSlot) {
     setEditingId(slot.id)
+    setEditTitle(slot.title || '')
+    setEditDescription(slot.description || '')
     setEditTime(slot.time)
+    // Grupo antigo não tem término gravado: entra o derivado da duração, que é
+    // o horário que ele já tinha na prática.
+    setEditEndTime(terminoDoGrupo(slot))
     setEditCapacity(String(slot.capacity))
     setEditError('')
   }
@@ -110,8 +137,20 @@ function MentoriasGrupoAdminPage() {
   async function handleSaveEdit(id: string) {
     setEditError('')
     const capacityNumber = Number(editCapacity)
-    if (!editTime) {
-      setEditError('Preencha o horário.')
+    if (!editTitle.trim()) {
+      setEditError('Dê um título para a mentoria.')
+      return
+    }
+    if (!editDescription.trim()) {
+      setEditError('Escreva do que a mentoria trata.')
+      return
+    }
+    if (!editTime || !editEndTime) {
+      setEditError('Preencha o horário de início e o de término.')
+      return
+    }
+    if (editEndTime <= editTime) {
+      setEditError('O término precisa ser depois do início.')
       return
     }
     if (!capacityNumber || capacityNumber < 1) {
@@ -120,7 +159,9 @@ function MentoriasGrupoAdminPage() {
     }
     setEditSaving(true)
     try {
-      await updateMentoriaGrupoSlot({ data: { id, time: editTime, duration: 40, capacity: capacityNumber } })
+      await updateMentoriaGrupoSlot({
+        data: { id, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber },
+      })
       setEditingId(null)
       await load()
       showToast('Alterações salvas.')
@@ -137,26 +178,54 @@ function MentoriasGrupoAdminPage() {
     <main className="panel">
       <VoltarAoPainel />
       <h1>Gerenciar mentorias em grupo</h1>
-      <p className="panel-subtitle">Cadastre os grupos com data, horário e número de vagas. Você pode editar o horário e a capacidade a qualquer momento.</p>
+      <p className="panel-subtitle">
+        Cadastre os grupos com o assunto, o horário e o número de vagas. O título e a descrição são o que o aluno lê
+        pra decidir se entra. Você pode editar tudo depois.
+      </p>
 
-      <form onSubmit={handleAdd} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginTop: 24, flexWrap: 'wrap' }}>
+      <form onSubmit={handleAdd} className="panel-card" style={{ maxWidth: 560 }}>
         <div className="field">
-          <label>Data</label>
-          <input type="date" value={date} onChange={(event) => setDate(event.target.value)} style={{ width: 'auto' }} />
+          <label htmlFor="grupo-titulo">Título</label>
+          <input
+            id="grupo-titulo"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Ex.: Como construir a proposta de intervenção"
+          />
         </div>
         <div className="field">
-          <label>Horário</label>
-          <input type="time" value={time} onChange={(event) => setTime(event.target.value)} style={{ width: 'auto' }} />
+          <label htmlFor="grupo-descricao">Descrição</label>
+          <textarea
+            id="grupo-descricao"
+            rows={3}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="O que vocês vão ver nesse encontro, e pra quem ele é."
+          />
         </div>
-        <div className="field">
-          <label>Vagas no grupo</label>
-          <input type="number" min={1} value={capacity} onChange={(event) => setCapacity(event.target.value)} style={{ width: 90 }} />
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div className="field" style={{ flex: '1 1 140px' }}>
+            <label htmlFor="grupo-data">Data</label>
+            <input id="grupo-data" type="date" value={date} onChange={(event) => setDate(event.target.value)} />
+          </div>
+          <div className="field" style={{ flex: '1 1 110px' }}>
+            <label htmlFor="grupo-inicio">Início</label>
+            <input id="grupo-inicio" type="time" value={time} onChange={(event) => setTime(event.target.value)} />
+          </div>
+          <div className="field" style={{ flex: '1 1 110px' }}>
+            <label htmlFor="grupo-fim">Término</label>
+            <input id="grupo-fim" type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} />
+          </div>
+          <div className="field" style={{ flex: '0 0 90px' }}>
+            <label htmlFor="grupo-vagas">Vagas</label>
+            <input id="grupo-vagas" type="number" min={1} value={capacity} onChange={(event) => setCapacity(event.target.value)} />
+          </div>
         </div>
-        <button type="submit" disabled={saving} className="btn btn-primary">
+        <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Adicionando...' : 'Adicionar grupo'}
         </button>
+        {error && <p className="form-error">{error}</p>}
       </form>
-      {error && <p className="form-error">{error}</p>}
 
       <section>
         <h2 className="panel-section-title">Grupos cadastrados</h2>
@@ -167,32 +236,53 @@ function MentoriasGrupoAdminPage() {
             return (
               <div key={slot.id} className="list-row" style={{ alignItems: 'flex-start' }}>
                 {isEditing ? (
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', flex: 1 }}>
+                  <div style={{ display: 'grid', gap: 12, flex: 1 }}>
                     <div className="field">
-                      <label>Horário</label>
-                      <input type="time" value={editTime} onChange={(event) => setEditTime(event.target.value)} style={{ width: 'auto' }} />
+                      <label>Título</label>
+                      <input value={editTitle} onChange={(event) => setEditTitle(event.target.value)} />
                     </div>
                     <div className="field">
-                      <label>Vagas</label>
-                      <input
-                        type="number"
-                        min={slot.students.length || 1}
-                        value={editCapacity}
-                        onChange={(event) => setEditCapacity(event.target.value)}
-                        style={{ width: 80 }}
-                      />
+                      <label>Descrição</label>
+                      <textarea rows={2} value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
                     </div>
-                    <button onClick={() => handleSaveEdit(slot.id)} disabled={editSaving} className="btn btn-primary btn-sm">
-                      {editSaving ? 'Salvando...' : 'Salvar'}
-                    </button>
-                    <button onClick={cancelEdit} disabled={editSaving} className="btn btn-ghost btn-sm">
-                      Cancelar
-                    </button>
-                    {editError && <p className="form-error" style={{ width: '100%' }}>{editError}</p>}
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <div className="field" style={{ flex: '1 1 110px' }}>
+                        <label>Início</label>
+                        <input type="time" value={editTime} onChange={(event) => setEditTime(event.target.value)} />
+                      </div>
+                      <div className="field" style={{ flex: '1 1 110px' }}>
+                        <label>Término</label>
+                        <input type="time" value={editEndTime} onChange={(event) => setEditEndTime(event.target.value)} />
+                      </div>
+                      <div className="field" style={{ flex: '0 0 80px' }}>
+                        <label>Vagas</label>
+                        <input
+                          type="number"
+                          min={slot.students.length || 1}
+                          value={editCapacity}
+                          onChange={(event) => setEditCapacity(event.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button onClick={() => handleSaveEdit(slot.id)} disabled={editSaving} className="btn btn-primary btn-sm">
+                        {editSaving ? 'Salvando...' : 'Salvar'}
+                      </button>
+                      <button onClick={cancelEdit} disabled={editSaving} className="btn btn-ghost btn-sm">
+                        Cancelar
+                      </button>
+                    </div>
+                    {editError && <p className="form-error" style={{ margin: 0 }}>{editError}</p>}
                   </div>
                 ) : (
-                  <div>
-                    <b style={{ color: 'var(--navy)' }}>{slot.date}</b> às <b style={{ color: 'var(--navy)' }}>{formatarHora(slot.time)}</b> · {slot.duration} min · {slot.students.length}/{slot.capacity} vagas
+                  <div style={{ minWidth: 0 }}>
+                    <b style={{ color: 'var(--navy)' }}>{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</b>
+                    <div className="list-meta" style={{ marginTop: 2 }}>
+                      {slot.date} · {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))} · {slot.students.length}/{slot.capacity} vagas
+                    </div>
+                    {slot.description && (
+                      <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
+                    )}
                     {slot.students.length > 0 && (
                       <div style={{ color: 'var(--purple)', fontSize: 13, marginTop: 4 }}>
                         {slot.students.map((student) => student.name).join(', ')}

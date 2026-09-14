@@ -7,7 +7,7 @@ import { notificarAgendamento } from './notificar-agendamento'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
-import { capacity as capacitySchema, durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
+import { boundedText, capacity as capacitySchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { z } from 'zod'
 
 const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
@@ -17,11 +17,48 @@ export type MentoriaGrupoStudent = { email: string; name: string }
 export type MentoriaGrupoSlot = {
   id: string
   date: string // formato 'AAAA-MM-DD'
-  time: string // formato 'HH:MM'
+  time: string // formato 'HH:MM' — início
+  /**
+   * 'HH:MM' de término. Ausente nos grupos criados antes deste campo existir —
+   * neles o fim é derivado de `time` + `duration`, que é o que já valia.
+   */
+  endTime?: string
+  /**
+   * Continua gravado porque o e-mail de confirmação o usa, mas deixou de ser
+   * digitado: agora sai da conta entre início e término, então não há dois
+   * valores podendo divergir.
+   */
   duration: number // em minutos
+  /** O que o aluno lê pra decidir se entra. Ausente nos grupos antigos. */
+  title?: string
+  /** Do que a mentoria trata. Ausente nos grupos antigos. */
+  description?: string
   capacity: number // quantas pessoas cabem no grupo
   students: MentoriaGrupoStudent[]
   createdAt: string
+}
+
+/** Título mostrado quando o grupo é anterior ao campo existir. */
+export const MENTORIA_GRUPO_TITULO_PADRAO = 'Mentoria em grupo'
+
+function minutosDoRelogio(hhmmTexto: string): number {
+  const [h, m] = hhmmTexto.split(':').map(Number)
+  return h * 60 + m
+}
+
+function relogioDeMinutos(total: number): string {
+  const t = ((total % 1440) + 1440) % 1440
+  return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`
+}
+
+/** Minutos entre início e término. Atravessar a meia-noite não é caso real aqui. */
+export function duracaoEntre(inicio: string, fim: string): number {
+  return minutosDoRelogio(fim) - minutosDoRelogio(inicio)
+}
+
+/** Término do grupo — o gravado, ou o derivado da duração nos grupos antigos. */
+export function terminoDoGrupo(slot: Pick<MentoriaGrupoSlot, 'time' | 'endTime' | 'duration'>): string {
+  return slot.endTime || relogioDeMinutos(minutosDoRelogio(slot.time) + slot.duration)
 }
 
 // "strong" garante que, assim que alguém entra ou sai do grupo, todo mundo que
@@ -58,7 +95,16 @@ export const listMentoriaGrupoSlots = createServerFn({ method: 'GET' }).handler(
 })
 
 export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .validator(z.object({ date: isoDate, time: hhmm, duration: durationMinutes, capacity: capacitySchema }))
+  .validator(
+    z.object({
+      date: isoDate,
+      time: hhmm,
+      endTime: hhmm,
+      title: boundedText(200),
+      description: boundedText(2000),
+      capacity: capacitySchema,
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -67,13 +113,19 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     const capacity = Math.floor(data.capacity)
     if (!capacity || capacity < 1) throw new Error('Informe quantas pessoas o grupo terá (mínimo 1).')
 
+    const duration = duracaoEntre(data.time, data.endTime)
+    if (duration <= 0) throw new Error('O término precisa ser depois do início.')
+
     const store = slotsStore()
     const id = makeSlotId(data.date, data.time)
     const slot: MentoriaGrupoSlot = {
       id,
       date: data.date,
       time: data.time,
-      duration: data.duration || 40,
+      endTime: data.endTime,
+      duration,
+      title: data.title.trim(),
+      description: data.description.trim(),
       capacity,
       students: [],
       createdAt: new Date().toISOString(),
@@ -85,13 +137,25 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   })
 
 export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
-  .validator(z.object({ id: idSchema, time: hhmm, duration: durationMinutes, capacity: capacitySchema }))
+  .validator(
+    z.object({
+      id: idSchema,
+      time: hhmm,
+      endTime: hhmm,
+      title: boundedText(200),
+      description: boundedText(2000),
+      capacity: capacitySchema,
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
     if (!data.time) throw new Error('Preencha o horário.')
     const capacity = Math.floor(data.capacity)
     if (!capacity || capacity < 1) throw new Error('Informe quantas pessoas o grupo terá (mínimo 1).')
+
+    const duration = duracaoEntre(data.time, data.endTime)
+    if (duration <= 0) throw new Error('O término precisa ser depois do início.')
 
     const store = slotsStore()
     const entry = await store.getWithMetadata(data.id, { type: 'json' })
@@ -105,7 +169,10 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     const updated: MentoriaGrupoSlot = {
       ...slot,
       time: data.time,
-      duration: data.duration || slot.duration,
+      endTime: data.endTime,
+      duration,
+      title: data.title.trim(),
+      description: data.description.trim(),
       capacity,
     }
 

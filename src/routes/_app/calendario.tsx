@@ -9,7 +9,7 @@ import {
   type CalendarEvent, type CalendarEventType,
 } from '@/lib/calendario'
 import { listMentoriaSlots } from '@/lib/mentorias'
-import { listMentoriaGrupoSlots } from '@/lib/mentorias-grupo'
+import { listMentoriaGrupoSlots, MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo } from '@/lib/mentorias-grupo'
 import { instanteInicioDoDiaSimulado, instanteInicioSimulado } from '@/lib/lembrete-simulado-horario'
 import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
@@ -214,9 +214,12 @@ function CalendarioPage() {
               id: `grupo-${slot.id}`,
               date: slot.date,
               time: slot.time,
-              endTime: '',
+              // O término vem do campo próprio, ou é derivado nos grupos antigos —
+              // assim a agenda mostra o intervalo igual aos demais compromissos,
+              // em vez da duração em minutos colada no título.
+              endTime: terminoDoGrupo(slot),
               kind: 'mentoria-grupo',
-              title: `Mentoria em grupo · ${slot.duration} min`,
+              title: slot.title || MENTORIA_GRUPO_TITULO_PADRAO,
               link: '',
               eventId: '',
               provaFileName: '',
