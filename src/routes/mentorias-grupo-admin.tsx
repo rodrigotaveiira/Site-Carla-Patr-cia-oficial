@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -9,6 +9,7 @@ import {
 } from '@/lib/mentorias-grupo'
 import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/mentorias-grupo-admin')({
   beforeLoad: async () => {
@@ -134,7 +135,7 @@ function MentoriasGrupoAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Gerenciar mentorias em grupo</h1>
       <p className="panel-subtitle">Cadastre os grupos com data, horário e número de vagas. Você pode editar o horário e a capacidade a qualquer momento.</p>
 

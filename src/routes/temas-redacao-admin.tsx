@@ -105,7 +105,7 @@ function TemasRedacaoAdminPage() {
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Publicando...' : 'Publicar tema'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

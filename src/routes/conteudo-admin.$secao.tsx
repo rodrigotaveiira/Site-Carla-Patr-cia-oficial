@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -11,6 +11,7 @@ import {
 } from '@/lib/content-library'
 import { useToast } from '@/lib/toast'
 import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/conteudo-admin/$secao')({
   beforeLoad: async ({ params }) => {
@@ -159,12 +160,12 @@ function ConteudoAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1>{sectionLabel} · Arquivos em PDF</h1>
       <p className="panel-subtitle">Envie os PDFs que vão aparecer para os alunos na seção "{sectionLabel}".</p>
 
       {/* Sem o respiro entre os campos, cada rótulo cola no campo de cima. */}
-      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480, display: 'grid', gap: 16 }}>
+      <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
         {isDicas && (
           <div className="field">
             <label>Tipo da dica</label>
@@ -241,7 +242,7 @@ function ConteudoAdminPage() {
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Adicionar arquivo'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -6,6 +6,7 @@ import { userHasRole } from '@/lib/roles'
 import { createMentoriaSlot, deleteMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
 import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/mentorias-admin')({
   beforeLoad: async () => {
@@ -82,7 +83,7 @@ function MentoriasAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Gerenciar Mentoria individual</h1>
       <p className="panel-subtitle">Cadastre os horários em que você está disponível. Assim que um aluno marcar, o horário some da lista automaticamente pros outros.</p>
 

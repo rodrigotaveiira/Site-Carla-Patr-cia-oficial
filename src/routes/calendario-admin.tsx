@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Upload } from 'lucide-react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -16,6 +16,7 @@ import {
 } from '@/lib/calendario'
 import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -253,7 +254,7 @@ function CalendarioAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1>Calendário do curso</h1>
       <p className="panel-subtitle">
         Marque aulas ao vivo, liberação de aulas gravadas, simulados e simuladões. Os alunos veem tudo isso no calendário

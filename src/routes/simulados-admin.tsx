@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -10,6 +10,7 @@ import { releaseInstantMs } from '@/lib/simulado-release'
 import { formatarHora } from '@/lib/formato'
 import { TextoBase } from '@/components/TextoBase'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/simulados-admin')({
   beforeLoad: async () => {
@@ -315,7 +316,7 @@ function SimuladosAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><ClipboardList /> Questões para treino</h1>
       <p className="panel-subtitle">
         Cole os textos-base e as questões num campo só — o sistema separa tudo automaticamente em questões de múltipla
@@ -366,14 +367,14 @@ function SimuladosAdminPage() {
             <input type="time" value={releaseTime} onChange={(e) => setReleaseTime(e.target.value)} />
           </div>
         </div>
-        <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: 0 }}>
+        <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
           Em branco, libera na hora. Antes da data/horário, o aluno não vê nem consegue responder.
         </p>
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Processando...' : 'Publicar'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
-        {notice && <p className="form-success" style={{ margin: 0 }}>{notice}</p>}
+        {error && <p className="form-error">{error}</p>}
+        {notice && <p className="form-success">{notice}</p>}
       </form>
 
       <section>

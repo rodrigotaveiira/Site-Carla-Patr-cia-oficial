@@ -1,10 +1,11 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { ChevronDown, ChevronUp, Download, Flame, PenLine, Search, TrendingUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getStudentEvolution, type StudentEvolution, type StudentEvolutionSummary } from '@/lib/student-evolution'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/evolucao-admin')({
   beforeLoad: async () => {
@@ -175,7 +176,7 @@ function EvolucaoAdminPage() {
 
   return (
     <main className="panel panel-wide">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><TrendingUp /> Evolução dos alunos</h1>
       <p className="panel-subtitle">Como cada aluno está indo, separado por bloco: redação, materiais e progresso geral. Toque em um aluno para ver o detalhe.</p>
 

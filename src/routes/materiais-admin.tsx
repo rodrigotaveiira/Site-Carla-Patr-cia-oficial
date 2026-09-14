@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -10,6 +10,7 @@ import {
 } from '@/lib/materials'
 import { useToast } from '@/lib/toast'
 import { erroDeTamanhoDeUpload } from '@/lib/upload-limits'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/materiais-admin')({
   beforeLoad: async () => {
@@ -155,7 +156,7 @@ function MateriaisAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1>Materiais dos alunos</h1>
       <p className="panel-subtitle">
         Envie arquivos em Word (.docx) ou PDF. Eles aparecem na área do aluno, em "Arquivos exclusivos", já
@@ -230,7 +231,7 @@ function MateriaisAdminPage() {
             <input type="time" value={classTime} onChange={(event) => setClassTime(event.target.value)} disabled={!classDate} />
           </div>
         </div>
-        <p className="panel-card-hint" style={{ margin: '-8px 0 0' }}>
+        <p className="panel-card-hint" style={{ margin: '6px 0 0' }}>
           Se preenchida, o material só fica disponível para download 15 minutos antes do horário da aula. Depois
           disso, fica liberado para sempre. Deixe em branco pra liberar o material imediatamente.
         </p>
@@ -276,7 +277,7 @@ function MateriaisAdminPage() {
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Enviando...' : 'Adicionar material'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

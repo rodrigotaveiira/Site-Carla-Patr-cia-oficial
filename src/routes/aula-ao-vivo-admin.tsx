@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { Radio } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { getLiveClass, updateLiveClass } from '@/lib/live-class'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/aula-ao-vivo-admin')({
   beforeLoad: async () => {
@@ -65,7 +66,7 @@ function AulaAoVivoAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><Radio /> Próxima aula ao vivo</h1>
       <p className="panel-subtitle">
         Configure os dados da próxima aula ao vivo. Eles aparecem no card "Próxima aula" do dashboard do aluno,
@@ -105,7 +106,7 @@ function AulaAoVivoAdminPage() {
           <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
             {saving ? 'Salvando...' : 'Salvar aula ao vivo'}
           </button>
-          {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+          {error && <p className="form-error">{error}</p>}
         </form>
       )}
     </main>

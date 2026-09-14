@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { GraduationCap, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -6,6 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { addAprovado, deleteAprovado, listAprovados, type ApprovedStudent } from '@/lib/aprovados'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/aprovados-admin')({
   beforeLoad: async () => {
@@ -152,7 +153,7 @@ function AprovadosAdminPage() {
 
   return (
     <main className="panel panel-wide">
-      <Link to="/dashboard" className="panel-back">← Voltar ao dashboard</Link>
+      <VoltarAoPainel />
       <h1><GraduationCap /> Galeria dos Aprovados</h1>
       <p className="panel-subtitle">
         Cadastre os alunos aprovados na faculdade. Eles aparecem na área do aluno, num mural de conquistas visível
@@ -190,7 +191,7 @@ function AprovadosAdminPage() {
                 {processingPhoto ? 'Processando...' : photo ? 'Foto pronta — toque na imagem pra trocar.' : 'Retrato do aluno, de preferência vertical.'}
               </p>
             </div>
-            {photoError && <p className="form-error" style={{ margin: 0 }}>{photoError}</p>}
+            {photoError && <p className="form-error">{photoError}</p>}
           </div>
         </div>
 
@@ -220,7 +221,7 @@ function AprovadosAdminPage() {
         <button type="submit" disabled={saving || processingPhoto} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Salvando...' : 'Adicionar à galeria'}
         </button>
-        {error && <p className="form-error" style={{ margin: 0 }}>{error}</p>}
+        {error && <p className="form-error">{error}</p>}
       </form>
 
       <section>

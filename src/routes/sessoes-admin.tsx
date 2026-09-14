@@ -1,10 +1,11 @@
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { ChevronDown, ChevronUp, Monitor, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { listAllSessionHistories, type StudentSessionHistory } from '@/lib/sessions'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/sessoes-admin')({
   beforeLoad: async () => {
@@ -89,7 +90,7 @@ function SessoesAdminPage() {
 
   return (
     <main className="panel">
-      <Link to="/admin" className="panel-back">← Voltar ao painel admin</Link>
+      <VoltarAoPainel />
       <h1><Monitor /> Aparelhos conectados</h1>
       <p className="panel-subtitle">
         Cada aluno só pode usar a conta em um aparelho por vez — um login novo derruba o anterior automaticamente.

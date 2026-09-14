@@ -934,6 +934,15 @@ footer .brand b { color: white; }
 .panel-section-title { display: flex; align-items: center; gap: 8px; margin: 32px 0 4px; color: var(--navy); font-size: 18px; font-family: var(--serif); font-weight: 400; }
 .panel-section-hint { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
 
+/* Ritmo dos formulários empilhados dentro de um .panel-card.
+   O card é `display: block` e `.field` não tem margem, então cada rótulo colava
+   no campo de cima — seis telas de administração tinham esse problema, e a de
+   Conteúdo tinha um `gap` inline só dela, remendando o sintoma numa tela só.
+   Vale só para `form`: `.panel-card` também veste blocos de leitura nas telas
+   do aluno, que têm o próprio espaçamento. E o filho direto (`>`) mantém de
+   fora os campos agrupados em linha dentro de uma div, que já usam `gap`. */
+form.panel-card > * + * { margin-top: 16px; }
+
 .field { display: grid; gap: 5px; }
 .field label, .field-label { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .02em; }
 .field-hint { margin: 2px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
@@ -971,6 +980,10 @@ footer .brand b { color: white; }
   width: 100%; box-sizing: border-box; padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px;
   font-family: inherit; font-size: 14px; color: var(--ink); background: #fff;
   transition: border-color .15s, box-shadow .15s;
+  /* O cursor de digitação vinha preto, do navegador. Numa tela de administração,
+     que é quase toda formulário, ele é a única parte do campo que não falava a
+     língua da marca — a borda de foco já é roxa. */
+  caret-color: var(--purple);
 }
 .panel textarea { resize: vertical; }
 .panel input:focus, .panel textarea:focus, .panel select:focus {
