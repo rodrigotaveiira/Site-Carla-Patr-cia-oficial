@@ -20,4 +20,7 @@ export const STORES = {
   // marcada agora (no máximo uma) — é a chave que torna essa regra atômica
   // entre pedidos concorrentes de dois horários diferentes (ver mentorias.ts).
   mentoriaAtiva: 'mentoria-active-booking',
+  // Mesma ideia, só que pro grupo de mentoria futuro em que o aluno está
+  // inscrito agora (no máximo um) — ver mentorias-grupo.ts.
+  mentoriaGrupoAtiva: 'mentoria-grupo-active-booking',
 } as const
