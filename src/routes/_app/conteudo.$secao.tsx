@@ -198,8 +198,11 @@ function ConteudoPage() {
             </button>
           </div>
         ))}
+        {/* Sem `alto`: o rodape de outras secoes ja fecha a pagina. Com os dois, o
+            estado vazio reservava a tela inteira E o rodape vinha depois — a pagina
+            passava a rolar 167px a toa. */}
         {!loading && visibleItems.length === 0 && (
-          <EmptyState alto
+          <EmptyState
             icon={Icon}
             title={isDicas ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda` : meta.emptyTitle}
             description={`${meta.emptyDescription} Cada download sai protegido com seu nome e CPF.`}

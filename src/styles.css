@@ -1088,6 +1088,10 @@ form.panel-card > * + * { margin-top: 16px; }
   transition: box-shadow .2s ease;
 }
 .list-row > :last-child:not(:only-child) { flex-shrink: 0; }
+/* Só os blocos de texto (sempre div) podem encolher abaixo da palavra mais
+   longa que tem dentro — sem isso um titulo sem espaco estouraria a linha. O
+   seletor exclui o ultimo filho (a acao) e qualquer icone solto, que nao e div. */
+.list-row > div:not(:last-child) { min-width: 0; }
 /* Em tela estreita nao cabe lado a lado: ai a acao desce de proposito, e a
    linha inteira vira um empilhamento — nao uma quebra acidental. */
 @media (max-width: 640px) {
