@@ -29,7 +29,7 @@ const links = [
   { icon: PencilLine, label: 'Aulas em vídeo', to: '/aulas-admin', description: 'Cadastre aulas com link de vídeo do YouTube.', badgeKey: undefined },
   { icon: Video, label: 'Próxima aula ao vivo', to: '/aula-ao-vivo-admin', description: 'Configure data, horário e link do Zoom.', badgeKey: undefined },
   { icon: FileCheck2, label: 'Correção de redações', to: '/redacoes-admin', description: 'Veja e corrija as redações enviadas pelos alunos.', badgeKey: 'redacoesPendentes' as const },
-  { icon: GraduationCap, label: 'Notas dos alunos', to: '/notas-admin', description: 'Todas as notas organizadas por aluno.', badgeKey: undefined },
+  { icon: GraduationCap, label: 'Notas dos alunos', to: '/notas-admin', description: 'Notas de redação e das questões para treino, organizadas por aluno.', badgeKey: undefined },
   { icon: TrendingUp, label: 'Evolução dos alunos', to: '/evolucao-admin', description: 'Como cada aluno está indo em redação, materiais e progresso.', badgeKey: undefined },
   { icon: Images, label: 'Galeria dos Aprovados', to: '/aprovados-admin', description: 'Cadastre os alunos aprovados na faculdade, com foto.', badgeKey: undefined },
   { icon: Monitor, label: 'Aparelhos conectados', to: '/sessoes-admin', description: 'Histórico de logins de cada aluno, um aparelho por vez.', badgeKey: undefined },
