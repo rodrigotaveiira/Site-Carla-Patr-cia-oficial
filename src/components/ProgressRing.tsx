@@ -1,7 +1,7 @@
-import { CirclePlay, FileCheck2, X } from 'lucide-react'
+import { CirclePlay, FileCheck2, Files, X } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import type { StudentProgress } from '@/lib/progress'
+import { REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
 
 // Anel de "progresso geral" do dashboard — clicável: mostra de onde vem o
 // número (aulas assistidas + redações entregues), porque um número sozinho
@@ -106,13 +106,31 @@ export function ProgressRing({ progress }: { progress: StudentProgress | null })
             </div>
           )}
 
+          {progress.materiaisTracked ? (
+            <div className="hero-ring-metric">
+              <div className="hero-ring-metric-head">
+                <span><Files size={13} /> Materiais baixados</span>
+                <b>{progress.materiaisPercent}%</b>
+              </div>
+              <div className="hero-ring-bar"><i style={{ width: `${progress.materiaisPercent}%` }} /></div>
+              <small>{progress.materiaisBaixados} de {progress.materiaisDisponiveis} materiais</small>
+            </div>
+          ) : (
+            <div className="hero-ring-metric">
+              <div className="hero-ring-metric-head">
+                <span><Files size={13} /> Materiais baixados</span>
+              </div>
+              <small>Nenhum material do curso liberado ainda — essa parte não entra na conta por enquanto.</small>
+            </div>
+          )}
+
           <div className="hero-ring-metric">
             <div className="hero-ring-metric-head">
               <span><FileCheck2 size={13} /> Redações entregues</span>
               <b>{progress.redacoesPercent}%</b>
             </div>
             <div className="hero-ring-bar"><i style={{ width: `${progress.redacoesPercent}%` }} /></div>
-            <small>{progress.redacoesEntregues} de 5 redações</small>
+            <small>{progress.redacoesEntregues} de {REDACOES_META_PROGRESSO} redações</small>
           </div>
         </div>,
         document.body,

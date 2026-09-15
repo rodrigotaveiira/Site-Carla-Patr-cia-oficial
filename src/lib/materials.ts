@@ -77,7 +77,7 @@ export function releaseInstantMs(classDate: string | null, classTime: string | n
   return classStartUtcMs - RELEASE_LEAD_MS
 }
 
-function isReleased(material: Pick<Material, 'classDate' | 'classTime'>): boolean {
+export function isReleased(material: Pick<Material, 'classDate' | 'classTime'>): boolean {
   const releaseAt = releaseInstantMs(material.classDate, material.classTime)
   if (releaseAt === null) return true
   return Date.now() >= releaseAt

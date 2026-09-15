@@ -15,7 +15,10 @@ import { userHasRole } from '@/lib/roles'
 // pra trás sem jogar a pessoa pra fora do site. Aí o destino é o painel do
 // papel dela: `/admin` para admin, `/professor` para a professora, que não tem
 // permissão no primeiro.
-export function VoltarAoPainel() {
+// `destino` deixa a tela dizer pra onde cair quando nao ha pagina anterior.
+// Sem ele vale o painel do papel de quem esta logado (uso das telas de
+// administracao); as telas do aluno passam "/dashboard".
+export function VoltarAoPainel({ destino }: { destino?: string } = {}) {
   const router = useRouter()
   const { user } = useIdentity()
   // `canGoBack` depende do histórico do navegador, que não existe no servidor.
@@ -27,7 +30,7 @@ export function VoltarAoPainel() {
     setPodeVoltar(router.history.canGoBack())
   }, [router])
 
-  const painel = userHasRole(user, 'admin') ? '/admin' : '/professor'
+  const painel = destino ?? (userHasRole(user, 'admin') ? '/admin' : '/professor')
 
   return (
     <button

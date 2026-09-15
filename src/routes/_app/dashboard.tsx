@@ -557,12 +557,20 @@ function DashboardPage() {
 
         <div className="dashboard-grid">
           <section className="dashboard-card progress-card"><div className="card-title"><div><span>Meu progresso</span><h3>Visão geral</h3></div><button type="button" onClick={() => showToast('Em breve: mais opções de personalização do progresso.', 'info')}><MoreHorizontal /></button></div><div className="progress-list">
-            {studentProgress ? [
-              ['Aulas assistidas', `${studentProgress.aulasAssistidas} de ${studentProgress.aulasDisponiveis} aulas`, studentProgress.aulasPercent, '#6d28d9'],
+            {studentProgress ? ([
+              // Fatia sem nada pra contar não aparece — é a mesma regra da média
+              // em progress.ts, senão a lista não explica o número do anel.
+              studentProgress.aulasTracked
+                ? ['Aulas assistidas', `${studentProgress.aulasAssistidas} de ${studentProgress.aulasDisponiveis} aulas`, studentProgress.aulasPercent, '#6d28d9']
+                : null,
+              studentProgress.materiaisTracked
+                ? ['Materiais baixados', `${studentProgress.materiaisBaixados} de ${studentProgress.materiaisDisponiveis} materiais`, studentProgress.materiaisPercent, '#7c3aed']
+                : null,
               ['Redações entregues', `${studentProgress.redacoesEntregues} de ${REDACOES_META_PROGRESSO} redações`, studentProgress.redacoesPercent, '#0f7890'],
-            ].map(([title, detail, percent, color]) => (
-              // A barra só sobe de acordo com o progresso real do aluno (aulas assistidas e
-              // redações entregues) — não com a quantidade de conteúdo disponível na plataforma.
+            ].filter(Boolean) as [string, string, number, string][]).map(([title, detail, percent, color]) => (
+              // A barra só sobe de acordo com o progresso real do aluno (aulas assistidas,
+              // materiais baixados e redações entregues) — não com a quantidade de conteúdo
+              // disponível na plataforma.
               <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{percent}%</strong></div>
             )) : Array.from({ length: 2 }).map((_, index) => (
               <div key={index} style={{ display: 'grid', gridTemplateColumns: '105px 1fr 34px', alignItems: 'center', gap: 13 }}>
