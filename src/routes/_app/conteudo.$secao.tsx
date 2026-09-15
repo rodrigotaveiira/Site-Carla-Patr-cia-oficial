@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Link, createFileRoute, redirect } from '@tanstack/react-router'
 import { BookCheck, BookMarked, CircleHelp, Download, Library, ScrollText, Target, Zap, type LucideIcon } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -33,6 +33,10 @@ export const Route = createFileRoute('/_app/conteudo/$secao')({
 
 // Cada seção usa o mesmo componente de lista, mas tem seu próprio ícone e sua própria
 // razão de existir — sem isso, as 5 abas viravam a mesma página com o título trocado.
+// Ordem do menu lateral do aluno. Fora daqui ficam "simulados" e "gabaritos":
+// existem no cadastro, mas não têm item próprio na navegação dele.
+const SECOES_IRMAS: ContentSection[] = ['biblioteca', 'repertorios', 'dicas', 'edital', 'questoes']
+
 const SECTION_META: Record<ContentSection, {
   icon: LucideIcon
   description: string
@@ -87,6 +91,14 @@ function ConteudoPage() {
   const { secao } = Route.useParams()
   const section = secao as ContentSection
   const sectionLabel = CONTENT_SECTIONS[section]
+
+  // Só as seções que o aluno de fato tem no menu lateral — "simulados" e
+  // "gabaritos" existem no cadastro mas não são destino próprio pra ele.
+  const outrasSecoes = useMemo(
+    () => SECOES_IRMAS.filter((secao) => secao !== section)
+      .map((secao) => ({ secao, label: CONTENT_SECTIONS[secao], icon: SECTION_META[secao].icon })),
+    [section],
+  )
   const meta = SECTION_META[section]
   const Icon = meta.icon
   const isDicas = section === 'dicas'
@@ -138,7 +150,7 @@ function ConteudoPage() {
       )}
 
       {isDicas && (
-        <div className="tab-switch" style={{ marginTop: 16 }} role="tablist">
+        <div className="tab-switch panel-controles" role="tablist">
           {(Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => {
             const count = items.filter((item) => resolveDicaCategory(item) === key).length
             return (
@@ -161,7 +173,7 @@ function ConteudoPage() {
       {error && <p className="form-error">{error}</p>}
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={3} /></div>}
 
-      <div style={{ display: 'grid', gap: 12, marginTop: 20 }}>
+      <div className="panel-lista">
         {visibleItems.map((item) => (
           <div key={item.id} className="list-row">
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', minWidth: 0 }}>
@@ -186,14 +198,32 @@ function ConteudoPage() {
             </button>
           </div>
         ))}
+        {/* Sem `alto`: o rodape de outras secoes ja fecha a pagina. Com os dois, o
+            estado vazio reservava a tela inteira E o rodape vinha depois — a pagina
+            passava a rolar 167px a toa. */}
         {!loading && visibleItems.length === 0 && (
-          <EmptyState alto
+          <EmptyState
             icon={Icon}
             title={isDicas ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda` : meta.emptyTitle}
             description={`${meta.emptyDescription} Cada download sai protegido com seu nome e CPF.`}
           />
         )}
       </div>
+
+      {/* As secoes irmas, tirando a atual. Fica fora do estado de carregando
+          pra nao piscar, e some se por algum motivo nao sobrar nenhuma. */}
+      {outrasSecoes.length > 0 && (
+        <nav className="panel-outras" aria-label="Outras seções de conteúdo">
+          <p>Outras seções</p>
+          <div className="panel-outras-links">
+            {outrasSecoes.map(({ secao, label, icon: OutroIcon }) => (
+              <Link key={secao} to="/conteudo/$secao" params={{ secao }} className="panel-outra">
+                <OutroIcon size={15} /> {label}
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
     </div>
   )
 }
