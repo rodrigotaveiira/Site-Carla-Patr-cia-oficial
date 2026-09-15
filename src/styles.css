@@ -1244,8 +1244,29 @@ form.panel-card > * + * { margin-top: 16px; }
 .aprovados-section { background: #fbfafc; scroll-margin-top: 82px; }
 .aprovados-section .section-heading > p { color: #667085; }
 .aprovados-section h2 { text-wrap: balance; }
-.aprovados-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 22px; margin-top: 24px; }
+/* A galeria é uma faixa horizontal, não uma grade: são 300+ aprovações em 22
+   anos e a seção não pode ficar mais alta a cada foto cadastrada. Enquanto as
+   fotos couberem numa fileira ela centraliza e não rola — é a grade de antes;
+   passando disso, vira carrossel. */
+.aprovados-vitrine { position: relative; margin-top: 24px; }
+.aprovados-trilha {
+  display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
+  /* Contém o gesto pra rolar a faixa até o fim não virar "voltar" no navegador. */
+  overscroll-behavior-x: contain;
+  /* overflow-x: auto força overflow-y: auto — sem esta folga o corte decepa a
+     sombra do card e o levantar de 4px do hover num risco reto. */
+  padding: 6px 2px 22px; scroll-padding-inline: 2px;
+  /* A barra de rolagem do sistema desenharia um risco cinza atravessado no meio
+     de uma seção editorial: a posição é mostrada pela barra dos controles. */
+  scrollbar-width: none;
+}
+.aprovados-trilha::-webkit-scrollbar { display: none; }
+.aprovados-trilha:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; border-radius: 16px; }
+.aprovados-trilha.sem-rolagem { justify-content: center; }
 .aprovado-card {
+  /* Largura fixa e um pedaço do próximo card aparecendo: é o que conta, sem
+     nenhum texto, que a faixa anda pro lado. */
+  flex: 0 0 clamp(168px, 22%, 252px); scroll-snap-align: start;
   display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
   box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 14px 30px -22px rgba(15,35,66,.3);
   transition: transform .25s ease, box-shadow .25s ease;
@@ -1264,7 +1285,11 @@ form.panel-card > * + * { margin-top: 16px; }
 .aprovado-card:nth-child(9) { animation-delay: 480ms; }
 .aprovado-card:nth-child(n+10) { animation-delay: 540ms; }
 @keyframes aprovado-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@media (prefers-reduced-motion: reduce) { .aprovado-card { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .aprovado-card { animation: none; }
+  .aprovados-trilha { scroll-behavior: auto; }
+  .aprovados-barra > span { transition: none; }
+}
 .aprovado-card:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px rgba(109,40,217,.16), 0 22px 40px -20px rgba(15,35,66,.36); }
 .aprovado-photo { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--lilac-tint); }
 .aprovado-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
@@ -1304,11 +1329,41 @@ form.panel-card > * + * { margin-top: 16px; }
 }
 .aprovado-quote svg { flex-shrink: 0; margin-top: 4px; color: var(--gold); }
 
+/* Setas e posição embaixo da faixa, nunca por cima dela: seta flutuando sobre
+   a foto tapa justamente o rosto que é a prova social. */
+.aprovados-controles { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 6px; }
+.aprovados-controles button {
+  display: grid; place-items: center; width: 42px; height: 42px; padding: 0;
+  color: var(--navy); background: #fff; border: 1px solid rgba(15,45,82,.18); border-radius: 50%; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15,35,66,.05), 0 10px 20px -14px rgba(15,35,66,.45);
+  transition: color .2s, background .2s, border-color .2s, transform .2s, box-shadow .2s;
+}
+.aprovados-controles button:hover:not(:disabled) {
+  color: #fff; background: var(--navy); border-color: var(--navy); transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(15,35,66,.08), 0 14px 24px -14px rgba(15,35,66,.6);
+}
+.aprovados-controles button:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
+/* Desbotada de propósito: na ponta da faixa a seta tem que parecer sem função. */
+.aprovados-controles button:disabled { color: #a3aab5; background: #f4f4f7; border-color: var(--line); box-shadow: none; cursor: default; }
+/* Onde a faixa está — o lugar da barra de rolagem que foi escondida. */
+.aprovados-barra { position: relative; width: 104px; height: 3px; overflow: hidden; background: #e2dfea; border-radius: 3px; }
+.aprovados-barra > span {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 40%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--purple), #7c3aed); transition: transform .18s ease-out;
+}
+
+/* Some na ponta em que a faixa acabou, pra não prometer foto que não existe. */
+.aprovados-borda { position: absolute; top: 0; bottom: 0; z-index: 3; width: 64px; opacity: 0; pointer-events: none; transition: opacity .22s ease; }
+.aprovados-borda.visivel { opacity: 1; }
+.aprovados-borda.esquerda { left: -2px; background: linear-gradient(90deg, #fbfafc 14%, rgba(251,250,252,0)); }
+.aprovados-borda.direita { right: -2px; background: linear-gradient(270deg, #fbfafc 14%, rgba(251,250,252,0)); }
+
 .aprovados-cta { margin-top: 40px; text-align: center; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {
-  .aprovados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
+  .aprovados-trilha { gap: 14px; padding-bottom: 18px; }
+  .aprovados-borda { width: 38px; }
   .aprovado-name-overlay h3 { font-size: 15px; }
 }
 
