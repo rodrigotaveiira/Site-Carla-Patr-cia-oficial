@@ -129,11 +129,11 @@ function ConteudoPage() {
       <VoltarAoPainel destino="/dashboard" />
       <h1><Icon /> {sectionLabel}</h1>
       <p className="panel-subtitle">{meta.description}</p>
-      {!loading && !error && (
+      {/* Com a lista vazia, a nota de proteção era uma terceira linha cinza
+          espremida no topo. Ela vale mais dentro do estado vazio, logo abaixo. */}
+      {!loading && !error && visibleItems.length > 0 && (
         <p className="panel-meta-strip">
-          {visibleItems.length === 0
-            ? 'Protegido com seu nome e CPF em cada download.'
-            : `${visibleItems.length} ${visibleItems.length === 1 ? 'arquivo disponível' : 'arquivos disponíveis'} · o mais recente é de ${new Date(visibleItems[0].createdAt).toLocaleDateString('pt-BR')}`}
+          {visibleItems.length} {visibleItems.length === 1 ? 'arquivo disponível' : 'arquivos disponíveis'} · o mais recente é de {new Date(visibleItems[0].createdAt).toLocaleDateString('pt-BR')}
         </p>
       )}
 
@@ -187,10 +187,10 @@ function ConteudoPage() {
           </div>
         ))}
         {!loading && visibleItems.length === 0 && (
-          <EmptyState
+          <EmptyState alto
             icon={Icon}
             title={isDicas ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda` : meta.emptyTitle}
-            description={meta.emptyDescription}
+            description={`${meta.emptyDescription} Cada download sai protegido com seu nome e CPF.`}
           />
         )}
       </div>

@@ -124,7 +124,7 @@ function MateriaisPage() {
             <MaterialRow key={material.id} material={material} downloadingId={downloadingId} onDownload={handleDownload} />
           ))}
           {!loading && materiaisDaFrente.length === 0 && (
-            <EmptyState
+            <EmptyState alto
               icon={Files}
               title={`Nenhum material de ${MATERIAS[frente].toLowerCase()} ainda`}
               description="A professora vai adicionar arquivos em breve. Assim que liberar, eles aparecem aqui."
