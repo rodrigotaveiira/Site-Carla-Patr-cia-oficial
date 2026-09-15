@@ -1255,7 +1255,7 @@ form.panel-card > * + * { margin-top: 16px; }
   overscroll-behavior-x: contain;
   /* overflow-x: auto força overflow-y: auto — sem esta folga o corte decepa a
      sombra do card e o levantar de 4px do hover num risco reto. */
-  padding: 6px 2px 22px; scroll-padding-inline: 2px;
+  padding: 8px 2px 24px; scroll-padding-inline: 2px;
   /* A barra de rolagem do sistema desenharia um risco cinza atravessado no meio
      de uma seção editorial: a posição é mostrada pela barra dos controles. */
   scrollbar-width: none;
@@ -1362,7 +1362,7 @@ form.panel-card > * + * { margin-top: 16px; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {
-  .aprovados-trilha { gap: 14px; padding-bottom: 18px; }
+  .aprovados-trilha { gap: 14px; padding-bottom: 20px; }
   .aprovados-borda { width: 38px; }
   .aprovado-name-overlay h3 { font-size: 15px; }
 }
