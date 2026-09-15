@@ -270,7 +270,7 @@ function SimuladosPage() {
             </div>
           ))}
           {!loading && summaries.length === 0 && (
-            <EmptyState icon={ClipboardList} title="Nada disponível ainda" description="Assim que a professora liberar a primeira série de questões, ela aparece aqui pra você responder." />
+            <EmptyState alto icon={ClipboardList} title="Nada disponível ainda" description="Assim que a professora liberar a primeira série de questões, ela aparece aqui pra você responder." />
           )}
         </div>
       </section>

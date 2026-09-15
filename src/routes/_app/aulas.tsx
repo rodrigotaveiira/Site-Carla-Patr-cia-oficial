@@ -99,7 +99,7 @@ function AulasPage() {
 
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}
       {!loading && lessons.length === 0 && (
-        <EmptyState icon={CirclePlay} title="Nenhuma aula publicada ainda" description="Assim que a professora publicar a primeira aula, ela aparece aqui. Volte em breve!" />
+        <EmptyState alto icon={CirclePlay} title="Nenhuma aula publicada ainda" description="Assim que a professora publicar a primeira aula, ela aparece aqui. Volte em breve!" />
       )}
 
       {selected && (

@@ -917,10 +917,12 @@ footer .brand b { color: white; }
    anel de foco que os demais controles — o contorno padrão do navegador não
    pertence a nenhum sistema de design. */
 .panel-back:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); border-radius: 6px; }
-.panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
+.panel h1 { display: flex; align-items: center; gap: 10px; margin: 18px 0 11px; color: var(--navy); font-family: var(--serif); font-weight: 400; font-size: 28px; }
 .panel h1 svg { flex-shrink: 0; color: var(--purple); }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
-.panel-meta-strip { margin: 10px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* Subtitulo e faixa de dados sao dois cinzas quase iguais: colados, leem
+   como um bloco so. O respiro maior separa os dois grupos. */
+.panel-meta-strip { margin: 16px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .panel-inline-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--purple); font-weight: 700; font-size: 13px; text-decoration: none; }
 .panel-inline-link:hover { color: var(--purple-dark); text-decoration: underline; }
 
@@ -1118,6 +1120,14 @@ form.panel-card > * + * { margin-top: 16px; }
 .designed-empty-icon svg { width: 21px; height: 21px; }
 .designed-empty b { color: var(--navy); font-size: 15px; font-weight: 700; }
 .designed-empty p { margin: 0; font-size: 13px; max-width: 320px; line-height: 1.55; }
+/* Variante pra quando o estado vazio É o corpo da página: ocupa a altura
+   que sobraria em branco embaixo, em vez de ficar um bloquinho colado no
+   topo com meia tela morta atrás. Não vale dentro de card (dashboard). */
+.designed-empty.alto { min-height: max(280px, calc(100vh - 300px)); justify-content: center; padding: 40px 20px; }
+.designed-empty.alto .designed-empty-icon { width: 56px; height: 56px; margin-bottom: 10px; }
+.designed-empty.alto .designed-empty-icon svg { width: 25px; height: 25px; }
+.designed-empty.alto b { font-size: 16.5px; }
+.designed-empty.alto p { font-size: 13.5px; max-width: 360px; }
 
 .toast-viewport { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; max-width: min(360px, calc(100vw - 40px)); pointer-events: none; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 13px 14px; background: #fff; border-radius: 10px; box-shadow: 0 12px 30px rgba(15,35,66,.16); font-size: 14px; color: var(--navy); animation: toast-in .25s ease; }
