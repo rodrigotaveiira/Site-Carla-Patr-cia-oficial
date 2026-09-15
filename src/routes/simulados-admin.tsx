@@ -478,9 +478,10 @@ function SimuladosAdminPage() {
         <div className="field">
           <label>Textos e questões</label>
           <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '0 0 8px' }}>
-            Comece um texto-base com uma linha <b>TEXTO 1</b>, <b>TEXTO 2</b>… e cole o texto embaixo. Cada questão
-            começa numa linha nova com <b>1)</b>, <b>2)</b>… e cada alternativa com <b>a)</b>, <b>b)</b>… (maiúscula
-            ou minúscula). Os textos valem para as questões que vierem depois deles, até aparecer um novo bloco TEXTO.
+            Cada questão começa numa linha nova — <b>QUESTÃO 1</b> ou <b>1)</b> — e cada alternativa com <b>(A)</b>, <b>A)</b> ou <b>a)</b>.
+            Texto-base é opcional: comece com uma linha <b>TEXTO 1</b> e cole o texto embaixo;
+            ele vale para as questões que vierem depois, até aparecer um novo bloco TEXTO. Linha cortada no meio pelo
+            PDF é remontada sozinha.
           </p>
           <textarea
             value={questionsText}
@@ -491,7 +492,7 @@ function SimuladosAdminPage() {
           />
         </div>
         <div className="field">
-          <label>Gabarito <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(aceita "1) d", "1-d", "1. d" ou "1 d")</span></label>
+          <label>Gabarito <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(aceita "1) d", "1-d", "QUESTÃO 1 - D" ou tudo numa linha só)</span></label>
           <textarea
             value={gabaritoText}
             onChange={(e) => setGabaritoText(e.target.value)}

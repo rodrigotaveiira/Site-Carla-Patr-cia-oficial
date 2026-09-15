@@ -29,18 +29,31 @@
 /** Cabeçalho de texto-base: "TEXTO 1", "Texto 2:", "TEXTOS 3" — a linha inteira. */
 const PASSAGE_HEADING = /^\s*textos?\s*\d*\s*[:.\-–]?\s*$/i
 
-// Uma questão só começa com número + ")". Aceitar "1." ou "1-" também, como
-// antes, transformava qualquer enumeração ou data dentro do texto-base
-// ("2. Segundo o autor...") numa questão fantasma.
-const QUESTION_START = /^\s*(\d{1,3})\)\s*(.*)$/
+// Três jeitos de marcar o começo de uma questão. O estilo é escolhido POR
+// DOCUMENTO (ver detectarMarcador): aceitar todos ao mesmo tempo faria
+// qualquer enumeração ou data dentro do texto-base ("2. Segundo o autor...")
+// virar uma questão fantasma.
 
-/** Alternativa: "a)", "A.", "b -" ... */
-const OPTION_START = /^\s*([A-Ea-e])\s*[).\-–]\s*(.*)$/
+/** "QUESTÃO 1", "Questao 2:", "PERGUNTA 3 -" — o número vem depois da palavra. */
+const QUESTION_HEADING = /^\s*(?:quest[ãa]o|pergunta)\s*(?:n[º°.]?\s*)?(\d{1,3})\s*[).:\-–]?\s*(.*)$/i
+
+/** "1)" — o formato que a plataforma já aceitava. */
+const QUESTION_PAREN = /^\s*(\d{1,3})\)\s*(.*)$/
+
+/** "1." ou "1 -": só entra quando nenhum dos outros dois aparece no texto. */
+const QUESTION_LOOSE = /^\s*(\d{1,3})\s*[.\-–]\s+(\S.*)$/
+
+/**
+ * Alternativa: "(A)", "A)", "A.", "a -" — os quatro jeitos que aparecem nos
+ * materiais. O parêntese de abertura é opcional porque as provas colam tanto
+ * "(A) texto" quanto "A) texto".
+ */
+const OPTION_START = /^\s*\(?\s*([A-Ea-e])\s*(?:\)|[.\-–])\s*(.*)$/
 
 /** Gabarito numa linha só: "1) d", "1-d", "1. d", "1 d". */
-const ANSWER_LINE = /^\s*(\d{1,3})\s*[).\-–:]?\s*([A-Ea-e])\s*[).]?\s*$/
+const ANSWER_LINE = /^\s*(?:quest[ãa]o|pergunta)?\s*(\d{1,3})\s*[).\-–:]?\s*\(?\s*([A-Ea-e])\s*[).]?\s*$/i
 /** Mesma ideia, mas varrendo uma linha com vários pares: "1) C 2) A 3) E". */
-const ANSWER_SCAN = /(\d{1,3})\s*[).\-–:]?\s*([A-Ea-e])\b/g
+const ANSWER_SCAN = /(\d{1,3})\s*[).\-–:]?\s*\(?\s*([A-Ea-e])\b/g
 
 export type SimuladoPassage = {
   id: string // 'p1', 'p2'...
@@ -81,12 +94,70 @@ function trimBlankEdges(lines: string[]): string[] {
 
 // Enunciado vira uma linha só (é como sempre foi exibido). As quebras de linha
 // que importam preservar são as do texto-base, não as do enunciado.
+//
+// Texto copiado de PDF quebra a linha no meio da palavra ("tornar-\nse"). Sem
+// desfazer isso, o aluno lia "tornar- se".
+// Pronomes que vêm depois de hífen em português. Servem pra separar o hífen
+// que faz parte da palavra do hífen que o PDF inventou ao quebrar a linha.
+const ENCLITICOS = new Set(['se','me','te','lhe','lhes','nos','vos','o','a','os','as','lo','la','los','las','no','na','nas','los','me'])
+
+export function juntarLinhas(lines: string[]): string {
+  let saida = ''
+  for (const linha of lines) {
+    const atual = linha.trim()
+    if (!atual) continue
+    if (!saida) { saida = atual; continue }
+    // Linha cortada no meio de uma palavra hifenizada. Dois casos diferentes:
+    // "tornar-" + "se" é hífen de verdade (pronome enclítico) e fica;
+    // "infraestru-" + "tura" é só quebra do PDF e o hífen sai.
+    if (/[A-Za-zÀ-ÿ]-$/.test(saida) && /^[a-zà-ÿ]/.test(atual)) {
+      const primeiraPalavra = atual.split(/[^A-Za-zÀ-ÿ]/)[0].toLowerCase()
+      saida = ENCLITICOS.has(primeiraPalavra) ? saida + atual : saida.slice(0, -1) + atual
+    } else {
+      saida = saida + ' ' + atual
+    }
+  }
+  return saida.replace(/\s+/g, ' ').trim()
+}
+
 function joinStatement(lines: string[]): string {
-  return lines.join(' ').replace(/\s+/g, ' ').trim()
+  return juntarLinhas(lines)
+}
+
+/**
+ * Descobre como ESTE documento marca as questões, antes de varrer linha a
+ * linha. "QUESTÃO 1" e "1)" são inequívocos; "1." e "1 -" só valem quando
+ * nenhum dos dois aparece E o bloco tem alternativas de verdade — senão uma
+ * lista numerada dentro do texto-base viraria questão.
+ */
+function detectarMarcador(lines: string[]): RegExp | null {
+  if (lines.some((linha) => QUESTION_HEADING.test(linha))) return QUESTION_HEADING
+  if (lines.some((linha) => QUESTION_PAREN.test(linha))) return QUESTION_PAREN
+
+  const candidatos = lines.filter((linha) => QUESTION_LOOSE.test(linha))
+  if (candidatos.length < 2) return null
+
+  // Cada candidato precisa ter pelo menos duas alternativas antes do próximo.
+  let blocosValidos = 0
+  let alternativasNoBloco = 0
+  let dentroDeBloco = false
+  for (const linha of lines) {
+    if (QUESTION_LOOSE.test(linha)) {
+      if (dentroDeBloco && alternativasNoBloco >= 2) blocosValidos++
+      dentroDeBloco = true
+      alternativasNoBloco = 0
+      continue
+    }
+    if (dentroDeBloco && OPTION_START.test(linha)) alternativasNoBloco++
+  }
+  if (dentroDeBloco && alternativasNoBloco >= 2) blocosValidos++
+
+  return blocosValidos >= 2 ? QUESTION_LOOSE : null
 }
 
 export function parseActivityText(raw: string): ParsedActivity {
   const lines = (raw ?? '').replace(/\r\n/g, '\n').split('\n')
+  const marcadorDeQuestao = detectarMarcador(lines)
 
   const passages: SimuladoPassage[] = []
   const questions: ParsedQuestion[] = []
@@ -130,7 +201,7 @@ export function parseActivityText(raw: string): ParsedActivity {
       } else if (openOption) {
         // continuação da alternativa anterior (alternativa que quebrou em 2 linhas)
         const extra = line.trim()
-        if (extra) openOption.text = `${openOption.text} ${extra}`.trim()
+        if (extra) openOption.text = juntarLinhas([openOption.text, extra])
       } else {
         statementLines.push(line)
       }
@@ -168,7 +239,7 @@ export function parseActivityText(raw: string): ParsedActivity {
       continue
     }
 
-    const questionMatch = line.match(QUESTION_START)
+    const questionMatch = marcadorDeQuestao ? line.match(marcadorDeQuestao) : null
     if (questionMatch) {
       flushQuestion()
       flushPassage()
@@ -229,7 +300,7 @@ export function parseActivityText(raw: string): ParsedActivity {
   if (questions.length === 0) {
     issues.push({
       level: 'erro',
-      message: 'Nenhuma questão reconhecida. Cada questão precisa começar numa linha nova com "1)", "2)"… e cada alternativa com "a)", "b)"…',
+      message: 'Nenhuma questão reconhecida. Comece cada questão numa linha nova com "QUESTÃO 1" ou "1)", e cada alternativa com "(A)" ou "a)".',
     })
   }
 
