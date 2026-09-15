@@ -925,31 +925,7 @@ footer .brand b { color: white; }
 .panel-subtitle { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 /* Subtitulo e faixa de dados sao dois cinzas quase iguais: colados, leem
    como um bloco so. O respiro maior separa os dois grupos. */
-/* Colada no subtitulo: titulo + descricao + contagem sao UMA coisa so (o que
-   esta pagina e). O ar vem depois, antes dos controles. */
-.panel-meta-strip { margin: 10px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-/* Os controles comecam o segundo grupo, entao ganham distancia acima; e a
-   lista cola no controle que a comanda. Antes era 16px acima e 20 abaixo:
-   tudo igualmente espacado, nada se agrupando. */
-.panel-controles { margin-top: 28px; }
-.panel-controles + .panel-lista { margin-top: 14px; }
-.panel-lista { display: grid; gap: 12px; margin-top: 20px; }
-/* Fecha a pagina. Numa secao com um arquivo so, quem baixou nao tem mais nada
-   a fazer aqui: o passo seguinte e outra secao, e nao meia tela morta. */
-.panel-outras { margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line); }
-.panel-outras > p { margin: 0 0 12px; color: var(--navy); font-size: 13px; font-weight: 700; }
-.panel-outras-links { display: flex; flex-wrap: wrap; gap: 8px; }
-.panel-outra {
-  display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; color: var(--navy);
-  background: #fff; border-radius: 999px; text-decoration: none; font-size: 13px; font-weight: 700;
-  box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 6px 14px -12px rgba(15,35,66,.5);
-  transition: color .18s ease, box-shadow .18s ease, transform .18s ease;
-}
-.panel-outra svg { flex-shrink: 0; color: var(--purple); }
-.panel-outra:hover { color: var(--purple-dark); transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(109,40,217,.2), 0 10px 20px -12px rgba(15,35,66,.6); }
-.panel-outra:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .panel-outra, .panel-outra:hover { transform: none; transition: none; } }
-
+.panel-meta-strip { margin: 16px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .panel-inline-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; color: var(--purple); font-weight: 700; font-size: 13px; text-decoration: none; }
 .panel-inline-link:hover { color: var(--purple-dark); text-decoration: underline; }
 
@@ -1076,27 +1052,11 @@ form.panel-card > * + * { margin-top: 16px; }
   border-radius: 999px; box-shadow: 0 0 0 2px #fff;
 }
 
-/* Numa linha de lista quem cede espaco e o TEXTO, nunca a acao. Com
-   `flex-wrap: wrap` (como era) o bloco de texto nao encolhia — a base dele e a
-   largura do conteudo —, entao uma descricao longa tomava a linha inteira e
-   empurrava o botao pra uma segunda linha, encostado na esquerda e desalinhado
-   de todas as outras linhas da lista. */
 .list-row {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px;
   background: #fff; border-radius: 12px;
   box-shadow: 0 0 0 1px rgba(15,35,66,.05), 0 8px 18px -14px rgba(15,35,66,.18);
   transition: box-shadow .2s ease;
-}
-.list-row > :last-child:not(:only-child) { flex-shrink: 0; }
-/* Só os blocos de texto (sempre div) podem encolher abaixo da palavra mais
-   longa que tem dentro — sem isso um titulo sem espaco estouraria a linha. O
-   seletor exclui o ultimo filho (a acao) e qualquer icone solto, que nao e div. */
-.list-row > div:not(:last-child) { min-width: 0; }
-/* Em tela estreita nao cabe lado a lado: ai a acao desce de proposito, e a
-   linha inteira vira um empilhamento — nao uma quebra acidental. */
-@media (max-width: 640px) {
-  .list-row { flex-wrap: wrap; }
-  .list-row > :last-child:not(:only-child) { flex-shrink: 1; }
 }
 .list-row:hover { box-shadow: 0 0 0 1px rgba(109,40,217,.09), 0 10px 22px -14px rgba(15,35,66,.24); }
 .list-row + .list-row { margin-top: 10px; }
