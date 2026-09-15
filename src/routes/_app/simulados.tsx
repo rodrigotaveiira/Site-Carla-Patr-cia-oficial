@@ -13,6 +13,7 @@ import { ListSkeleton } from '@/components/ListSkeleton'
 import { TextoBase } from '@/components/TextoBase'
 import { agruparPorTextoBase } from '@/lib/simulado-parser'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
+import { APARENCIA_PADRAO, estiloDaParte, getAparenciaQuestoes, type AparenciaQuestoes } from '@/lib/aparencia-questoes'
 
 export const Route = createFileRoute('/_app/simulados')({
   beforeLoad: async () => {
@@ -45,6 +46,10 @@ function SimuladosPage() {
   const [submitting, setSubmitting] = useState(false)
   const [takeError, setTakeError] = useState('')
   const [result, setResult] = useState<Result | null>(null)
+  // Cor, tamanho e tipo de letra definidos pela professora no painel. Começa
+  // no padrão e troca quando a resposta chega — se falhar, fica no padrão e as
+  // questões aparecem do mesmo jeito de sempre.
+  const [aparencia, setAparencia] = useState<AparenciaQuestoes>(APARENCIA_PADRAO)
 
   async function load() {
     setLoading(true)
@@ -61,6 +66,16 @@ function SimuladosPage() {
   }
 
   useEffect(() => { void load() }, [])
+
+  useEffect(() => {
+    getAparenciaQuestoes()
+      .then(setAparencia)
+      .catch(() => { /* fica no padrão */ })
+  }, [])
+
+  const estiloTextoBase = estiloDaParte(aparencia, 'textoBase')
+  const estiloEnunciado = estiloDaParte(aparencia, 'enunciado')
+  const estiloAlternativas = estiloDaParte(aparencia, 'alternativas')
 
   async function handleStart(id: string) {
     setTakeError('')
@@ -120,24 +135,26 @@ function SimuladosPage() {
         <div style={{ display: 'grid', gap: 10, marginTop: 24 }}>
           {agruparPorTextoBase(active.questions, active.passages ?? []).map((grupo) => (
             <div key={grupo.key || 'sem-texto'} style={{ display: 'grid', gap: 10 }}>
-              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} />)}
+              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} estilo={estiloTextoBase} />)}
               {grupo.questions.map((question) => {
                 const correction = result.corrections.find((c) => c.questionId === question.id)
                 return (
                   <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       {correction?.correct ? <CheckCircle2 size={18} color="#15803d" style={{ flexShrink: 0, marginTop: 1 }} /> : <XCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 1 }} />}
-                      <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
+                      <b style={estiloEnunciado}>{question.number}) {question.statement}</b>
                     </div>
                     <div style={{ display: 'grid', gap: 4, marginTop: 10, marginLeft: 26 }}>
                       {question.options.map((option) => {
                         const isChosen = correction?.chosenLetter === option.letter
                         const isCorrect = correction?.correctLetter === option.letter
-                        let color = '#4b5563'
+                        // A cor do painel vale pra alternativa neutra; certa e errada
+                        // mantêm verde e vermelho, que aí a cor é informação.
+                        let color = estiloAlternativas.color
                         if (isCorrect) color = '#15803d'
                         else if (isChosen && !isCorrect) color = '#dc2626'
                         return (
-                          <div key={option.letter} style={{ fontSize: 13, color, fontWeight: isCorrect || isChosen ? 700 : 400 }}>
+                          <div key={option.letter} style={{ ...estiloAlternativas, color, fontWeight: isCorrect || isChosen ? 700 : 400 }}>
                             {option.letter}) {option.text} {isChosen && !isCorrect ? '(sua resposta)' : ''} {isCorrect ? '✓' : ''}
                           </div>
                         )
@@ -166,10 +183,10 @@ function SimuladosPage() {
         <div style={{ display: 'grid', gap: 14, marginTop: 20 }}>
           {agruparPorTextoBase(active.questions, active.passages ?? []).map((grupo) => (
             <div key={grupo.key || 'sem-texto'} style={{ display: 'grid', gap: 14 }}>
-              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} />)}
+              {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} estilo={estiloTextoBase} />)}
               {grupo.questions.map((question) => (
                 <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
-                  <b style={{ color: 'var(--navy)', fontSize: 14 }}>{question.number}) {question.statement}</b>
+                  <b style={estiloEnunciado}>{question.number}) {question.statement}</b>
                   <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
                     {question.options.map((option) => {
                       const checked = answers[question.id] === option.letter
@@ -189,7 +206,7 @@ function SimuladosPage() {
                             style={{ accentColor: 'var(--purple)', width: 'auto' }}
                           />
                           {checked ? <CheckCircle2 size={15} color="var(--purple)" /> : <Circle size={15} color="#c9befd" />}
-                          <span style={{ fontSize: 13, color: 'var(--navy)' }}>{option.letter}) {option.text}</span>
+                          <span style={estiloAlternativas}>{option.letter}) {option.text}</span>
                         </label>
                       )
                     })}
