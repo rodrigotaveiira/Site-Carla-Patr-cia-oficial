@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import {
+  ArrowLeft,
   ArrowRight,
   Award,
   BookOpen,
@@ -24,9 +25,9 @@ import {
   X,
   Zap,
 } from 'lucide-react'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
-import { listAprovados } from '@/lib/aprovados'
+import { listAprovados, type ApprovedStudent } from '@/lib/aprovados'
 
 // Quantos aprovados aparecem na home — o cadastro pode crescer bem além disso
 // (é 300+ desde sempre), mas a home é uma amostra, não o catálogo completo:
@@ -146,6 +147,145 @@ const faqs = [
   ['Posso começar do zero?', 'Com certeza. A trilha respeita seu nível atual e conduz passo a passo da estrutura básica às estratégias avançadas.'],
   ['Há acompanhamento individual?', 'Sim. Todos os planos incluem feedback, e a Mentoria individual oferece conversas e plano de estudos totalmente personalizados.'],
 ]
+
+// Quantas fotos cabem numa fileira no layout mais largo. Serve só pra já
+// desenhar os controles no HTML que vem do servidor quando eles com certeza
+// vão aparecer — assim o conteúdo não pula logo depois da hidratação.
+const APROVADOS_POR_TELA = 4
+
+// A galeria não para de crescer (são 300+ aprovações em 22 anos), então ela
+// não pode crescer em altura junto: a seção mede o mesmo com 4 fotos ou com
+// 20, e quem quiser ver o resto empurra a faixa pro lado. Enquanto as fotos
+// couberem numa fileira, a faixa centraliza e não rola — é a grade de antes.
+//
+// A rolagem é nativa (overflow-x + scroll-snap), não um carrossel de
+// transform: o conteúdo é prova social que precisa estar no HTML do servidor
+// e continuar navegável sem JS, o dedo arrasta no celular sem código nosso e
+// o teclado percorre a região de graça. As setas são melhoria progressiva.
+function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
+  const trilha = useRef<HTMLDivElement>(null)
+  const barra = useRef<HTMLSpanElement>(null)
+  const [estado, setEstado] = useState(() => {
+    const rola = aprovados.length > APROVADOS_POR_TELA
+    return { rolavel: rola, podeVoltar: false, podeAvancar: rola }
+  })
+
+  useEffect(() => {
+    const faixa = trilha.current
+    if (!faixa) return
+
+    const medir = () => {
+      // 4px de folga: arredondamento de layout não pode acender uma seta que
+      // não rola nada.
+      const sobra = faixa.scrollWidth - faixa.clientWidth
+      const rola = sobra > 4
+      const pos = rola ? Math.min(1, Math.max(0, faixa.scrollLeft / sobra)) : 0
+
+      // A posição vai direto no DOM: guardar isso em estado re-renderizaria
+      // os cards a cada quadro da rolagem, à toa.
+      if (barra.current) barra.current.style.transform = `translateX(${pos * 150}%)`
+
+      const proximo = {
+        rolavel: rola,
+        podeVoltar: rola && pos > 0.01,
+        podeAvancar: rola && pos < 0.99,
+      }
+      setEstado((antes) =>
+        antes.rolavel === proximo.rolavel
+          && antes.podeVoltar === proximo.podeVoltar
+          && antes.podeAvancar === proximo.podeAvancar
+          ? antes
+          : proximo,
+      )
+    }
+
+    medir()
+    faixa.addEventListener('scroll', medir, { passive: true })
+    // Foto que só carrega depois (lazy) muda a largura da faixa; o observer
+    // pega isso e o redimensionamento da janela de uma vez só.
+    const observador = new ResizeObserver(medir)
+    observador.observe(faixa)
+    return () => {
+      faixa.removeEventListener('scroll', medir)
+      observador.disconnect()
+    }
+  }, [aprovados.length])
+
+  // Anda de tela em tela, parando sempre na borda de um card. O passo sai da
+  // distância real entre dois cards (largura + vão), que muda com a largura da
+  // janela — medir é mais confiável do que repetir o número do CSS aqui.
+  const andar = (sentido: 1 | -1) => {
+    const faixa = trilha.current
+    if (!faixa) return
+    const primeiro = faixa.children[0] as HTMLElement | undefined
+    const segundo = faixa.children[1] as HTMLElement | undefined
+    const passo = primeiro && segundo ? segundo.offsetLeft - primeiro.offsetLeft : faixa.clientWidth
+    const porTela = Math.max(1, Math.round(faixa.clientWidth / passo))
+    faixa.scrollBy({ left: sentido * porTela * passo })
+  }
+
+  return (
+    <section className="section aprovados-section" id="aprovados">
+      <motion.div className="section-heading centered" {...reveal}>
+        <div className="section-kicker">Prova, não promessa</div>
+        <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
+        <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
+      </motion.div>
+
+      <div className="aprovados-vitrine">
+        <div
+          ref={trilha}
+          className={estado.rolavel ? 'aprovados-trilha' : 'aprovados-trilha sem-rolagem'}
+          tabIndex={estado.rolavel ? 0 : -1}
+          role={estado.rolavel ? 'region' : undefined}
+          aria-label={estado.rolavel ? 'Galeria de alunos aprovados' : undefined}
+        >
+          {aprovados.map((item) => (
+            <article className="aprovado-card" key={item.id}>
+              <div className="aprovado-photo">
+                <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
+                {item.year && <span className="aprovado-year">{item.year}</span>}
+                <div className="aprovado-name-overlay">
+                  <h3 title={item.name}>{item.name}</h3>
+                  <span title={item.university}>{item.university}</span>
+                </div>
+              </div>
+              <div className="aprovado-body">
+                {item.course && (
+                  <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
+                )}
+                {item.quote && (
+                  <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+        {/* O corte macio nas pontas conta que a faixa continua — e some na
+            ponta em que ela acabou, pra não fingir que tem mais. */}
+        <span className={estado.podeVoltar ? 'aprovados-borda esquerda visivel' : 'aprovados-borda esquerda'} aria-hidden="true" />
+        <span className={estado.podeAvancar ? 'aprovados-borda direita visivel' : 'aprovados-borda direita'} aria-hidden="true" />
+      </div>
+
+      {estado.rolavel && (
+        <div className="aprovados-controles">
+          <button type="button" onClick={() => andar(-1)} disabled={!estado.podeVoltar} aria-label="Ver as fotos anteriores">
+            <ArrowLeft size={18} />
+          </button>
+          <span className="aprovados-barra" aria-hidden="true"><span ref={barra} /></span>
+          <button type="button" onClick={() => andar(1)} disabled={!estado.podeAvancar} aria-label="Ver mais fotos">
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
+
+      <motion.div className="aprovados-cta" {...reveal}>
+        <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
+        <a className="button" href="#contato">Quero começar <ArrowRight size={18} /></a>
+      </motion.div>
+    </section>
+  )
+}
 
 function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -313,41 +453,7 @@ function HomePage() {
         </div>
       </section>
 
-      {aprovados.length > 0 && (
-        <section className="section aprovados-section" id="aprovados">
-          <motion.div className="section-heading centered" {...reveal}>
-            <div className="section-kicker">Prova, não promessa</div>
-            <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
-            <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
-          </motion.div>
-          <div className="aprovados-grid">
-            {aprovados.map((item) => (
-              <article className="aprovado-card" key={item.id}>
-                <div className="aprovado-photo">
-                  <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
-                  {item.year && <span className="aprovado-year">{item.year}</span>}
-                  <div className="aprovado-name-overlay">
-                    <h3 title={item.name}>{item.name}</h3>
-                    <span title={item.university}>{item.university}</span>
-                  </div>
-                </div>
-                <div className="aprovado-body">
-                  {item.course && (
-                    <span className="aprovado-course" title={item.course}><Sparkles size={12} /> <span>{item.course}</span></span>
-                  )}
-                  {item.quote && (
-                    <p className="aprovado-quote" title={item.quote}><Quote size={12} /> <span>{item.quote}</span></p>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-          <motion.div className="aprovados-cta" {...reveal}>
-            <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
-            <a className="button" href="#contato">Quero começar <ArrowRight size={18} /></a>
-          </motion.div>
-        </section>
-      )}
+      {aprovados.length > 0 && <GaleriaAprovados aprovados={aprovados} />}
 
       <section className="testimonials section-full">
         <div className="section-heading centered"><div className="section-kicker">Histórias reais</div><h2>Quem viveu a transformação <em>conta melhor.</em></h2></div>
