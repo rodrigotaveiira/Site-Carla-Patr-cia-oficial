@@ -29,6 +29,11 @@ const ROTULO_TIPO: Record<string, string> = {
 }
 const FASES: FaseLembreteSimulado[] = ['vespera', '30min']
 
+// Sem UI esperando resposta (é uma função agendada, ninguém olha spinner):
+// dá mais tempo pro Resend responder antes de desistir, reduzindo quanto cai
+// no caso "não sabemos se saiu" — ver o comentário em ResultadoEnvio.
+const ENVIO_TIMEOUT_MS = 15_000
+
 type Correcao = {
   date: string
   time: string
@@ -127,6 +132,7 @@ export default async function handler() {
   let enviados = 0
   let jaEnviados = 0
   let semChave = 0
+  let indeterminados = 0
   const erros: string[] = []
 
   for (const alvo of pendentes) {
@@ -160,7 +166,7 @@ export default async function handler() {
           link: alvo.link || undefined,
         })
 
-        const resultado = await enviarEmail({ para: aluno.email, assunto, html, texto })
+        const resultado = await enviarEmail({ para: aluno.email, assunto, html, texto, timeoutMs: ENVIO_TIMEOUT_MS })
 
         if (resultado.status === 'nao-configurado') {
           // Sem RESEND_API_KEY o e-mail não saiu: libera a chave reservada pra
@@ -171,7 +177,17 @@ export default async function handler() {
         }
 
         if (resultado.status === 'erro') {
-          await store.delete(chave)
+          if (resultado.ambiguo) {
+            // Timeout ou falha de rede: não sabemos se o Resend chegou a
+            // processar o envio antes da conexão cair. Mantém a chave
+            // reservada — o aluno pode, no pior caso, não receber ESTE
+            // lembrete, mas nunca recebe o mesmo duas vezes.
+            indeterminados += 1
+          } else {
+            // O Resend respondeu recusando: temos certeza de que não saiu,
+            // então libera a chave pra tentar de novo na próxima execução.
+            await store.delete(chave)
+          }
           erros.push(`${aluno.email} (${alvo.eventoId}/${alvo.contexto}/${fase}): ${resultado.motivo}`)
           continue
         }
@@ -181,11 +197,18 @@ export default async function handler() {
     }
   }
 
-  const resumo = { alvos: pendentes.length, destinatarios: destinatarios.length, enviados, jaEnviados, semChave, erros }
+  const resumo = { alvos: pendentes.length, destinatarios: destinatarios.length, enviados, jaEnviados, semChave, indeterminados, erros }
   console.log('[lembrete-simulado]', JSON.stringify(resumo))
 
   if (semChave > 0) {
     console.warn('[lembrete-simulado] RESEND_API_KEY não configurada — nenhum e-mail enviado.')
+  }
+  if (indeterminados > 0) {
+    // Não é um erro de verdade (o e-mail pode ter saído) — só um aviso de que
+    // ficaram lembretes sem confirmação de envio, sem retentativa automática
+    // pra não arriscar duplicar. Vale conferir no painel do Resend se sobrou
+    // alguém sem receber.
+    console.warn(`[lembrete-simulado] ${indeterminados} envio(s) com resultado indeterminado (timeout/rede) — sem retentativa automática, ver detalhes abaixo.`)
   }
   for (const erro of erros) console.error('[lembrete-simulado] falha no envio —', erro)
 

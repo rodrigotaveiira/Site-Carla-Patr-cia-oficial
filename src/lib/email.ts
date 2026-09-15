@@ -22,13 +22,25 @@ const RESPONDER_PARA_PADRAO = 'contato.carlapatriciamedina@gmail.com'
 export type ResultadoEnvio =
   | { status: 'enviado'; id: string }
   | { status: 'nao-configurado' }
-  | { status: 'erro'; motivo: string }
+  // `ambiguo: true` = não sabemos se saiu (timeout ou erro de rede: o Resend
+  // pode muito bem ter recebido e processado a requisição, só a resposta não
+  // voltou a tempo). `ambiguo` ausente/false = o Resend respondeu recusando
+  // de verdade (domínio, chave, destinatário) — aí sim é seguro tentar de
+  // novo, porque temos certeza de que não saiu. Quem chama em loop com
+  // reserva de idempotência (lembrete-simulado, lembrete-mentoria) usa essa
+  // distinção pra só liberar a reserva na recusa confirmada — ver ali por quê.
+  | { status: 'erro'; motivo: string; ambiguo?: boolean }
 
 export async function enviarEmail(params: {
   para: string
   assunto: string
   html: string
   texto: string
+  /** Teto de espera pra esta chamada. Default: ENVIO_TIMEOUT_MS (5s, calibrado
+   *  pra envio síncrono com alguém olhando spinner). Uma função agendada, sem
+   *  ninguém esperando, pode passar um valor maior — reduz quantas vezes cai
+   *  no caso ambíguo acima. */
+  timeoutMs?: number
 }): Promise<ResultadoEnvio> {
   // Guarda contra bundle de cliente: la nao existe `process`.
   const apiKey = typeof process !== 'undefined' ? process.env.RESEND_API_KEY : undefined
@@ -43,7 +55,7 @@ export async function enviarEmail(params: {
       // Sem timeout, um Resend lento segura a função inteira até a plataforma
       // matá-la — e quem publicou o arquivo fica preso em "Enviando..." sem
       // nunca receber resposta. Melhor desistir do aviso do que travar a tela.
-      signal: AbortSignal.timeout(ENVIO_TIMEOUT_MS),
+      signal: AbortSignal.timeout(params.timeoutMs ?? ENVIO_TIMEOUT_MS),
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
@@ -59,8 +71,8 @@ export async function enviarEmail(params: {
     })
 
     if (!response.ok) {
-      // O corpo do erro do Resend explica o motivo (domínio não verificado,
-      // chave inválida, destinatário recusado). Vale no log pra diagnóstico.
+      // O Resend respondeu — e recusou. Isso é uma recusa confirmada, não
+      // ambígua: temos certeza de que o e-mail não saiu.
       const corpo = await response.text()
       return { status: 'erro', motivo: `HTTP ${response.status}: ${corpo.slice(0, 300)}` }
     }
@@ -68,6 +80,9 @@ export async function enviarEmail(params: {
     const data = (await response.json()) as { id?: string }
     return { status: 'enviado', id: data.id ?? '' }
   } catch (erro) {
-    return { status: 'erro', motivo: erro instanceof Error ? erro.message : String(erro) }
+    // Timeout (AbortSignal) ou falha de rede: não temos a resposta do Resend,
+    // então não sabemos se a requisição foi processada antes da conexão
+    // cair. Ambíguo — ver o comentário em ResultadoEnvio.
+    return { status: 'erro', motivo: erro instanceof Error ? erro.message : String(erro), ambiguo: true }
   }
 }
