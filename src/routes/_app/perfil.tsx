@@ -7,6 +7,7 @@ import { userHasRole, isStaff } from '@/lib/roles'
 import { getMyProfilePhoto, saveMyProfilePhoto } from '@/lib/profile-photo'
 import { listMyRecados, sendRecado, type Recado } from '@/lib/recados'
 import { useToast } from '@/lib/toast'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/perfil')({
   beforeLoad: async () => {
@@ -129,6 +130,7 @@ function PerfilPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1><UserIcon /> Meu perfil</h1>
       <p className="panel-subtitle">Edite sua foto, seu nome e mande um recado direto para a professora.</p>
 

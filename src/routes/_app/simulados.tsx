@@ -12,6 +12,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 import { TextoBase } from '@/components/TextoBase'
 import { agruparPorTextoBase } from '@/lib/simulado-parser'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/simulados')({
   beforeLoad: async () => {
@@ -210,6 +211,7 @@ function SimuladosPage() {
   // --- Lista de simulados disponíveis ----------------------------------
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1><ClipboardList /> Questões para treino</h1>
       <p className="panel-subtitle">Responda as questões no site e acompanhe seu crescimento — sua aprovação está a caminho.</p>
       <Link to="/conteudo/gabaritos" className="panel-inline-link">

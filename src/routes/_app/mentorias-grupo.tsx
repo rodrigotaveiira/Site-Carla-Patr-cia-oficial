@@ -12,6 +12,7 @@ import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/mentorias-grupo')({
   beforeLoad: async () => {
@@ -105,6 +106,7 @@ function MentoriasGrupoPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Mentorias em grupo</h1>
       <p className="panel-subtitle">Entre em um grupo com horário e número de vagas definidos pela professora.</p>
 

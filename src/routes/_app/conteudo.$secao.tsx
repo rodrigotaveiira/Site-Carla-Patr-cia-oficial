@@ -12,6 +12,7 @@ import {
 import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/conteudo/$secao')({
   beforeLoad: async ({ params }) => {
@@ -125,6 +126,7 @@ function ConteudoPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1><Icon /> {sectionLabel}</h1>
       <p className="panel-subtitle">{meta.description}</p>
       {!loading && !error && (

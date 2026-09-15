@@ -9,6 +9,7 @@ import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/mentorias')({
   beforeLoad: async () => {
@@ -102,6 +103,7 @@ function MentoriasPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Mentoria individual</h1>
       <p className="panel-subtitle">Escolha um horário disponível para conversar com Carlinha. Lembre-se de que cada encontro dura 40 minutos.</p>
 
