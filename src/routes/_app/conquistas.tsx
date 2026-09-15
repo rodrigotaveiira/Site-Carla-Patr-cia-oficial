@@ -15,6 +15,7 @@ import {
 } from '@/lib/conquistas-catalogo'
 import { getStudentProgress, type StudentProgress } from '@/lib/progress'
 import { ConquistaBadge, IconeDaConquista } from '@/components/ConquistaBadge'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/conquistas')({
   beforeLoad: async () => {
@@ -130,6 +131,7 @@ function ConquistasPage() {
 
   return (
     <div className="panel panel-wide conquistas">
+      <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}><Trophy /> Minhas conquistas</h1>
       <p className="panel-subtitle">
         Sua jornada da semana, sua sequência de estudos e a coleção de selos que você já desbloqueou.

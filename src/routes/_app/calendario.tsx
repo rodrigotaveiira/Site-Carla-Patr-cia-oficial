@@ -14,6 +14,7 @@ import { instanteInicioDoDiaSimulado, instanteInicioSimulado } from '@/lib/lembr
 import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { formatarHora } from '@/lib/formato'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/calendario')({
   beforeLoad: async () => {
@@ -280,6 +281,7 @@ function CalendarioPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Calendário</h1>
       <p className="panel-subtitle">
         Suas mentorias marcadas e a agenda do curso — aulas ao vivo, aulas liberadas e simulados — no mesmo lugar.

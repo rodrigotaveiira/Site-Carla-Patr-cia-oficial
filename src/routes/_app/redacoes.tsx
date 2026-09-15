@@ -9,6 +9,7 @@ import { listTemas, type TemaRedacao } from '@/lib/temas-redacao'
 import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/redacoes')({
   beforeLoad: async () => {
@@ -125,6 +126,7 @@ function RedacoesPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1>Redações</h1>
       <p className="panel-subtitle">Envie uma foto ou arquivo da sua redação para ser corrigida pela professora.</p>
 

@@ -8,6 +8,7 @@ import { listLessonModules, listLessons, type Lesson, type LessonModule } from '
 import { getMyWatchedLessons, markLessonWatched } from '@/lib/lesson-progress'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/aulas')({
   // Deixa o dashboard linkar direto pra uma aula específica (ex.: "continue de onde
@@ -93,6 +94,7 @@ function AulasPage() {
 
   return (
     <div className="panel panel-wide">
+      <VoltarAoPainel destino="/dashboard" />
       <h1>Aulas</h1>
 
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={4} /></div>}

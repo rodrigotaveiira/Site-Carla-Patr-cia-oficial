@@ -11,6 +11,7 @@ import {
 import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
+import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/materiais')({
   beforeLoad: async () => {
@@ -66,6 +67,7 @@ function MateriaisPage() {
 
   return (
     <div className="panel">
+      <VoltarAoPainel destino="/dashboard" />
       <h1><ShieldCheck /> Materiais</h1>
       <p className="panel-subtitle">
         Arquivos em Word e PDF enviados pela professora. Cada download é protegido com seu nome e CPF.
