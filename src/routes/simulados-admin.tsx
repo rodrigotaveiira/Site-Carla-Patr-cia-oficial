@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Trash2, XCircle } from 'lucide-react'
+import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Palette, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -11,6 +11,11 @@ import { formatarHora } from '@/lib/formato'
 import { TextoBase } from '@/components/TextoBase'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
+import {
+  APARENCIA_PADRAO, FONTES, PARTES, TAMANHO_MAXIMO, TAMANHO_MINIMO,
+  estiloDaParte, getAparenciaQuestoes, salvarAparenciaQuestoes,
+  type AparenciaQuestoes, type EstiloParte, type FonteQuestao, type ParteQuestao,
+} from '@/lib/aparencia-questoes'
 
 export const Route = createFileRoute('/simulados-admin')({
   beforeLoad: async () => {
@@ -246,6 +251,147 @@ function Conferencia({ conferencia }: { conferencia: Conferencia }) {
   )
 }
 
+// Amostra usada só na prévia do editor de aparência.
+const PASSAGEM_DE_EXEMPLO = { id: 'exemplo', label: 'TEXTO 1', content: 'Ler todo dia não é sobre quantidade. É sobre deixar o repertório a um passo de distância na hora em que a folha em branco aparece.' }
+const ALTERNATIVAS_DE_EXEMPLO = [
+  'a) a leitura diária muda o repertório do estudante.',
+  'b) o repertório vem apenas da sala de aula.',
+]
+// Editor da aparência das questões: cor, tamanho e tipo de letra de cada
+// parte, com prévia ao vivo do que o aluno vai ver.
+function AparenciaEditor() {
+  const showToast = useToast()
+  const [aparencia, setAparencia] = useState<AparenciaQuestoes>(APARENCIA_PADRAO)
+  const [carregando, setCarregando] = useState(true)
+  const [salvando, setSalvando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [aberto, setAberto] = useState(false)
+
+  useEffect(() => {
+    getAparenciaQuestoes()
+      .then(setAparencia)
+      .catch(() => setErro('Não foi possível carregar a aparência salva. Mostrando o padrão.'))
+      .finally(() => setCarregando(false))
+  }, [])
+
+  function alterar(parte: ParteQuestao, campo: keyof EstiloParte, valor: string | number) {
+    setAparencia((atual) => ({ ...atual, [parte]: { ...atual[parte], [campo]: valor } }))
+  }
+
+  async function salvar() {
+    setSalvando(true)
+    setErro('')
+    try {
+      const salva = await salvarAparenciaQuestoes({ data: aparencia })
+      setAparencia(salva)
+      showToast('Aparência salva. As questões já aparecem assim para os alunos.', 'success')
+    } catch (err) {
+      setErro(err instanceof Error ? err.message : 'Não foi possível salvar.')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  const partes = Object.keys(PARTES) as ParteQuestao[]
+
+  return (
+    <section className="panel-card plain" style={{ marginTop: 16 }}>
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: 0, background: 'none', border: 0, cursor: 'pointer', textAlign: 'left' }}
+        aria-expanded={aberto}
+      >
+        <Palette size={17} color="var(--purple)" />
+        <h2 className="panel-section-title" style={{ margin: 0, flex: 1 }}>Aparência das questões</h2>
+        {aberto ? <ChevronUp size={16} color="var(--muted)" /> : <ChevronDown size={16} color="var(--muted)" />}
+      </button>
+      <p className="panel-card-hint" style={{ margin: '6px 0 0' }}>
+        Cor, tamanho e tipo de letra de cada parte. Vale para todas as questões, na tela de responder e na de resultado.
+      </p>
+
+      {aberto && (
+        <>
+          {carregando && <p className="panel-subtitle" style={{ marginTop: 14 }}>Carregando...</p>}
+
+          {!carregando && (
+            <>
+              <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
+                {partes.map((parte) => (
+                  <div key={parte} style={{ display: 'grid', gap: 8, padding: 14, background: 'var(--cream)', border: '1px solid var(--line)', borderRadius: 10 }}>
+                    <div className="field-label">{PARTES[parte]}</div>
+                    <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                      <label style={{ display: 'grid', gap: 5 }}>
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Cor</span>
+                        <input
+                          type="color"
+                          value={aparencia[parte].cor}
+                          onChange={(e) => alterar(parte, 'cor', e.target.value)}
+                          style={{ width: 54, height: 36, padding: 2, cursor: 'pointer' }}
+                          aria-label={`Cor do ${PARTES[parte].toLowerCase()}`}
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: 5, flex: 1, minWidth: 190 }}>
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Tamanho: {aparencia[parte].tamanho}px</span>
+                        <input
+                          type="range"
+                          min={TAMANHO_MINIMO}
+                          max={TAMANHO_MAXIMO}
+                          step={1}
+                          value={aparencia[parte].tamanho}
+                          onChange={(e) => alterar(parte, 'tamanho', Number(e.target.value))}
+                          aria-label={`Tamanho do ${PARTES[parte].toLowerCase()}`}
+                        />
+                      </label>
+                      <label style={{ display: 'grid', gap: 5, minWidth: 210 }}>
+                        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Tipo de letra</span>
+                        <select
+                          value={aparencia[parte].fonte}
+                          onChange={(e) => alterar(parte, 'fonte', e.target.value)}
+                          aria-label={`Tipo de letra do ${PARTES[parte].toLowerCase()}`}
+                        >
+                          {(Object.keys(FONTES) as FonteQuestao[]).map((chave) => (
+                            <option key={chave} value={chave}>{FONTES[chave].nome}</option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 18 }}>
+                <div className="field-label" style={{ marginBottom: 8 }}>Como o aluno vê</div>
+                <div style={{ padding: 16, background: '#fff', border: '1px solid var(--line)', borderRadius: 10 }}>
+                  <TextoBase passage={PASSAGEM_DE_EXEMPLO} estilo={estiloDaParte(aparencia, 'textoBase')} />
+                  <div style={{ marginTop: 12 }}>
+                    <b style={estiloDaParte(aparencia, 'enunciado')}>1) De acordo com o texto, o autor defende que</b>
+                    <div style={{ display: 'grid', gap: 5, marginTop: 10 }}>
+                      {ALTERNATIVAS_DE_EXEMPLO.map((alternativa) => (
+                        <span key={alternativa} style={estiloDaParte(aparencia, 'alternativas')}>{alternativa}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 16 }}>
+                <button type="button" onClick={() => void salvar()} disabled={salvando} className="btn btn-primary">
+                  {salvando ? 'Salvando...' : 'Salvar aparência'}
+                </button>
+                <button type="button" onClick={() => setAparencia(APARENCIA_PADRAO)} disabled={salvando} className="btn">
+                  Restaurar padrão
+                </button>
+              </div>
+              {erro && <p className="form-error">{erro}</p>}
+            </>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
 function SimuladosAdminPage() {
   const [simulados, setSimulados] = useState<Simulado[]>([])
   const [loading, setLoading] = useState(true)
@@ -376,6 +522,8 @@ function SimuladosAdminPage() {
         {error && <p className="form-error">{error}</p>}
         {notice && <p className="form-success">{notice}</p>}
       </form>
+
+      <AparenciaEditor />
 
       <section>
         <h2 className="panel-section-title">Publicadas</h2>
