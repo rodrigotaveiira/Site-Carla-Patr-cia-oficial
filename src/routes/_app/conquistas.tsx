@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronRight, Lock, Sparkles, Trophy } from 'lucide-react'
+import { CalendarCheck2, ChevronRight, Flame, Lock, Sparkles, Target, Trophy } from 'lucide-react'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -154,21 +154,35 @@ function ConquistasPage() {
       {estado && (
         <>
           {/* Os quatro números que respondem "como eu estou indo". */}
-          <div className="conquistas-numeros">
-            <div>
+          <div className="conquistas-resumo">
+            <div className="conquistas-metrica destaque">
+              <span className="conquistas-metrica-icone"><Flame size={18} /></span>
               <b>{estado.sequencia.atual}</b>
-              <span>{estado.sequencia.atual === 1 ? 'dia seguido' : 'dias seguidos'}</span>
+              <small>{estado.sequencia.atual === 1 ? 'dia consecutivo estudando' : 'dias consecutivos estudando'}</small>
             </div>
-            <div><b>{estado.sequencia.recorde}</b><span>maior sequência</span></div>
-            <div><b>{estado.semana.diasConcluidos}/{estado.semana.meta}</b><span>meta da semana</span></div>
-            <div><b>{progresso ? `${progresso.overallPercent}%` : '—'}</b><span>progresso do curso</span></div>
+            <div className="conquistas-metrica">
+              <span className="conquistas-metrica-icone"><Trophy size={18} /></span>
+              <b>{estado.sequencia.recorde}</b>
+              <small>maior sequência já alcançada</small>
+            </div>
+            <div className="conquistas-metrica">
+              <span className="conquistas-metrica-icone"><CalendarCheck2 size={18} /></span>
+              <b>{estado.semana.diasConcluidos}/{estado.semana.meta}</b>
+              <small>meta desta semana</small>
+            </div>
+            <div className="conquistas-metrica">
+              <span className="conquistas-metrica-icone"><Target size={18} /></span>
+              <b>{progresso ? `${progresso.overallPercent}%` : '—'}</b>
+              <small>progresso geral do curso</small>
+            </div>
           </div>
 
           {/* A única superfície sólida e escura da página, porque é a única ação. */}
           <section className="conquistas-missao">
             <div>
+              <span className="conquistas-missao-tag"><Sparkles size={13} /> Missão de hoje</span>
               <h2>{estado.missao.titulo}</h2>
-              <p>Sua missão de hoje. {estado.missao.descricao}</p>
+              <p>{estado.missao.descricao}</p>
             </div>
             <Link className="conquistas-missao-cta" to={estado.missao.href as never}>
               {estado.missao.cta} <ChevronRight size={16} />
