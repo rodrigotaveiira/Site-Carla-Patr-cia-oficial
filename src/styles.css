@@ -1082,14 +1082,33 @@ form.panel-card > * + * { margin-top: 16px; }
 @keyframes onboarding-fade { from { opacity: 0; } to { opacity: 1; } }
 .onboarding-modal { width: 100%; max-width: 460px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(9,30,57,.35); animation: onboarding-in .3s ease; }
 @keyframes onboarding-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-@media (prefers-reduced-motion: reduce) { .onboarding-overlay, .onboarding-modal { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .onboarding-overlay, .onboarding-modal { animation: none; }
+  .onboarding-feature, .onboarding-feature-seta { transition: none; }
+  a.onboarding-feature:hover { transform: none; }
+  a.onboarding-feature:hover .onboarding-feature-seta { transform: translate(0, -50%); }
+}
 .onboarding-header { padding: 32px 28px 24px; background: linear-gradient(135deg, var(--navy-dark), var(--purple)); color: #fff; text-align: center; }
 .onboarding-icon { display: inline-grid; place-items: center; width: 52px; height: 52px; margin-bottom: 14px; background: linear-gradient(135deg, var(--gold), #b6893a); border-radius: 50%; box-shadow: 0 8px 18px rgba(200,162,77,.4); }
 .onboarding-header h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 400; font-size: 22px; }
 .onboarding-header p { margin: 0; color: rgba(255,255,255,.8); font-size: 13.5px; line-height: 1.55; }
 .onboarding-body { padding: 24px 28px 28px; }
 .onboarding-features { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
-.onboarding-feature { display: flex; align-items: center; gap: 9px; padding: 12px; background: var(--lilac-tint); border-radius: 10px; }
+/* Cada bloco e um link pra secao. A seta mora no canto, fora do fluxo, pra
+   nao roubar largura do rotulo — que ja quebra em duas linhas. */
+.onboarding-feature {
+  position: relative; display: flex; align-items: center; gap: 9px; padding: 12px 24px 12px 12px;
+  background: var(--lilac-tint); border-radius: 10px; color: inherit; text-decoration: none;
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+a.onboarding-feature:hover { background: #eae1fa; transform: translateY(-1px); box-shadow: 0 8px 16px -12px rgba(84,32,172,.9); }
+a.onboarding-feature:active { transform: translateY(0); }
+a.onboarding-feature:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+/* Centrada na altura do bloco, alinhada com o icone da esquerda: as duas
+   pontas viram uma linha so. A .65 de opacidade a seta fica em 3,3:1 contra o
+   lilas do fundo — ela e o sinal de que da pra clicar, precisa ser vista. */
+.onboarding-feature-seta { position: absolute; top: 50%; right: 8px; opacity: .65; transform: translate(0, -50%); transition: opacity .18s ease, transform .18s ease; }
+a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: translate(2px, -50%); }
 .onboarding-feature svg { color: var(--purple); flex-shrink: 0; }
 .onboarding-feature span { font-size: 12.5px; font-weight: 700; color: var(--navy); line-height: 1.3; }
 .onboarding-actions { display: grid; gap: 10px; }
