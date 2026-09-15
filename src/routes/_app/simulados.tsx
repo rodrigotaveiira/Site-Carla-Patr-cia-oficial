@@ -1,7 +1,7 @@
 import { Link, createFileRoute, redirect } from '@tanstack/react-router'
 import { BookCheck, CheckCircle2, ChevronRight, Circle, ClipboardList, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { readLocalUser } from '@/lib/identity-context'
+import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import {
@@ -35,6 +35,7 @@ type Correction = { questionId: string; correctLetter: string | null; chosenLett
 type Result = { attempt: SimuladoAttempt; corrections: Correction[] }
 
 function SimuladosPage() {
+  const { user } = useIdentity()
   const [summaries, setSummaries] = useState<SummaryItem[]>([])
   const [attempts, setAttempts] = useState<SimuladoAttempt[]>([])
   const [loading, setLoading] = useState(true)
@@ -115,6 +116,16 @@ function SimuladosPage() {
   }
 
   const chronological = useMemo(() => [...attempts].sort((a, b) => a.submittedAt.localeCompare(b.submittedAt)), [attempts])
+
+  // Cada serie so pode ser respondida uma vez - a que ja tem tentativa sai de
+  // "Disponiveis" (o histórico logo abaixo ja mostra a nota dela). Staff fica de
+  // fora dessa filtragem: pode reabrir a propria serie pra testar, como o
+  // backend ja permite (ver submitSimuladoAttempt em simulados.ts).
+  const attemptedIds = useMemo(() => new Set(attempts.map((a) => a.simuladoId)), [attempts])
+  const pendentes = useMemo(
+    () => (isStaff(user) ? summaries : summaries.filter((s) => !attemptedIds.has(s.id))),
+    [summaries, attemptedIds, user],
+  )
 
   // --- Tela de resultado ---------------------------------------------
   if (active && result) {
@@ -258,7 +269,7 @@ function SimuladosPage() {
         <h2 className="panel-section-title">Disponíveis</h2>
         {loading && <ListSkeleton rows={3} />}
         <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-          {summaries.map((summary) => (
+          {pendentes.map((summary) => (
             <div key={summary.id} className="list-row">
               <div>
                 <div className="list-title">{summary.title}</div>
@@ -269,8 +280,11 @@ function SimuladosPage() {
               </button>
             </div>
           ))}
-          {!loading && summaries.length === 0 && (
+          {!loading && pendentes.length === 0 && summaries.length === 0 && (
             <EmptyState alto icon={ClipboardList} title="Nada disponível ainda" description="Assim que a professora liberar a primeira série de questões, ela aparece aqui pra você responder." />
+          )}
+          {!loading && pendentes.length === 0 && summaries.length > 0 && (
+            <EmptyState alto icon={CheckCircle2} title="Você já respondeu tudo por aqui" description="Cada série vale uma tentativa. Quando a professora liberar uma nova, ela aparece aqui pra você responder." />
           )}
         </div>
       </section>
