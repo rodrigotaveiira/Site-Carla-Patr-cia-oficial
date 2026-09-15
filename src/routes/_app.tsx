@@ -20,7 +20,7 @@ export const Route = createFileRoute('/_app')({
 const sidebarGroups = [
   {
     title: null,
-    items: [{ icon: Home, label: 'Dashboard', href: '/dashboard' }],
+    items: [{ icon: Home, label: 'Home', href: '/dashboard' }],
   },
   {
     title: 'Conteúdo',
