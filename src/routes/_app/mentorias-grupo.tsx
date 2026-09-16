@@ -63,6 +63,7 @@ function MentoriasGrupoPage() {
   const today = new Date().toISOString().slice(0, 10)
   const futureSlots = slots.filter((slot) => slot.date >= today)
   const mySlots = futureSlots.filter((slot) => slot.students.some((student) => student.email === user?.email))
+  const hasGroup = mySlots.length > 0
   const openSlots = futureSlots.filter(
     (slot) => slot.students.length < slot.capacity && !slot.students.some((student) => student.email === user?.email),
   )
@@ -148,6 +149,9 @@ function MentoriasGrupoPage() {
 
       <section>
         <h2 className="panel-section-title">Grupos com vaga</h2>
+        {hasGroup && (
+          <p className="panel-section-hint">Você já está inscrito em um grupo. Saia dele acima pra poder entrar em outro.</p>
+        )}
         {loading && <p className="panel-subtitle">Carregando...</p>}
         {!loading && Object.keys(grouped).length === 0 && (
           <EmptyState icon={Users} title="Nenhum grupo com vaga disponível" description="A professora ainda não abriu novos grupos de mentoria. Volte em breve!" />
@@ -178,7 +182,12 @@ function MentoriasGrupoPage() {
                         <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
                       )}
                     </div>
-                    <button onClick={() => setPendingSlot(slot)} className="btn btn-primary btn-sm">
+                    <button
+                      onClick={() => setPendingSlot(slot)}
+                      disabled={hasGroup}
+                      title={hasGroup ? 'Saia do seu grupo atual pra poder entrar em outro.' : undefined}
+                      className="btn btn-primary btn-sm"
+                    >
                       Entrar no grupo
                     </button>
                   </div>
