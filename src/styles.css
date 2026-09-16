@@ -1357,13 +1357,11 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
   box-shadow: 0 1px 2px rgba(15,35,66,.05), 0 10px 20px -14px rgba(15,35,66,.45);
   transition: color .2s, background .2s, border-color .2s, transform .2s, box-shadow .2s;
 }
-.aprovados-controles button:hover:not(:disabled) {
+.aprovados-controles button:hover {
   color: #fff; background: var(--navy); border-color: var(--navy); transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(15,35,66,.08), 0 14px 24px -14px rgba(15,35,66,.6);
 }
 .aprovados-controles button:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
-/* Desbotada de propósito: na ponta da faixa a seta tem que parecer sem função. */
-.aprovados-controles button:disabled { color: #a3aab5; background: #f4f4f7; border-color: var(--line); box-shadow: none; cursor: default; }
 /* Onde a faixa está — o lugar da barra de rolagem que foi escondida. */
 .aprovados-barra { position: relative; width: 104px; height: 3px; overflow: hidden; background: #e2dfea; border-radius: 3px; }
 .aprovados-barra > span {

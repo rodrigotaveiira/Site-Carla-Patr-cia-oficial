@@ -29,13 +29,6 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { pageHead } from '@/lib/seo'
 import { listAprovados, type ApprovedStudent } from '@/lib/aprovados'
 
-// Quantos aprovados aparecem na home — o cadastro pode crescer bem além disso
-// (é 300+ desde sempre), mas a home é uma amostra, não o catálogo completo:
-// evita que a página fique cada vez mais pesada (fotos em base64) conforme a
-// professora cadastra mais alunos. A lista completa de verdade só existe
-// mesmo no /aprovados-admin, pra gerenciar.
-const MAX_APROVADOS_HOME = 12
-
 // O SEO da home mora aqui, não no __root: canonical, og:url, título e descrição
 // são desta página. No root eles vazavam pra toda rota, e as páginas legais
 // acabavam se declarando duplicatas da home e herdando o título dela.
@@ -55,8 +48,12 @@ export const Route = createFileRoute('/')({
   loader: async () => {
     // Se a busca falhar, a home inteira não pode cair por causa de uma seção
     // — mas a falha fica registrada no log do servidor, não desaparece.
+    //
+    // Traz todo mundo (são 300+): sem corte, ninguém "some" da vitrine por
+    // ter sido a primeira pessoa cadastrada. É por isso que o carrossel
+    // gira em loop, em vez de parar numa ponta — ver GaleriaAprovados.
     try {
-      return { aprovados: (await listAprovados()).slice(0, MAX_APROVADOS_HOME) }
+      return { aprovados: await listAprovados() }
     } catch (error) {
       console.error('Não foi possível carregar a Galeria dos Aprovados na home:', error)
       return { aprovados: [] }
@@ -153,30 +150,30 @@ const faqs = [
 // vão aparecer — assim o conteúdo não pula logo depois da hidratação.
 const APROVADOS_POR_TELA = 4
 
-// A galeria não para de crescer (são 300+ aprovações em 22 anos), então ela
-// não pode crescer em altura junto: a seção mede o mesmo com 4 fotos ou com
-// 20, e quem quiser ver o resto empurra a faixa pro lado. Enquanto as fotos
-// couberem numa fileira, a faixa centraliza e não rola — é a grade de antes.
+// A galeria não para de crescer (são 300+ aprovações em 22 anos) — e agora
+// traz todo mundo, sem corte (ver o loader): a primeira pessoa cadastrada não
+// pode "sumir" só por ser a mais antiga. Por isso o carrossel gira em loop —
+// chegar numa ponta pula pra outra — em vez de parar como um final de lista.
 //
-// A rolagem é nativa (overflow-x + scroll-snap), não um carrossel de
-// transform: o conteúdo é prova social que precisa estar no HTML do servidor
-// e continuar navegável sem JS, o dedo arrasta no celular sem código nosso e
-// o teclado percorre a região de graça. As setas são melhoria progressiva.
+// Enquanto as fotos couberem numa fileira, a faixa centraliza e não rola —
+// é a grade de antes. A rolagem é nativa (overflow-x + scroll-snap), não um
+// carrossel de transform: o conteúdo é prova social que precisa estar no
+// HTML do servidor e continuar navegável sem JS, o dedo arrasta no celular
+// sem código nosso e o teclado percorre a região de graça. As setas são
+// melhoria progressiva — inclusive o loop: sem JS, dá pra arrastar até a
+// última foto e parar lá, o que é uma degradação razoável.
 function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
   const trilha = useRef<HTMLDivElement>(null)
   const barra = useRef<HTMLSpanElement>(null)
-  const [estado, setEstado] = useState(() => {
-    const rola = aprovados.length > APROVADOS_POR_TELA
-    return { rolavel: rola, podeVoltar: false, podeAvancar: rola }
-  })
+  const [rolavel, setRolavel] = useState(() => aprovados.length > APROVADOS_POR_TELA)
 
   useEffect(() => {
     const faixa = trilha.current
     if (!faixa) return
 
     const medir = () => {
-      // 4px de folga: arredondamento de layout não pode acender uma seta que
-      // não rola nada.
+      // 4px de folga: arredondamento de layout não pode acender a régua de
+      // posição pra uma faixa que não rola nada.
       const sobra = faixa.scrollWidth - faixa.clientWidth
       const rola = sobra > 4
       const pos = rola ? Math.min(1, Math.max(0, faixa.scrollLeft / sobra)) : 0
@@ -185,18 +182,7 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
       // os cards a cada quadro da rolagem, à toa.
       if (barra.current) barra.current.style.transform = `translateX(${pos * 150}%)`
 
-      const proximo = {
-        rolavel: rola,
-        podeVoltar: rola && pos > 0.01,
-        podeAvancar: rola && pos < 0.99,
-      }
-      setEstado((antes) =>
-        antes.rolavel === proximo.rolavel
-          && antes.podeVoltar === proximo.podeVoltar
-          && antes.podeAvancar === proximo.podeAvancar
-          ? antes
-          : proximo,
-      )
+      setRolavel((antes) => (antes === rola ? antes : rola))
     }
 
     medir()
@@ -214,9 +200,30 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
   // Anda de tela em tela, parando sempre na borda de um card. O passo sai da
   // distância real entre dois cards (largura + vão), que muda com a largura da
   // janela — medir é mais confiável do que repetir o número do CSS aqui.
+  //
+  // O loop mora aqui: se avançar já está na última tela (ou voltar já está na
+  // primeira), pula pra ponta oposta em vez de tentar rolar além dela — a
+  // rolagem nativa clampa sozinha em vez de dar erro, então sem esse desvio o
+  // botão simplesmente pararia de responder na ponta.
   const andar = (sentido: 1 | -1) => {
     const faixa = trilha.current
     if (!faixa) return
+    const sobra = faixa.scrollWidth - faixa.clientWidth
+    const NA_PONTA_PX = 4
+    // `scrollTo({behavior})` explícito vale mais que o `scroll-behavior: auto`
+    // do CSS pra quem prefere menos movimento — precisa checar aqui, e não só
+    // confiar no CSS, senão o pulo do loop anima mesmo assim.
+    const suave = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+
+    if (sentido === 1 && faixa.scrollLeft >= sobra - NA_PONTA_PX) {
+      faixa.scrollTo({ left: 0, behavior: suave })
+      return
+    }
+    if (sentido === -1 && faixa.scrollLeft <= NA_PONTA_PX) {
+      faixa.scrollTo({ left: sobra, behavior: suave })
+      return
+    }
+
     const primeiro = faixa.children[0] as HTMLElement | undefined
     const segundo = faixa.children[1] as HTMLElement | undefined
     const passo = primeiro && segundo ? segundo.offsetLeft - primeiro.offsetLeft : faixa.clientWidth
@@ -235,10 +242,10 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
       <div className="aprovados-vitrine">
         <div
           ref={trilha}
-          className={estado.rolavel ? 'aprovados-trilha' : 'aprovados-trilha sem-rolagem'}
-          tabIndex={estado.rolavel ? 0 : -1}
-          role={estado.rolavel ? 'region' : undefined}
-          aria-label={estado.rolavel ? 'Galeria de alunos aprovados' : undefined}
+          className={rolavel ? 'aprovados-trilha' : 'aprovados-trilha sem-rolagem'}
+          tabIndex={rolavel ? 0 : -1}
+          role={rolavel ? 'region' : undefined}
+          aria-label={rolavel ? 'Galeria de alunos aprovados' : undefined}
         >
           {aprovados.map((item) => (
             <article className="aprovado-card" key={item.id}>
@@ -261,19 +268,20 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
             </article>
           ))}
         </div>
-        {/* O corte macio nas pontas conta que a faixa continua — e some na
-            ponta em que ela acabou, pra não fingir que tem mais. */}
-        <span className={estado.podeVoltar ? 'aprovados-borda esquerda visivel' : 'aprovados-borda esquerda'} aria-hidden="true" />
-        <span className={estado.podeAvancar ? 'aprovados-borda direita visivel' : 'aprovados-borda direita'} aria-hidden="true" />
+        {/* O corte macio nas pontas conta que a faixa continua — e num loop
+            sempre continua dos dois lados, então fica sempre visível (não
+            some numa ponta como antes: aqui não existe mais "acabou"). */}
+        {rolavel && <span className="aprovados-borda esquerda visivel" aria-hidden="true" />}
+        {rolavel && <span className="aprovados-borda direita visivel" aria-hidden="true" />}
       </div>
 
-      {estado.rolavel && (
+      {rolavel && (
         <div className="aprovados-controles">
-          <button type="button" onClick={() => andar(-1)} disabled={!estado.podeVoltar} aria-label="Ver as fotos anteriores">
+          <button type="button" onClick={() => andar(-1)} aria-label="Ver as fotos anteriores">
             <ArrowLeft size={18} />
           </button>
           <span className="aprovados-barra" aria-hidden="true"><span ref={barra} /></span>
-          <button type="button" onClick={() => andar(1)} disabled={!estado.podeAvancar} aria-label="Ver mais fotos">
+          <button type="button" onClick={() => andar(1)} aria-label="Ver mais fotos">
             <ArrowRight size={18} />
           </button>
         </div>
