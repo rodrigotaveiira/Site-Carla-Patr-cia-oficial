@@ -102,7 +102,7 @@ const courses = [
     tag: 'Base sólida',
     title: 'Gramática sem Mistério',
     text: 'Aprenda gramática de forma contextualizada e transforme conhecimento em resultado.',
-    image: 'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?auto=format&fit=crop&w=1000&q=85',
+    image: '/curso-gramatica.webp',
     items: ['Trilha progressiva', 'Exercícios comentados', 'Revisões práticas'],
   },
   {
