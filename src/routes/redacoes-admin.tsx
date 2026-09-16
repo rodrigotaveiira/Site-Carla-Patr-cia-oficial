@@ -5,7 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
-import { correctRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
+import { correctRedacao, deleteRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
 import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
@@ -239,10 +239,12 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
 }
 
 function RedacoesAdminPage() {
+  const showToast = useToast()
   const [submissions, setSubmissions] = useState<SubmissionMeta[]>([])
   const [scheme, setScheme] = useState<Competency[]>([])
   const [loading, setLoading] = useState(true)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [showSchemeEditor, setShowSchemeEditor] = useState(false)
 
@@ -266,6 +268,20 @@ function RedacoesAdminPage() {
       downloadDataUrl(fileName, fileDataUrl)
     } finally {
       setDownloadingId(null)
+    }
+  }
+
+  async function handleDelete(id: string, studentName: string) {
+    if (!confirm(`Excluir a redação de "${studentName}"? Essa ação não pode ser desfeita.`)) return
+    setDeletingId(id)
+    try {
+      await deleteRedacao({ data: { id } })
+      await load()
+      showToast('Redação excluída.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir a redação.', 'error')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -300,12 +316,25 @@ function RedacoesAdminPage() {
           <div style={{ marginTop: 10, color: '#15803d', fontSize: 13, fontWeight: 700 }}>Nota: {submission.grade}/40</div>
         )}
 
-        <button
-          onClick={() => setOpenId(openId === submission.id ? null : submission.id)}
-          style={{ marginTop: 10, color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, padding: 0 }}
-        >
-          {openId === submission.id ? 'Fechar' : submission.status === 'corrigida' ? 'Editar correção' : 'Corrigir'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 10, flexWrap: 'wrap' }}>
+          <button
+            onClick={() => setOpenId(openId === submission.id ? null : submission.id)}
+            style={{ color: 'var(--purple)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 13, padding: 0 }}
+          >
+            {openId === submission.id ? 'Fechar' : submission.status === 'corrigida' ? 'Editar correção' : 'Corrigir'}
+          </button>
+
+          {submission.status === 'corrigida' && (
+            <button
+              onClick={() => handleDelete(submission.id, submission.studentName)}
+              disabled={deletingId === submission.id}
+              className="btn btn-danger btn-sm"
+              style={{ marginLeft: 'auto' }}
+            >
+              {deletingId === submission.id ? 'Excluindo...' : 'Excluir'}
+            </button>
+          )}
+        </div>
 
         {openId === submission.id && (
           <CorrectionForm submission={submission} scheme={scheme} onSaved={() => { setOpenId(null); void load() }} />

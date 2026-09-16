@@ -388,3 +388,41 @@ export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     return updated
   })
+
+// Tira UM aluno específico do grupo, sem apagar o grupo — diferente de
+// deleteMentoriaGrupoSlot (apaga o grupo inteiro, com todo mundo dentro) e de
+// leaveMentoriaGrupoSlot (só o próprio aluno consegue sair). Só admin: é a
+// professora removendo alguém, não o aluno saindo por conta própria.
+export const removeMentoriaGrupoStudent = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: idSchema, email: z.string().trim().email().max(200) }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+
+    const store = slotsStore()
+    const entry = await store.getWithMetadata(data.id, { type: 'json' })
+    if (!entry) throw new Error('Esse grupo não existe mais. Atualize a página.')
+
+    const slot = entry.data as MentoriaGrupoSlot
+    if (!slot.students.some((student) => student.email === data.email)) {
+      throw new Error('Esse aluno não está nesse grupo. Atualize a página.')
+    }
+
+    const updated: MentoriaGrupoSlot = {
+      ...slot,
+      students: slot.students.filter((student) => student.email !== data.email),
+    }
+    const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
+    if (!result?.modified) throw new Error('Não foi possível remover, tente novamente.')
+
+    // Libera a trava de "um grupo por vez" do aluno removido — mesmo padrão
+    // de leaveMentoriaGrupoSlot. Sem isso ele ficaria impedido de entrar em
+    // outro grupo até a data deste passar sozinha.
+    try {
+      await activeGroupBookingStore().delete(data.email)
+    } catch {
+      // limpeza best-effort — não impede a remoção em si
+    }
+
+    return updated
+  })
