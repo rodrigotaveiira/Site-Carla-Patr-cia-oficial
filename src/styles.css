@@ -87,8 +87,12 @@ h1 em, h2 em { color: var(--purple); font-weight: 400; }
 .stats-strip { position: absolute; z-index: 4; left: clamp(24px, 7vw, 110px); right: clamp(24px, 7vw, 110px); bottom: -46px; min-height: 94px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; background: rgba(255,255,255,.96); border: 1px solid rgba(15,45,82,.06); border-radius: 16px; box-shadow: 0 28px 60px rgba(15,45,82,.12); }
 .stats-strip div { display: flex; flex-direction: column; align-items: center; border-left: 1px solid #ecebf0; }
 .stats-strip div:first-child { border-left: 0; }
-.stats-strip b { color: var(--navy); font-family: var(--serif); font-size: 27px; font-weight: 400; }
-.stats-strip span { color: #7a8290; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.stats-strip b { color: var(--navy); font-family: var(--serif); font-size: 27px; font-weight: 400; text-align: center; }
+/* `align-items: center` só centra a CAIXA do rótulo; sem `text-align`, um
+   rótulo que quebra em duas linhas (comum no celular, coluna estreita) fica
+   com as linhas coladas na esquerda em vez de cada uma centrada sob o
+   número — a caixa some no meio, mas o texto dentro dela não. */
+.stats-strip span { color: #7a8290; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; text-align: center; }
 .hero-orb { position: absolute; border-radius: 50%; border: 1px solid rgba(109,40,217,.12); }
 .orb-one { width: 300px; height: 300px; right: -150px; top: 110px; }
 
@@ -807,7 +811,13 @@ footer .brand b { color: white; }
   .score-card small { font-size: 13px; }
   .experience-card span { font-size: 13px; }
   .stats-strip span { font-size: 13px; }
-  .gold-seal small { font-size: 13px; }
+  /* Fica de fora do salto geral pra 13px: é um selo decorativo, não texto
+     informativo que precise de reforço de leitura, e o círculo é fixo em
+     98px — a 13px "Excelência"/"em educação" vazam pra fora da borda (a
+     curva do círculo estreita o espaço disponível longe do centro vertical,
+     onde as duas linhas do texto ficam). 8,5px sobe um pouco sobre o desktop
+     (7px) com folga confirmada dentro do círculo. */
+  .gold-seal small { font-size: 8.5px; }
   .signature small { font-size: 14px; }
   .mini-values span { font-size: 14px; }
   .inline-arrow { font-size: 14px; }
