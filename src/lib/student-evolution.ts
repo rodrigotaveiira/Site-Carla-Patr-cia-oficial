@@ -1,19 +1,36 @@
 import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
+import { admin as identityAdmin } from '@netlify/identity'
 import { getServerUser } from './auth'
-import { isStaff } from './roles'
+import { userHasRole, isStaff } from './roles'
 import type { RedacaoSubmission } from './redacoes'
-import type { StudentSessionHistory } from './sessions'
 import type { MaterialDownloadRecord } from './material-downloads'
+import type { SimuladoAttempt } from './simulados'
 import { WEEKLY_GOAL } from './weekly-activity'
 
 // Visão de "como os alunos estão" pro painel admin, separada em blocos
-// (Redação, Materiais, Progresso). O diretório de alunos conhecidos vem do
-// mesmo store de session-history usado pro aviso de material novo por
-// e-mail — só alcança quem já logou no site pelo menos uma vez, já que não
-// existe integração com o diretório completo de usuários do Netlify Identity.
-function sessionHistoryStore() {
-  return getStore({ name: 'session-history', consistency: 'strong' })
+// (Redação, Materiais, Testes, Progresso).
+//
+// O diretório de alunos vem de `admin.listUsers()`, do próprio pacote
+// @netlify/identity — server-only, usa o token de operador que já vem de
+// graça em toda Netlify Function, sem segredo novo pra configurar. Antes a
+// lista vinha do store `session-history` (só quem já tinha logado
+// alguma vez): um aluno aprovado que nunca entrou no site simplesmente não
+// aparecia, mesmo com a conta liberada. `listUsers` traz todo mundo que
+// existe de verdade no Identity, então a lista aqui reflete a turma real.
+async function listApprovedStudents() {
+  const PER_PAGE = 200
+  const MAX_PAGINAS = 20 // trava de segurança — não afeta hoje: 200*20 = 4000 contas.
+  const todos: Awaited<ReturnType<typeof identityAdmin.listUsers>> = []
+  for (let page = 1; page <= MAX_PAGINAS; page++) {
+    const pagina = await identityAdmin.listUsers({ page, perPage: PER_PAGE })
+    todos.push(...pagina)
+    if (pagina.length < PER_PAGE) break
+  }
+  // Só quem tem a conta liberada como aluno — de fora ficam quem ainda está
+  // "aguardando aprovação" (sem essa role ainda) e a equipe (admin/professor),
+  // que não é "aluno" pra fins deste relatório.
+  return todos.filter((u) => userHasRole(u, 'aprovado') && !isStaff(u))
 }
 
 function redacoesStore() {
@@ -22,6 +39,14 @@ function redacoesStore() {
 
 function materialDownloadsStore() {
   return getStore({ name: 'material-downloads', consistency: 'strong' })
+}
+
+// Mesmo store de src/lib/simulados.ts — lido direto aqui (em vez de chamar a
+// server function de lá) pelo mesmo motivo de redação/materiais acima: um
+// acesso a mais ao store é mais simples e barato do que reentrar noutra
+// createServerFn de dentro desta.
+function simuladoAttemptsStore() {
+  return getStore({ name: 'simulado-attempts', consistency: 'strong' })
 }
 
 // Mesmo store usado em weekly-activity.ts, indexado por `${userId}:${data}`.
@@ -64,6 +89,14 @@ export type MaterialDownloadResumo = {
   downloadedAt: string
 }
 
+export type SimuladoAttemptResumo = {
+  simuladoTitle: string
+  score: number
+  total: number
+  percent: number
+  submittedAt: string
+}
+
 export type StudentEvolution = {
   email: string
   name: string
@@ -77,6 +110,11 @@ export type StudentEvolution = {
     totalDownloads: number
     recent: MaterialDownloadResumo[]
   }
+  testes: {
+    averagePercent: number | null
+    attemptsCount: number
+    recent: SimuladoAttemptResumo[]
+  }
   progresso: {
     streak: number
     completedThisWeek: number
@@ -88,6 +126,7 @@ export type StudentEvolutionSummary = {
   students: StudentEvolution[]
   classRedacaoAverage: number | null
   totalDownloads: number
+  classTestesAverage: number | null
   averageStreak: number | null
 }
 
@@ -125,20 +164,14 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
     const user = await getServerUser()
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
 
-    const directory: (StudentSessionHistory & { id?: string })[] = []
+    let directory: { id: string; email: string; name: string }[] = []
     try {
-      const historyStore = sessionHistoryStore()
-      const { blobs } = await historyStore.list()
-      for (const blob of blobs) {
-        try {
-          const value = await historyStore.get(blob.key, { type: 'json' })
-          if (value) directory.push(value as StudentSessionHistory & { id?: string })
-        } catch (error) {
-          console.error(`Evolução dos alunos: falha ao ler sessão "${blob.key}":`, error)
-        }
-      }
+      const aprovados = await listApprovedStudents()
+      directory = aprovados
+        .filter((u): u is typeof u & { email: string } => !!u.email)
+        .map((u) => ({ id: u.id, email: u.email, name: u.name || 'Aluno' }))
     } catch (error) {
-      console.error('Evolução dos alunos: falha ao listar o diretório de alunos:', error)
+      console.error('Evolução dos alunos: falha ao listar o diretório de alunos (Identity):', error)
     }
 
     const redByEmail = new Map<string, RedacaoSubmission[]>()
@@ -179,6 +212,25 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
       console.error('Evolução dos alunos: falha ao listar downloads de materiais:', error)
     }
 
+    const attemptsByEmail = new Map<string, SimuladoAttempt[]>()
+    try {
+      const store = simuladoAttemptsStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        try {
+          const value = (await store.get(blob.key, { type: 'json' })) as SimuladoAttempt | null
+          if (!value) continue
+          const list = attemptsByEmail.get(value.studentEmail) ?? []
+          list.push(value)
+          attemptsByEmail.set(value.studentEmail, list)
+        } catch (error) {
+          console.error(`Evolução dos alunos: falha ao ler tentativa de teste "${blob.key}":`, error)
+        }
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar tentativas de teste:', error)
+    }
+
     const students: StudentEvolution[] = []
     for (const entry of directory) {
       const submissions = (redByEmail.get(entry.email) ?? []).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
@@ -189,19 +241,22 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
 
       const downloads = (downloadsByEmail.get(entry.email) ?? []).sort((a, b) => b.downloadedAt.localeCompare(a.downloadedAt))
 
+      const attempts = (attemptsByEmail.get(entry.email) ?? []).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
+      const averagePercent = attempts.length > 0
+        ? Math.round((attempts.reduce((sum, a) => sum + a.percent, 0) / attempts.length) * 100) / 100
+        : null
+
       let streak = 0
       let completedThisWeek = 0
-      if (entry.id) {
-        try {
-          ;({ streak, completedThisWeek } = await computeStreakAndWeek(entry.id))
-        } catch (error) {
-          console.error(`Evolução dos alunos: falha ao calcular progresso de "${entry.email}":`, error)
-        }
+      try {
+        ;({ streak, completedThisWeek } = await computeStreakAndWeek(entry.id))
+      } catch (error) {
+        console.error(`Evolução dos alunos: falha ao calcular progresso de "${entry.email}":`, error)
       }
 
       students.push({
         email: entry.email,
-        name: entry.name || 'Aluno',
+        name: entry.name,
         redacao: {
           average,
           correctedCount: corrected.length,
@@ -211,6 +266,11 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
         materiais: {
           totalDownloads: downloads.length,
           recent: downloads.slice(0, 5),
+        },
+        testes: {
+          averagePercent,
+          attemptsCount: attempts.length,
+          recent: attempts.slice(0, 5).map((a) => ({ simuladoTitle: a.simuladoTitle, score: a.score, total: a.total, percent: a.percent, submittedAt: a.submittedAt })),
         },
         progresso: { streak, completedThisWeek, weeklyGoal: WEEKLY_GOAL },
       })
@@ -225,11 +285,16 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
 
     const totalDownloads = students.reduce((sum, s) => sum + s.materiais.totalDownloads, 0)
 
+    const withTestes = students.filter((s) => s.testes.averagePercent !== null)
+    const classTestesAverage = withTestes.length > 0
+      ? Math.round((withTestes.reduce((sum, s) => sum + (s.testes.averagePercent ?? 0), 0) / withTestes.length) * 100) / 100
+      : null
+
     const withStreak = students.filter((s) => s.progresso.streak > 0)
     const averageStreak = withStreak.length > 0
       ? Math.round(withStreak.reduce((sum, s) => sum + s.progresso.streak, 0) / withStreak.length)
       : null
 
-    return { students, classRedacaoAverage, totalDownloads, averageStreak }
+    return { students, classRedacaoAverage, totalDownloads, classTestesAverage, averageStreak }
   },
 )

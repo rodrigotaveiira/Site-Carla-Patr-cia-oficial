@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, Download, Flame, PenLine, Search, TrendingUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardList, Download, Flame, PenLine, Search, TrendingUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -28,6 +28,14 @@ function gradeColor(grade: number) {
   return '#dc2626'
 }
 
+// Teste já vem em percentual (0-100), então o corte é direto — sem precisar
+// reduzir a uma escala fixa como a nota de redação (que é /40).
+function percentColor(percent: number) {
+  if (percent >= 70) return '#15803d'
+  if (percent >= 50) return '#a16207'
+  return '#dc2626'
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR')
 }
@@ -43,12 +51,13 @@ function Bar({ percent, color }: { percent: number; color: string }) {
 
 function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxDownloads: number }) {
   const [open, setOpen] = useState(false)
-  const { redacao, materiais, progresso } = student
+  const { redacao, materiais, testes, progresso } = student
   const initials = student.name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase() || '?'
 
   const redacaoPercent = redacao.average !== null ? (redacao.average / 40) * 100 : 0
   const redacaoColor = redacao.average !== null ? gradeColor(redacao.average) : '#c7c5d1'
   const materiaisPercent = maxDownloads > 0 ? (materiais.totalDownloads / maxDownloads) * 100 : 0
+  const testesColor = testes.averagePercent !== null ? percentColor(testes.averagePercent) : '#c7c5d1'
   const progressoPercent = (progresso.completedThisWeek / progresso.weeklyGoal) * 100
 
   return (
@@ -84,6 +93,16 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
               <span style={{ fontWeight: 700, color: 'var(--navy)', fontVariantNumeric: 'tabular-nums' }}>{materiais.totalDownloads}</span>
             </div>
             <Bar percent={materiaisPercent} color="var(--gold)" />
+          </div>
+
+          <div style={{ flex: 1, minWidth: 90 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
+              <span>Testes</span>
+              <span style={{ fontWeight: 700, color: testesColor, fontVariantNumeric: 'tabular-nums' }}>
+                {testes.averagePercent !== null ? `${testes.averagePercent}%` : '—'}
+              </span>
+            </div>
+            <Bar percent={testes.averagePercent ?? 0} color={testesColor} />
           </div>
 
           <div style={{ flex: 1, minWidth: 90 }}>
@@ -140,6 +159,24 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
 
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
+              <ClipboardList size={14} /> Testes
+            </div>
+            <p className="list-meta" style={{ margin: '0 0 8px' }}>
+              {testes.attemptsCount} série{testes.attemptsCount === 1 ? '' : 's'} respondida{testes.attemptsCount === 1 ? '' : 's'}
+            </p>
+            {testes.recent.length === 0 && <p className="list-meta">Nenhuma série respondida ainda.</p>}
+            <div style={{ display: 'grid', gap: 6 }}>
+              {testes.recent.map((t, i) => (
+                <div key={`${t.simuladoTitle}-${t.submittedAt}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, minWidth: 0, background: 'var(--lilac-tint)', borderRadius: 8, padding: '7px 10px', fontSize: 12 }}>
+                  <span style={{ color: 'var(--navy)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>{t.simuladoTitle}</span>
+                  <b style={{ color: percentColor(t.percent), flexShrink: 0 }}>{t.score}/{t.total} · {t.percent}%</b>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
               <TrendingUp size={14} /> Progresso
             </div>
             <p className="list-meta" style={{ margin: '0 0 8px' }}>
@@ -178,7 +215,7 @@ function EvolucaoAdminPage() {
     <main className="panel panel-wide">
       <VoltarAoPainel />
       <h1><TrendingUp /> Evolução dos alunos</h1>
-      <p className="panel-subtitle">Como cada aluno está indo, separado por bloco: redação, materiais e progresso geral. Toque em um aluno para ver o detalhe.</p>
+      <p className="panel-subtitle">Como cada aluno está indo, separado por bloco: redação, materiais, testes e progresso geral. Toque em um aluno para ver o detalhe.</p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginTop: 24 }}>
         <div style={{ background: 'var(--lilac-tint)', borderRadius: 10, padding: '14px 16px' }}>
@@ -194,6 +231,12 @@ function EvolucaoAdminPage() {
         <div style={{ background: 'var(--lilac-tint)', borderRadius: 10, padding: '14px 16px' }}>
           <div className="list-meta" style={{ marginTop: 0 }}>Downloads de materiais</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', fontVariantNumeric: 'tabular-nums' }}>{data?.totalDownloads ?? 0}</div>
+        </div>
+        <div style={{ background: 'var(--lilac-tint)', borderRadius: 10, padding: '14px 16px' }}>
+          <div className="list-meta" style={{ marginTop: 0 }}>Média de testes da turma</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', fontVariantNumeric: 'tabular-nums' }}>
+            {data?.classTestesAverage !== null && data?.classTestesAverage !== undefined ? `${data.classTestesAverage}%` : '—'}
+          </div>
         </div>
         <div style={{ background: 'var(--lilac-tint)', borderRadius: 10, padding: '14px 16px' }}>
           <div className="list-meta" style={{ marginTop: 0 }}>Sequência média</div>
@@ -220,7 +263,7 @@ function EvolucaoAdminPage() {
         {filtered.map((student) => <StudentRow key={student.email} student={student} maxDownloads={maxDownloads} />)}
         {!loading && !error && filtered.length === 0 && (
           <p className="empty-state">
-            {query ? 'Nenhum aluno encontrado para essa busca.' : 'Nenhum aluno logou no site ainda — a lista aparece assim que o primeiro aluno acessar.'}
+            {query ? 'Nenhum aluno encontrado para essa busca.' : 'Nenhum aluno aprovado ainda — a lista aparece assim que a primeira conta for liberada.'}
           </p>
         )}
       </div>
