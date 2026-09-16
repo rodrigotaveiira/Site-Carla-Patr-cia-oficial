@@ -801,6 +801,19 @@ footer .brand b { color: white; }
   .dashboard-grid { grid-template-columns: 1fr; }
   .progress-card, .recent-content, .material-card { grid-column: span 1; }
   .progress-list > div { grid-template-columns: 87px 1fr 30px; }
+  /* No desktop, badge/texto/botão dividem uma linha (auto 1fr auto). No
+     celular a largura sobrando pro texto ficava tão pequena que o título
+     quebrava em 3-4 linhas ao lado de um selo enorme — empilha em vez de
+     espremer, com o botão de download em largura total (mesmo padrão dos
+     outros CTAs de card neste arquivo, ex.: .next-class > button). */
+  .material-item {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "badge badge" "content content" "button button";
+    gap: 10px;
+  }
+  .material-item .material-badge { grid-area: badge; justify-self: start; }
+  .material-item > div:nth-child(2) { grid-area: content; }
+  .material-item button { grid-area: button; width: 100%; box-sizing: border-box; }
   /* Letras maiores no celular para melhor legibilidade */
   .announcement { font-size: 14px; }
   .brand small, .dashboard-brand small { font-size: 13px; }
