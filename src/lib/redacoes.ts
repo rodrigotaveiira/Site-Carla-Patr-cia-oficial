@@ -271,3 +271,22 @@ export const correctRedacao = createServerFn({ method: 'POST' })
     const { fileDataUrl: _omit, correctedFileDataUrl: _omit2, ...meta } = updated
     return meta
   })
+
+// Exclui uma redação já corrigida. O arquivo original e o da correção vivem
+// dentro do próprio registro (fileDataUrl/correctedFileDataUrl) — não há
+// nada em outro store pra limpar junto, ao contrário de material/simulado,
+// que guardam o arquivo numa chave separada.
+export const deleteRedacao = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: idSchema }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
+
+    const store = redacoesStore()
+    const submission = await store.get(data.id, { type: 'json' }) as RedacaoSubmission | null
+    if (!submission) throw new Error('Redação não encontrada.')
+    if (submission.status !== 'corrigida') throw new Error('Só é possível excluir redações já corrigidas.')
+
+    await store.delete(data.id)
+    return { ok: true }
+  })

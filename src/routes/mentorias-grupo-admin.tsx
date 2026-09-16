@@ -1,10 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
-  createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, updateMentoriaGrupoSlot,
+  createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, removeMentoriaGrupoStudent, updateMentoriaGrupoSlot,
   MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo,
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
@@ -48,6 +49,10 @@ function MentoriasGrupoAdminPage() {
   const [editCapacity, setEditCapacity] = useState('')
   const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
+
+  // Chave "<idDoGrupo>__<email>" de quem está sendo removido agora — só essa
+  // linha desabilita, o resto do grupo continua clicável.
+  const [removingStudent, setRemovingStudent] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -114,6 +119,21 @@ function MentoriasGrupoAdminPage() {
       showToast('Grupo excluído.')
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Não foi possível excluir o grupo.', 'error')
+    }
+  }
+
+  async function handleRemoveStudent(groupId: string, email: string, name: string) {
+    if (!confirm(`Remover "${name}" deste grupo?`)) return
+    const chave = `${groupId}__${email}`
+    setRemovingStudent(chave)
+    try {
+      await removeMentoriaGrupoStudent({ data: { id: groupId, email } })
+      await load()
+      showToast('Aluno removido do grupo.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível remover o aluno.', 'error')
+    } finally {
+      setRemovingStudent(null)
     }
   }
 
@@ -284,8 +304,35 @@ function MentoriasGrupoAdminPage() {
                       <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
                     )}
                     {slot.students.length > 0 && (
-                      <div style={{ color: 'var(--purple)', fontSize: 13, marginTop: 4 }}>
-                        {slot.students.map((student) => student.name).join(', ')}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                        {slot.students.map((student) => {
+                          const chave = `${slot.id}__${student.email}`
+                          const removendo = removingStudent === chave
+                          return (
+                            <span
+                              key={student.email}
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 6px 3px 10px',
+                                color: 'var(--purple)', background: 'var(--lilac-tint)', borderRadius: 999, fontSize: 12, fontWeight: 600,
+                              }}
+                            >
+                              {student.name}
+                              <button
+                                onClick={() => handleRemoveStudent(slot.id, student.email, student.name)}
+                                disabled={removendo}
+                                aria-label={`Remover ${student.name} do grupo`}
+                                title="Remover do grupo"
+                                style={{
+                                  display: 'grid', placeItems: 'center', width: 16, height: 16, padding: 0,
+                                  color: 'inherit', background: 'rgba(109,40,217,.14)', border: 0, borderRadius: '50%',
+                                  cursor: removendo ? 'default' : 'pointer', opacity: removendo ? 0.5 : 1,
+                                }}
+                              >
+                                <X size={10} />
+                              </button>
+                            </span>
+                          )
+                        })}
                       </div>
                     )}
                     {slot.students.length === 0 && <div className="list-meta">Nenhum aluno inscrito</div>}
