@@ -7,6 +7,7 @@ import {
 } from '../../src/lib/lembrete-simulado-horario'
 import { montarEmailLembreteSimulado } from '../../src/lib/email-lembrete-simulado'
 import { enviarEmail } from '../../src/lib/email'
+import { listApprovedStudents } from '../../src/lib/student-evolution'
 
 // Roda a cada 15 minutos e envia os lembretes de simulado/simuladão e da
 // correção deles:
@@ -51,11 +52,6 @@ type EventoCalendario = {
   correction?: Correcao | null
 }
 
-type AlunoConhecido = {
-  email?: string
-  name?: string
-}
-
 type Contexto = 'prova' | 'correcao'
 type Alvo = {
   eventoId: string
@@ -88,13 +84,13 @@ export default async function handler() {
   const agora = new Date()
   const agoraMs = agora.getTime()
 
-  const [eventos, alunos] = await Promise.all([
+  const [eventos, aprovados] = await Promise.all([
     lerJson<EventoCalendario>(STORES.eventosCalendario),
-    // Mesma fonte usada pra avisar sobre material novo: só alcança quem já
-    // logou pelo menos uma vez (a aprovação de conta é feita no Netlify
-    // Identity, fora do código). Um aluno recém-aprovado que ainda não entrou
-    // recebe a partir do primeiro login.
-    lerJson<AlunoConhecido>('session-history'),
+    // Diretório de verdade do Identity (mesma função usada no painel de
+    // evolução), não `session-history`: aquele store guarda todo mundo que já
+    // logou algum dia e nunca é limpo, então um aluno removido/reprovado
+    // continuava recebendo lembrete de simulado pra sempre.
+    listApprovedStudents(),
   ])
 
   // Cada simulado rende até dois alvos: a prova e a correção (quando cadastrada).
@@ -124,9 +120,9 @@ export default async function handler() {
     return inicioMs > agoraMs && inicioMs - agoraMs <= JANELA_ANTECEDENCIA_MS
   })
 
-  const destinatarios = alunos
-    .map((a) => a.valor)
-    .filter((a): a is Required<AlunoConhecido> => Boolean(a.email))
+  const destinatarios = aprovados
+    .filter((u): u is typeof u & { email: string } => Boolean(u.email))
+    .map((u) => ({ email: u.email, name: u.name || 'Aluno(a)' }))
 
   const store = getStore({ name: STORES.lembretesSimulado, consistency: 'strong' })
   let enviados = 0

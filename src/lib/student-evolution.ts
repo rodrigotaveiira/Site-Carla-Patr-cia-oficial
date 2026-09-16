@@ -18,7 +18,7 @@ import { WEEKLY_GOAL } from './weekly-activity'
 // alguma vez): um aluno aprovado que nunca entrou no site simplesmente não
 // aparecia, mesmo com a conta liberada. `listUsers` traz todo mundo que
 // existe de verdade no Identity, então a lista aqui reflete a turma real.
-async function listApprovedStudents() {
+export async function listApprovedStudents() {
   const PER_PAGE = 200
   const MAX_PAGINAS = 20 // trava de segurança — não afeta hoje: 200*20 = 4000 contas.
   const todos: Awaited<ReturnType<typeof identityAdmin.listUsers>> = []
