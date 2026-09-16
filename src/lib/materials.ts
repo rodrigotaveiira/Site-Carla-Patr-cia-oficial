@@ -2,7 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { z } from 'zod'
 import { getServerUser } from './auth'
-import { userHasRole, getStudentIdentity } from './roles'
+import { userHasRole } from './roles'
+import { getRegisteredIdentity } from './identidade-cadastro'
 import { watermarkFileDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { MAX_CHUNKED_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
@@ -143,7 +144,7 @@ export const getMaterialFile = createServerFn({ method: 'GET' })
     }
 
     const { fileName, fileDataUrl } = materialData
-    const { name, cpf } = getStudentIdentity(user)
+    const { name, cpf } = await getRegisteredIdentity(user)
 
     // Só registra download de aluno de verdade — não conta teste da equipe
     // (admin/professor também pode baixar, pra conferir o arquivo).
