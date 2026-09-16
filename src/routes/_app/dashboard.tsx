@@ -617,7 +617,7 @@ function DashboardPage() {
               <div className="class-thumb"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=85" alt="Caderno de estudos" /><span><CirclePlay /></span></div>
               <small>{liveClass.module.toUpperCase()}</small>
               <h4>{liveClass.title}</h4>
-              <p><Clock3 /> {formatDuration(liveClass.durationMinutes)} de duração · Prof.ª Carla</p>
+              <p><Clock3 /> {formatDuration(liveClass.durationMinutes)} de duração · Prof.ª Carlinha</p>
               {liveClass.zoomLink ? (
                 <a href={liveClass.zoomLink} target="_blank" rel="noreferrer">Entrar na aula <ChevronRight /></a>
               ) : (
