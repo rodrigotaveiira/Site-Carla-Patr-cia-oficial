@@ -6,8 +6,9 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import {
   CONTENT_SECTIONS, DEFAULT_DESCRIPTION_COLOR, DEFAULT_TITLE_COLOR, DICA_CATEGORIES,
-  getContentItemFile, isContentSection, listContentItems, resolveDicaCategory, textColorValue,
-  type ContentItemMeta, type ContentSection, type DicaCategory,
+  GABARITO_ORIGINS, getContentItemFile, isContentSection, listContentItems, resolveDicaCategory,
+  resolveGabaritoOrigin, textColorValue,
+  type ContentItemMeta, type ContentSection, type DicaCategory, type GabaritoOrigin,
 } from '@/lib/content-library'
 import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
 import { EmptyState } from '@/components/EmptyState'
@@ -90,12 +91,14 @@ function ConteudoPage() {
   const meta = SECTION_META[section]
   const Icon = meta.icon
   const isDicas = section === 'dicas'
+  const isGabaritos = section === 'gabaritos'
 
   const [items, setItems] = useState<ContentItemMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [category, setCategory] = useState<DicaCategory>('gramatica')
+  const [origin, setOrigin] = useState<GabaritoOrigin>('simuladinho')
 
   useEffect(() => {
     setLoading(true)
@@ -105,11 +108,20 @@ function ConteudoPage() {
       .finally(() => setLoading(false))
   }, [section])
 
-  // Em Dicas o aluno vê uma aba por vez; nas outras seções a lista inteira.
-  const visibleItems = useMemo(
-    () => (isDicas ? items.filter((item) => resolveDicaCategory(item) === category) : items),
-    [items, isDicas, category],
-  )
+  // Em Dicas e Gabaritos o aluno vê uma aba por vez; nas outras seções a lista inteira.
+  const visibleItems = useMemo(() => {
+    if (isDicas) return items.filter((item) => resolveDicaCategory(item) === category)
+    if (isGabaritos) return items.filter((item) => resolveGabaritoOrigin(item) === origin)
+    return items
+  }, [items, isDicas, isGabaritos, category, origin])
+
+  // O estado vazio fala da aba aberta, não da seção inteira: com uma aba cheia e a
+  // outra vazia, "nenhum gabarito ainda" seria simplesmente falso.
+  const emptyTitle = isDicas
+    ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda`
+    : isGabaritos
+      ? `Nenhum gabarito de ${GABARITO_ORIGINS[origin].toLowerCase()} ainda`
+      : meta.emptyTitle
 
   async function handleDownload(id: string) {
     setDownloadingId(id)
@@ -158,6 +170,27 @@ function ConteudoPage() {
         </div>
       )}
 
+      {isGabaritos && (
+        <div className="tab-switch" style={{ marginTop: 16 }} role="tablist">
+          {(Object.keys(GABARITO_ORIGINS) as GabaritoOrigin[]).map((key) => {
+            const count = items.filter((item) => resolveGabaritoOrigin(item) === key).length
+            return (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={origin === key}
+                onClick={() => setOrigin(key)}
+                className={`tab-switch-btn${origin === key ? ' is-active' : ''}`}
+              >
+                {GABARITO_ORIGINS[key]}
+                {!loading && count > 0 && <span className="tab-switch-count">{count}</span>}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       {error && <p className="form-error">{error}</p>}
       {loading && <div style={{ marginTop: 20 }}><ListSkeleton rows={3} /></div>}
 
@@ -189,7 +222,7 @@ function ConteudoPage() {
         {!loading && visibleItems.length === 0 && (
           <EmptyState alto
             icon={Icon}
-            title={isDicas ? `Nenhuma dica de ${DICA_CATEGORIES[category].toLowerCase()} ainda` : meta.emptyTitle}
+            title={emptyTitle}
             description={`${meta.emptyDescription} Cada download sai protegido com seu nome e CPF.`}
           />
         )}
