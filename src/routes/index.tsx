@@ -394,7 +394,7 @@ function HomePage() {
 
       <section className="section about" id="sobre">
         <motion.div className="about-collage" {...reveal}>
-          <div className="about-main-image"><img src="/carla-sobre.webp" alt="Professora Carla Patrícia Medina" width={1200} height={1600} loading="lazy" /></div>
+          <div className="about-main-image"><img src="/carla-sobre.webp" alt="Professora Carla Patrícia Medina" width={768} height={1024} loading="lazy" /></div>
           <div className="quote-card"><Quote size={28} /><p>Ensinar a escrever é ensinar a organizar ideias, defender sonhos e ocupar espaços.</p></div>
           <div className="gold-seal"><small>Excelência<br />em educação</small></div>
         </motion.div>
