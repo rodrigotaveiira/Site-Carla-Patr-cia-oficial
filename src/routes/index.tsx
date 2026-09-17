@@ -95,7 +95,7 @@ const courses = [
     tag: 'Mais procurado',
     title: 'Redação de Excelência',
     text: 'Estratégia prática e acompanhamento para você desenvolver sua escrita com clareza, segurança e desenvoltura.',
-    image: 'https://i.im.ge/QM8BQuT/carla-t300.webp',
+    image: '/curso-redacao.webp',
     items: ['Correções individuais', 'Aulas semanais', 'Temas inéditos'],
   },
   {
