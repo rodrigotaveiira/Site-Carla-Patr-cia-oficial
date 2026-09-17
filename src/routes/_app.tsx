@@ -1,6 +1,6 @@
 import { Link, Outlet, createFileRoute, useRouterState } from '@tanstack/react-router'
 import {
-  BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
+  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, CirclePlay, Files, Home, Library,
   LogOut, Menu, MessageCircleHeart, MessageSquareText, ScrollText, Settings, Target, TrendingUp, User, Users, X, Zap,
   ChevronDown, FileCheck2, Trophy,
 } from 'lucide-react'
@@ -15,8 +15,10 @@ export const Route = createFileRoute('/_app')({
 
 // Agrupado por intenção (conteúdo / praticar / acompanhamento) em vez de uma lista única
 // de itens — mais rápido de escanear que um menu corrido. Cada grupo abre/fecha sozinho.
-// Gabaritos não tem item próprio: a correção comentada aparece dentro do fluxo de
-// Simulados (tela de resultado), não como destino separado no menu.
+// Gabarito tem item próprio logo abaixo de "Questões para treino": o par fica colado, o
+// aluno treina e confere na sequência. Isso não substitui os links de dentro do fluxo de
+// Simulados (tela de resultado) — quem acabou de responder continua chegando ao gabarito
+// pelo caminho curto, sem passar pelo menu.
 const sidebarGroups = [
   {
     title: null,
@@ -37,6 +39,7 @@ const sidebarGroups = [
     title: 'Praticar',
     items: [
       { icon: Target, label: 'Questões para treino', href: '/simulados' },
+      { icon: BookCheck, label: 'Gabarito', href: '/conteudo/gabaritos' },
       { icon: CircleHelp, label: 'Questões em PDF', href: '/conteudo/questoes' },
       { icon: FileCheck2, label: 'Redações', href: '/redacoes' },
     ],
