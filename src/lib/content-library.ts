@@ -39,6 +39,20 @@ export const DICA_CATEGORIES = MATERIAS
 export type DicaCategory = Materia
 const dicaCategorySchema = materiaSchema
 
+// Gabaritos é dividido pelo tipo de prova que o gabarito corrige, nos nomes que a
+// turma usa: o simuladinho, mais curto e frequente, e o simuladão.
+//
+// Vocabulário próprio, e não as frentes de `materias.ts`, porque a pergunta aqui é
+// outra: um gabarito de simuladão pode cobrir gramática e redação ao mesmo tempo, e
+// não caberia em nenhuma das duas frentes.
+export const GABARITO_ORIGINS = {
+  simuladinho: 'Simuladinho',
+  simuladao: 'Simuladão',
+} as const
+
+export type GabaritoOrigin = keyof typeof GABARITO_ORIGINS
+const gabaritoOriginSchema = z.enum(['simuladinho', 'simuladao'])
+
 // Paleta fechada para o título e a descrição. São tokens, não hex livre: assim a
 // professora não consegue escolher uma cor ilegível e o site mantém a identidade visual.
 export const CONTENT_TEXT_COLORS = {
@@ -72,6 +86,8 @@ export type ContentItem = {
   createdAt: string
   /** Só em Dicas. Ausente nos PDFs enviados antes das categorias existirem. */
   category?: DicaCategory
+  /** Só em Gabaritos. Ausente nos PDFs enviados antes da divisão existir. */
+  origin?: GabaritoOrigin
   titleColor?: ContentTextColor
   descriptionColor?: ContentTextColor
 }
@@ -88,6 +104,11 @@ function storeFor(section: ContentSection) {
 /** PDF de Dicas enviado antes das categorias existirem entra em Redação. */
 export function resolveDicaCategory(item: { category?: DicaCategory }): DicaCategory {
   return item.category ?? 'redacao'
+}
+
+/** Gabarito enviado antes da divisão existir entra em Simuladinho. */
+export function resolveGabaritoOrigin(item: { origin?: GabaritoOrigin }): GabaritoOrigin {
+  return item.origin ?? 'simuladinho'
 }
 
 // A numeração é calculada na hora de listar, e não gravada no arquivo: assim, se a
@@ -209,6 +230,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
         fileDataUrl: dataUrlSchema(MAX_FILE_DATA_URL_LENGTH).optional(),
         upload: chunkedUploadRefSchema.optional(),
         category: dicaCategorySchema.optional(),
+        origin: gabaritoOriginSchema.optional(),
         titleColor: contentTextColorSchema.optional(),
         descriptionColor: contentTextColorSchema.optional(),
       })
@@ -221,6 +243,11 @@ export const addContentItem = createServerFn({ method: 'POST' })
             ctx.addIssue({ code: 'custom', path: ['category'], message: 'Escolha se a dica é de Gramática ou de Redação.' })
           }
           return
+        }
+        // Gabaritos exige a origem e segue exigindo título: ao contrário de Dicas,
+        // aqui o nome é escrito pela professora, não gerado.
+        if (data.section === 'gabaritos' && !data.origin) {
+          ctx.addIssue({ code: 'custom', path: ['origin'], message: 'Escolha se o gabarito é de Simuladinho ou de Simuladão.' })
         }
         if (!boundedText(300).safeParse(data.title).success) {
           ctx.addIssue({ code: 'custom', path: ['title'], message: 'Dê um título para o arquivo.' })
@@ -252,6 +279,7 @@ export const addContentItem = createServerFn({ method: 'POST' })
       fileDataUrl,
       createdAt: new Date().toISOString(),
       ...(data.section === 'dicas' && data.category ? { category: data.category } : {}),
+      ...(data.section === 'gabaritos' && data.origin ? { origin: data.origin } : {}),
       ...(data.titleColor ? { titleColor: data.titleColor } : {}),
       ...(data.descriptionColor ? { descriptionColor: data.descriptionColor } : {}),
     }

@@ -6,8 +6,10 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
   addContentItem, CONTENT_SECTIONS, CONTENT_TEXT_COLORS, DEFAULT_DESCRIPTION_COLOR, DEFAULT_TITLE_COLOR,
-  deleteContentItem, DICA_CATEGORIES, isContentSection, listContentItems, resolveDicaCategory, textColorValue,
+  deleteContentItem, DICA_CATEGORIES, GABARITO_ORIGINS, isContentSection, listContentItems,
+  resolveDicaCategory, resolveGabaritoOrigin, textColorValue,
   type ContentItemMeta, type ContentSection, type ContentTextColor, type DicaCategory,
+  type GabaritoOrigin,
 } from '@/lib/content-library'
 import { useToast } from '@/lib/toast'
 import { erroDeTamanhoDeUploadGrande } from '@/lib/upload-limits'
@@ -69,12 +71,14 @@ function ConteudoAdminPage() {
   const section = secao as ContentSection
   const sectionLabel = CONTENT_SECTIONS[section]
   const isDicas = section === 'dicas'
+  const isGabaritos = section === 'gabaritos'
 
   const [items, setItems] = useState<ContentItemMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<DicaCategory>('gramatica')
+  const [origin, setOrigin] = useState<GabaritoOrigin>('simuladinho')
   const [titleColor, setTitleColor] = useState<ContentTextColor>(DEFAULT_TITLE_COLOR)
   const [descriptionColor, setDescriptionColor] = useState<ContentTextColor>(DEFAULT_DESCRIPTION_COLOR)
   const [file, setFile] = useState<File | null>(null)
@@ -128,6 +132,7 @@ function ConteudoAdminPage() {
             ? { fileDataUrl: enviado.fileDataUrl }
             : { upload: { uploadId: enviado.uploadId, mime: enviado.mime } }),
           ...(isDicas ? { category } : {}),
+          ...(isGabaritos ? { origin } : {}),
           titleColor,
           descriptionColor,
         },
@@ -182,6 +187,26 @@ function ConteudoAdminPage() {
               ))}
             </div>
             <p className="field-hint">O nome é automático: este arquivo vai entrar como <b>{nextLabel}</b>.</p>
+          </div>
+        )}
+
+        {isGabaritos && (
+          <div className="field">
+            <label>Tipo do simulado</label>
+            <div className="tab-switch">
+              {(Object.keys(GABARITO_ORIGINS) as GabaritoOrigin[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setOrigin(key)}
+                  className={`tab-switch-btn${origin === key ? ' is-active' : ''}`}
+                  aria-pressed={origin === key}
+                >
+                  {GABARITO_ORIGINS[key]}
+                </button>
+              ))}
+            </div>
+            <p className="field-hint">O aluno acha este arquivo na aba <b>{GABARITO_ORIGINS[origin]}</b> da página de Gabarito.</p>
           </div>
         )}
 
@@ -247,31 +272,51 @@ function ConteudoAdminPage() {
       <section>
         <h2 className="panel-section-title">Arquivos enviados</h2>
         {loading && <p className="panel-subtitle">Carregando...</p>}
-        {isDicas
-          ? (Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => {
-            const rows = items.filter((item) => resolveDicaCategory(item) === key)
-            return (
-              <div key={key} style={{ marginTop: 16 }}>
-                <h3 className="panel-section-title" style={{ margin: '0 0 8px', fontSize: 15 }}>{DICA_CATEGORIES[key]}</h3>
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {rows.map((item) => (
-                    <ItemRow key={item.id} item={item} onDelete={handleDelete} />
-                  ))}
-                  {!loading && rows.length === 0 && (
-                    <p className="empty-state">Nenhuma dica de {DICA_CATEGORIES[key].toLowerCase()} ainda.</p>
-                  )}
-                </div>
+        {/* Dicas e Gabaritos são divididos, então a lista vem agrupada: a professora
+            confere de que lado cada arquivo caiu sem ter que abrir a tela do aluno.
+            As outras seções não têm divisão e seguem em lista corrida. */}
+        {isDicas && (Object.keys(DICA_CATEGORIES) as DicaCategory[]).map((key) => {
+          const rows = items.filter((item) => resolveDicaCategory(item) === key)
+          return (
+            <div key={key} style={{ marginTop: 16 }}>
+              <h3 className="panel-section-title" style={{ margin: '0 0 8px', fontSize: 15 }}>{DICA_CATEGORIES[key]}</h3>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {rows.map((item) => (
+                  <ItemRow key={item.id} item={item} onDelete={handleDelete} />
+                ))}
+                {!loading && rows.length === 0 && (
+                  <p className="empty-state">Nenhuma dica de {DICA_CATEGORIES[key].toLowerCase()} ainda.</p>
+                )}
               </div>
-            )
-          })
-          : (
-            <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-              {items.map((item) => (
-                <ItemRow key={item.id} item={item} onDelete={handleDelete} />
-              ))}
-              {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo enviado ainda.</p>}
             </div>
-          )}
+          )
+        })}
+
+        {isGabaritos && (Object.keys(GABARITO_ORIGINS) as GabaritoOrigin[]).map((key) => {
+          const rows = items.filter((item) => resolveGabaritoOrigin(item) === key)
+          return (
+            <div key={key} style={{ marginTop: 16 }}>
+              <h3 className="panel-section-title" style={{ margin: '0 0 8px', fontSize: 15 }}>{GABARITO_ORIGINS[key]}</h3>
+              <div style={{ display: 'grid', gap: 10 }}>
+                {rows.map((item) => (
+                  <ItemRow key={item.id} item={item} onDelete={handleDelete} />
+                ))}
+                {!loading && rows.length === 0 && (
+                  <p className="empty-state">Nenhum gabarito de {GABARITO_ORIGINS[key].toLowerCase()} ainda.</p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+
+        {!isDicas && !isGabaritos && (
+          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+            {items.map((item) => (
+              <ItemRow key={item.id} item={item} onDelete={handleDelete} />
+            ))}
+            {!loading && items.length === 0 && <p className="empty-state">Nenhum arquivo enviado ainda.</p>}
+          </div>
+        )}
       </section>
     </main>
   )
