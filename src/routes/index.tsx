@@ -281,8 +281,7 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
       )}
 
       <motion.div className="aprovados-cta" {...reveal}>
-        <b>Aprovados 2026.2</b>
-        <p>Conheça alguns dos alunos que conquistaram seus resultados neste semestre.</p>
+        <p>Conheça alguns dos <strong>Aprovados 2026.2</strong> que conquistaram seus resultados neste semestre.</p>
         <a className="button" href="#contato">Quero começar <ArrowRight size={18} /></a>
       </motion.div>
     </section>
