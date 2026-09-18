@@ -266,11 +266,6 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
             </article>
           ))}
         </div>
-        {/* O corte macio nas pontas conta que a faixa continua — e num loop
-            sempre continua dos dois lados, então fica sempre visível (não
-            some numa ponta como antes: aqui não existe mais "acabou"). */}
-        {rolavel && <span className="aprovados-borda esquerda visivel" aria-hidden="true" />}
-        {rolavel && <span className="aprovados-borda direita visivel" aria-hidden="true" />}
       </div>
 
       {rolavel && (

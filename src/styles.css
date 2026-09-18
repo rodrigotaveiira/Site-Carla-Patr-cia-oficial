@@ -1304,7 +1304,7 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    anos e a seção não pode ficar mais alta a cada foto cadastrada. Enquanto as
    fotos couberem numa fileira ela centraliza e não rola — é a grade de antes;
    passando disso, vira carrossel. */
-.aprovados-vitrine { position: relative; margin-top: 24px; }
+.aprovados-vitrine { margin-top: 24px; }
 .aprovados-trilha {
   display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
   /* Contém o gesto pra rolar a faixa até o fim não virar "voltar" no navegador. */
@@ -1406,18 +1406,11 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
   background: linear-gradient(90deg, var(--purple), #7c3aed); transition: transform .18s ease-out;
 }
 
-/* Some na ponta em que a faixa acabou, pra não prometer foto que não existe. */
-.aprovados-borda { position: absolute; top: 0; bottom: 0; z-index: 3; width: 64px; opacity: 0; pointer-events: none; transition: opacity .22s ease; }
-.aprovados-borda.visivel { opacity: 1; }
-.aprovados-borda.esquerda { left: -2px; background: linear-gradient(90deg, #fbfafc 14%, rgba(251,250,252,0)); }
-.aprovados-borda.direita { right: -2px; background: linear-gradient(270deg, #fbfafc 14%, rgba(251,250,252,0)); }
-
 .aprovados-cta { margin-top: 40px; text-align: center; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {
   .aprovados-trilha { gap: 14px; padding-bottom: 20px; }
-  .aprovados-borda { width: 38px; }
   .aprovado-name-overlay h3 { font-size: 15px; }
 }
 
