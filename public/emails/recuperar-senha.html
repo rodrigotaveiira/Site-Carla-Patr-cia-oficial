@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Este arquivo responde 200 pra qualquer visitante (é o Identity que o
+       busca pela URL pública), e nada no site linka pra ele. Mesmo raciocínio
+       do robots.txt: "Disallow" impediria o rastreamento, não a indexação —
+       então quem fala por esta página é o noindex. -->
+  <meta name="robots" content="noindex, nofollow">
+  <title>Criar uma senha nova</title>
+</head>
+<body style="margin:0;padding:0;background:#f5f1fc;">
+  <!-- Modelo do e-mail de recuperação de senha do Netlify Identity.
+       Apontado em Site configuration > Identity > Emails > Recovery.
+
+       `{{ .ConfirmationURL }}` é preenchido pelo Identity com o link que leva
+       o `recovery_token` — é ele que o CallbackHandler lê pra abrir a tela de
+       senha nova. O endereço aparece também em texto, porque cliente de e-mail
+       que bloqueia o botão deixa a pessoa sem saída.
+
+       Tudo em tabela e estilo inline de propósito: Gmail, Outlook e afins
+       ignoram <style> no head e não sabem lidar com flex/grid. -->
+  <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;">
+    <tr><td align="center" style="padding:28px 14px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:560px;border-collapse:collapse;background:#ffffff;border-radius:14px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;">
+
+        <tr><td style="padding:28px 30px;background:#0f2d52;">
+          <div style="color:#c8a24d;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;">Carla Patrícia Medina</div>
+          <div style="margin-top:8px;color:#ffffff;font-size:21px;font-weight:700;">Criar uma senha nova</div>
+        </td></tr>
+
+        <tr><td style="padding:28px 30px;">
+          <p style="margin:0 0 16px;color:#0f2d52;font-size:15px;line-height:1.6;">
+            Olá! Recebemos um pedido para criar uma senha nova na sua conta da plataforma.
+          </p>
+
+          <p style="margin:0 0 22px;color:#0f2d52;font-size:15px;line-height:1.6;">
+            Clique no botão abaixo para escolher a senha que você vai usar a partir de agora:
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 auto 22px;">
+            <tr><td style="border-radius:8px;background:#6d28d9;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 30px;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;">
+                Criar minha senha nova
+              </a>
+            </td></tr>
+          </table>
+
+          <p style="margin:0 0 6px;color:#667085;font-size:13px;line-height:1.6;">
+            Se o botão não funcionar, copie e cole este endereço no navegador:
+          </p>
+          <p style="margin:0 0 22px;color:#6d28d9;font-size:13px;line-height:1.6;word-break:break-all;">
+            {{ .ConfirmationURL }}
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
+            <tr><td style="padding:16px 18px;color:#0f2d52;font-size:14px;line-height:1.6;">
+              O link vale por tempo limitado e só pode ser usado uma vez. Depois disso,
+              é só pedir outro pela tela de login.
+            </td></tr>
+          </table>
+
+          <p style="margin:22px 0 0;color:#667085;font-size:13px;line-height:1.6;">
+            <strong>Não foi você quem pediu?</strong> Pode ignorar este e-mail —
+            sua senha atual continua valendo e nada muda na sua conta.
+          </p>
+        </td></tr>
+
+        <tr><td style="padding:18px 30px;background:#f8f7fb;color:#667085;font-size:12px;line-height:1.6;">
+          Plataforma da Carla Patrícia Medina — Redação e Gramática.
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
