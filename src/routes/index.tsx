@@ -234,9 +234,7 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
   return (
     <section className="section aprovados-section" id="aprovados">
       <motion.div className="section-heading centered" {...reveal}>
-        <div className="section-kicker">Prova, não promessa</div>
         <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
-        <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
       </motion.div>
 
       <div className="aprovados-vitrine">

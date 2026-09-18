@@ -1299,7 +1299,6 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    abaixo, e scroll-margin pra não ficar escondida atrás do header fixo
    quando alguém chega direto pelo link do menu. */
 .aprovados-section { background: #fbfafc; scroll-margin-top: 82px; }
-.aprovados-section .section-heading > p { color: #667085; }
 .aprovados-section h2 { text-wrap: balance; }
 /* A galeria é uma faixa horizontal, não uma grade: são 300+ aprovações em 22
    anos e a seção não pode ficar mais alta a cada foto cadastrada. Enquanto as
