@@ -1314,7 +1314,12 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    anos e a seção não pode ficar mais alta a cada foto cadastrada. Enquanto as
    fotos couberem numa fileira ela centraliza e não rola — é a grade de antes;
    passando disso, vira carrossel. */
-.aprovados-vitrine { margin-top: 24px; }
+/* O respiro embaixo do título era feito pelo parágrafo que ficava entre ele e
+   as fotos; com o parágrafo fora (#239) sobrava um vão de 32px, e um título em
+   serif de duas linhas encostava nos cards. Escala com a largura porque o
+   título também escala (`clamp(38px, 4vw, 56px)`): num monitor grande ele fica
+   muito maior e precisa de mais espaço embaixo. */
+.aprovados-vitrine { margin-top: clamp(36px, 3.6vw, 56px); }
 .aprovados-trilha {
   display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth;
   /* Contém o gesto pra rolar a faixa até o fim não virar "voltar" no navegador. */
