@@ -234,9 +234,7 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
   return (
     <section className="section aprovados-section" id="aprovados">
       <motion.div className="section-heading centered" {...reveal}>
-        <div className="section-kicker">Prova, não promessa</div>
         <h2>Alunos que <em>conquistaram</em> a vaga.</h2>
-        <p>Rostos e universidades reais — a próxima foto aqui pode ser a sua.</p>
       </motion.div>
 
       <div className="aprovados-vitrine">
@@ -268,11 +266,6 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
             </article>
           ))}
         </div>
-        {/* O corte macio nas pontas conta que a faixa continua — e num loop
-            sempre continua dos dois lados, então fica sempre visível (não
-            some numa ponta como antes: aqui não existe mais "acabou"). */}
-        {rolavel && <span className="aprovados-borda esquerda visivel" aria-hidden="true" />}
-        {rolavel && <span className="aprovados-borda direita visivel" aria-hidden="true" />}
       </div>
 
       {rolavel && (
