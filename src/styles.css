@@ -1422,6 +1422,9 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
 }
 
 .aprovados-cta { margin-top: 40px; text-align: center; }
+/* Rótulo do semestre e frase corrida: pesos diferentes pras duas linhas não
+   virarem um bloco só de texto cinza. */
+.aprovados-cta b { display: block; margin-bottom: 7px; color: var(--navy); font-size: 15px; font-weight: 800; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {

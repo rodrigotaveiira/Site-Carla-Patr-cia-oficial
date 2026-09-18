@@ -281,7 +281,8 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
       )}
 
       <motion.div className="aprovados-cta" {...reveal}>
-        <p>Esses são só alguns rostos de mais de 300 aprovações em 22 anos de Carla Patrícia.</p>
+        <b>Aprovados 2026.2</b>
+        <p>Conheça alguns dos alunos que conquistaram seus resultados neste semestre.</p>
         <a className="button" href="#contato">Quero começar <ArrowRight size={18} /></a>
       </motion.div>
     </section>
