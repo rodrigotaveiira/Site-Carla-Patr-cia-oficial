@@ -3,18 +3,24 @@
 // livros, capelo, estrelas, agenda com caneta e agenda espiral. Nenhum
 // outro elemento (selo CPM, nome da professora, floreios) fica no fundo.
 //
-// Cada arquivo é um PNG com sombreado/gradiente/brilho embutido dentro de
-// um wrapper SVG (public/watermark/*.svg) — sem path vetorial pra herdar
-// cor, então entram como <img src> normal; só posição, tamanho, rotação e
-// opacidade são controlados pelo wrapper (a cor já vem pronta do arquivo).
+// Cada arquivo é uma imagem com sombreado/gradiente/brilho embutido — não é
+// vetor, não tem path pra herdar cor. Por isso entram como <img src> normal;
+// só posição, tamanho, rotação e opacidade são controlados aqui (a cor já vem
+// pronta do arquivo).
+//
+// São WebP dimensionados a 2x o maior tamanho em que cada ícone aparece na
+// lista abaixo. Antes eram os mesmos PNGs em base64 dentro de um wrapper .svg,
+// o que somava 1,48 MB carregados em toda página da área do aluno — pra
+// desenhos que aparecem a 6–12% de opacidade. Ao trocar o tamanho de um item
+// em ITEMS, confira se o arquivo ainda tem resolução pro novo tamanho.
 const RASTER_ICONS = {
-  pen: '/watermark/pen.svg',
-  book: '/watermark/book.svg',
-  books: '/watermark/books.svg',
-  cap: '/watermark/cap.svg',
-  sparkles: '/watermark/sparkles.svg',
-  notebookPen: '/watermark/notebook-pen.svg',
-  spiralNotebook: '/watermark/spiral-notebook.svg',
+  pen: '/watermark/pen.webp',
+  book: '/watermark/book.webp',
+  books: '/watermark/books.webp',
+  cap: '/watermark/cap.webp',
+  sparkles: '/watermark/sparkles.webp',
+  notebookPen: '/watermark/notebook-pen.webp',
+  spiralNotebook: '/watermark/spiral-notebook.webp',
 }
 
 // "tier" controla em quantas larguras de tela o elemento aparece:
