@@ -1299,6 +1299,16 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    abaixo, e scroll-margin pra não ficar escondida atrás do header fixo
    quando alguém chega direto pelo link do menu. */
 .aprovados-section { background: #fbfafc; scroll-margin-top: 82px; }
+/* O `.section` limita a 1220px e centraliza, o que fazia o fundo tingido parar
+   antes da borda — uma faixa branca de cada lado, logo abaixo da .results, que
+   é full-bleed. Aqui a seção passa a ocupar a tela inteira e recebe o mesmo
+   recuo lateral da .results, então as duas alinham o conteúdo na mesma linha.
+   Só a partir de 821px: abaixo disso a tela é mais estreita que o limite de
+   1220px, então não havia faixa nenhuma pra corrigir e o `.section` (com os
+   ajustes dele pra celular) continua mandando. */
+@media (min-width: 821px) {
+  .aprovados-section { max-width: none; padding-inline: clamp(24px, 7vw, 110px); }
+}
 .aprovados-section h2 { text-wrap: balance; }
 /* A galeria é uma faixa horizontal, não uma grade: são 300+ aprovações em 22
    anos e a seção não pode ficar mais alta a cada foto cadastrada. Enquanto as
@@ -1322,7 +1332,7 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
 .aprovado-card {
   /* Largura fixa e um pedaço do próximo card aparecendo: é o que conta, sem
      nenhum texto, que a faixa anda pro lado. */
-  flex: 0 0 clamp(168px, 22%, 252px); scroll-snap-align: start;
+  flex: 0 0 clamp(168px, 22%, 300px); scroll-snap-align: start;
   display: flex; flex-direction: column; background: #fff; border-radius: 14px; overflow: hidden;
   box-shadow: 0 0 0 1px rgba(15,35,66,.06), 0 14px 30px -22px rgba(15,35,66,.3);
   transition: transform .25s ease, box-shadow .25s ease;
