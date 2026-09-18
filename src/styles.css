@@ -314,10 +314,22 @@ footer .brand b { color: white; }
 .input-icon button svg { width: 16px; }
 .login-options { display: flex; justify-content: space-between; color: #707987; font-size: 9px; }
 .login-options label { display: flex; align-items: center; gap: 6px; }
-.login-options button { color: var(--purple); background: none; border: 0; font-size: 9px; font-weight: 700; cursor: pointer; }
+.login-options button, .login-options a { color: var(--purple); background: none; border: 0; font-size: 9px; font-weight: 700; cursor: pointer; }
 .login-submit { width: 100%; }
 .login-support { margin-top: 28px; color: #9299a4; font-size: 9px; text-align: center; }
 .login-support a { color: var(--purple); font-weight: 800; }
+
+/* Recuperação de senha — reaproveita a casca do login (.login-page, .login-form,
+   .input-icon) e só acrescenta o aviso de "olhe seu e-mail" / "link inválido" e
+   o atalho de volta pro login. */
+.auth-confirm { display: grid; justify-items: center; gap: 12px; margin-top: 32px; padding: 30px 26px; background: white; border: 1px solid #e6e4f0; border-radius: 10px; text-align: center; }
+.auth-confirm-icon { width: 46px; height: 46px; display: grid; place-items: center; color: var(--purple); background: var(--lilac-tint); border-radius: 50%; }
+.auth-confirm-icon svg { width: 21px; }
+.auth-confirm b { color: var(--navy); font-size: 13px; }
+.auth-confirm p { margin: 0; color: #707987; font-size: 11px; line-height: 1.65; }
+.auth-confirm .button { width: 100%; margin-top: 6px; }
+.auth-back-link { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 22px; color: var(--purple); font-size: 10px; font-weight: 700; }
+.login-heading + .login-form { margin-top: 30px; }
 
 /* Student dashboard */
 /* A casca não rola como página — só a coluna da direita (.student-main) rola.
@@ -870,6 +882,9 @@ footer .brand b { color: white; }
   .login-options { font-size: 13px; }
   .login-options button { font-size: 13px; }
   .login-support { font-size: 13px; }
+  .auth-confirm b { font-size: 16px; }
+  .auth-confirm p { font-size: 14px; }
+  .auth-back-link { font-size: 14px; }
   .student-sidebar nav a { font-size: 14px; }
   .student-sidebar nav a i { font-size: 13px; }
   .notifications-panel { width: 240px; right: -60px; }

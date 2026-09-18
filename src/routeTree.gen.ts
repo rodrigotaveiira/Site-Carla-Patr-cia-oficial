@@ -18,6 +18,7 @@ import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
 import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
+import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as EvolucaoAdminRouteImport } from './routes/evolucao-admin'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
 import { Route as LgpdRouteImport } from './routes/lgpd'
@@ -30,6 +31,7 @@ import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as ProfessorRouteImport } from './routes/professor'
 import { Route as RecadosAdminRouteImport } from './routes/recados-admin'
 import { Route as RedacoesAdminRouteImport } from './routes/redacoes-admin'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as SessoesAdminRouteImport } from './routes/sessoes-admin'
 import { Route as SimuladosAdminRouteImport } from './routes/simulados-admin'
 import { Route as TemasRedacaoAdminRouteImport } from './routes/temas-redacao-admin'
@@ -93,6 +95,11 @@ const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
   path: '/confirmar-presenca',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
+  id: '/esqueci-senha',
+  path: '/esqueci-senha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EvolucaoAdminRoute = EvolucaoAdminRouteImport.update({
   id: '/evolucao-admin',
   path: '/evolucao-admin',
@@ -151,6 +158,11 @@ const RecadosAdminRoute = RecadosAdminRouteImport.update({
 const RedacoesAdminRoute = RedacoesAdminRouteImport.update({
   id: '/redacoes-admin',
   path: '/redacoes-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessoesAdminRoute = SessoesAdminRouteImport.update({
@@ -253,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
@@ -265,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/professor': typeof ProfessorRoute
   '/recados-admin': typeof RecadosAdminRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sessoes-admin': typeof SessoesAdminRoute
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
@@ -293,6 +307,7 @@ export interface FileRoutesByTo {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
@@ -305,6 +320,7 @@ export interface FileRoutesByTo {
   '/professor': typeof ProfessorRoute
   '/recados-admin': typeof RecadosAdminRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sessoes-admin': typeof SessoesAdminRoute
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
@@ -335,6 +351,7 @@ export interface FileRoutesById {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
   '/lgpd': typeof LgpdRoute
@@ -347,6 +364,7 @@ export interface FileRoutesById {
   '/professor': typeof ProfessorRoute
   '/recados-admin': typeof RecadosAdminRoute
   '/redacoes-admin': typeof RedacoesAdminRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/sessoes-admin': typeof SessoesAdminRoute
   '/simulados-admin': typeof SimuladosAdminRoute
   '/temas-redacao-admin': typeof TemasRedacaoAdminRoute
@@ -377,6 +395,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
@@ -389,6 +408,7 @@ export interface FileRouteTypes {
     | '/professor'
     | '/recados-admin'
     | '/redacoes-admin'
+    | '/redefinir-senha'
     | '/sessoes-admin'
     | '/simulados-admin'
     | '/temas-redacao-admin'
@@ -417,6 +437,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
@@ -429,6 +450,7 @@ export interface FileRouteTypes {
     | '/professor'
     | '/recados-admin'
     | '/redacoes-admin'
+    | '/redefinir-senha'
     | '/sessoes-admin'
     | '/simulados-admin'
     | '/temas-redacao-admin'
@@ -458,6 +480,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
     | '/lgpd'
@@ -470,6 +493,7 @@ export interface FileRouteTypes {
     | '/professor'
     | '/recados-admin'
     | '/redacoes-admin'
+    | '/redefinir-senha'
     | '/sessoes-admin'
     | '/simulados-admin'
     | '/temas-redacao-admin'
@@ -500,6 +524,7 @@ export interface RootRouteChildren {
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
   ConfirmarPresencaRoute: typeof ConfirmarPresencaRoute
+  EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   EvolucaoAdminRoute: typeof EvolucaoAdminRoute
   LembretesAdminRoute: typeof LembretesAdminRoute
   LgpdRoute: typeof LgpdRoute
@@ -512,6 +537,7 @@ export interface RootRouteChildren {
   ProfessorRoute: typeof ProfessorRoute
   RecadosAdminRoute: typeof RecadosAdminRoute
   RedacoesAdminRoute: typeof RedacoesAdminRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
   SessoesAdminRoute: typeof SessoesAdminRoute
   SimuladosAdminRoute: typeof SimuladosAdminRoute
   TemasRedacaoAdminRoute: typeof TemasRedacaoAdminRoute
@@ -583,6 +609,13 @@ declare module '@tanstack/react-router' {
       path: '/confirmar-presenca'
       fullPath: '/confirmar-presenca'
       preLoaderRoute: typeof ConfirmarPresencaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esqueci-senha': {
+      id: '/esqueci-senha'
+      path: '/esqueci-senha'
+      fullPath: '/esqueci-senha'
+      preLoaderRoute: typeof EsqueciSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evolucao-admin': {
@@ -667,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/redacoes-admin'
       fullPath: '/redacoes-admin'
       preLoaderRoute: typeof RedacoesAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sessoes-admin': {
@@ -840,6 +880,7 @@ const rootRouteChildren: RootRouteChildren = {
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,
   ConfirmarPresencaRoute: ConfirmarPresencaRoute,
+  EsqueciSenhaRoute: EsqueciSenhaRoute,
   EvolucaoAdminRoute: EvolucaoAdminRoute,
   LembretesAdminRoute: LembretesAdminRoute,
   LgpdRoute: LgpdRoute,
@@ -852,6 +893,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfessorRoute: ProfessorRoute,
   RecadosAdminRoute: RecadosAdminRoute,
   RedacoesAdminRoute: RedacoesAdminRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
   SessoesAdminRoute: SessoesAdminRoute,
   SimuladosAdminRoute: SimuladosAdminRoute,
   TemasRedacaoAdminRoute: TemasRedacaoAdminRoute,
