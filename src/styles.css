@@ -1422,10 +1422,6 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
 }
 
 .aprovados-cta { margin-top: 40px; text-align: center; }
-/* O semestre em destaque dentro da frase. Roxo com peso 800 é como o site já
-   destaca palavra em texto corrido (ver .login-support a, .terms-check a) —
-   um marca-texto aqui seria o único do site. */
-.aprovados-cta p strong { color: var(--purple); font-weight: 800; }
 .aprovados-cta p { max-width: 480px; margin: 0 auto 18px; color: #667085; font-size: 13px; line-height: 1.7; }
 
 @media (max-width: 480px) {
