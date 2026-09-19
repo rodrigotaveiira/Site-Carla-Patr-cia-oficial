@@ -32,15 +32,47 @@ export async function avisarTodosOsAlunos(
     const store = sessionHistoryStore()
     const { blobs } = await store.list()
 
-    const envios = Promise.allSettled(
+    const registros = await Promise.all(
       blobs.map(async (blob) => {
         const registro = (await store.get(blob.key, { type: 'json' })) as { email?: string; name?: string } | null
-        if (!registro?.email) return
+        return registro?.email ? { email: registro.email, nome: registro.name || 'Aluno(a)' } : null
+      }),
+    )
 
-        const { assunto, html, texto } = montarEmail({ nome: registro.name || 'Aluno(a)' })
-        const resultado = await enviarEmail({ para: registro.email, assunto, html, texto })
+    await avisarAlunos(contexto, registros.filter((r) => r !== null), montarEmail)
+  } catch (error) {
+    console.error(`[${contexto}] não foi possível avisar os alunos:`, error)
+  }
+}
+
+/**
+ * Manda o e-mail só pros alunos da lista, montado individualmente.
+ *
+ * É o par de `avisarTodosOsAlunos` pra quando o aviso não é pra turma: mudança
+ * ou cancelamento de um horário de mentoria, por exemplo, interessa a quem está
+ * inscrito nele e a mais ninguém. A lista vem do próprio registro salvo (os
+ * inscritos do horário), não do histórico de sessões — então aqui não existe a
+ * limitação de "só quem já logou uma vez".
+ *
+ * Nunca lança, pelo mesmo motivo de `avisarTodosOsAlunos`: é sempre disparado
+ * DEPOIS que a alteração já foi gravada.
+ *
+ * @param contexto identificação curta pro log, ex.: 'mentoria-cancelada'.
+ */
+export async function avisarAlunos(
+  contexto: string,
+  alunos: { email: string; nome: string }[],
+  montarEmail: (aluno: { nome: string }) => { assunto: string; html: string; texto: string },
+): Promise<void> {
+  if (alunos.length === 0) return
+
+  try {
+    const envios = Promise.allSettled(
+      alunos.map(async ({ email, nome }) => {
+        const { assunto, html, texto } = montarEmail({ nome })
+        const resultado = await enviarEmail({ para: email, assunto, html, texto })
         if (resultado.status === 'erro') {
-          console.error(`[${contexto}] falha ao avisar ${registro.email}:`, resultado.motivo)
+          console.error(`[${contexto}] falha ao avisar ${email}:`, resultado.motivo)
         }
       }),
     )

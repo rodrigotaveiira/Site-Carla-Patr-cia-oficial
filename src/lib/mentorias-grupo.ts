@@ -4,6 +4,7 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
+import { notificarMentoriaAlterada, notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
@@ -145,6 +146,17 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
     if (!result?.modified) throw new Error('Já existe um grupo cadastrado nessa data e hora.')
+
+    // Só depois do grupo gravado, e nunca lança — ver notificar-mentoria.ts.
+    await notificarNovaMentoria({
+      emGrupo: true,
+      data: slot.date,
+      hora: slot.time,
+      horaFim: slot.endTime,
+      titulo: slot.title,
+      descricao: slot.description,
+    })
+
     return slot
   })
 
@@ -190,6 +202,28 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
     if (!result?.modified) throw new Error('Não foi possível salvar, tente novamente.')
+
+    // Avisa só quem já está inscrito, e só quando mudou algo que a pessoa
+    // precisa reagendar na cabeça dela: horário, término ou título. Mexer na
+    // capacidade ou na descrição não muda onde nem quando ela precisa estar,
+    // então não vira e-mail — aviso demais treina o aluno a ignorar todos.
+    const mudouOQueImporta =
+      slot.time !== updated.time || slot.endTime !== updated.endTime || slot.title !== updated.title
+
+    if (mudouOQueImporta && updated.students.length > 0) {
+      await notificarMentoriaAlterada({
+        alunos: updated.students,
+        emGrupo: true,
+        data: updated.date,
+        horaAntes: slot.time,
+        horaFimAntes: slot.endTime,
+        tituloAntes: slot.title,
+        horaDepois: updated.time,
+        horaFimDepois: updated.endTime,
+        tituloDepois: updated.title,
+      })
+    }
+
     return updated
   })
 
@@ -216,6 +250,16 @@ export const deleteMentoriaGrupoSlot = createServerFn({ method: 'POST' })
           // limpeza best-effort — não impede a exclusão do grupo em si
         }
       }))
+
+      // Todo mundo que estava inscrito precisa saber que não vai acontecer.
+      await notificarMentoriaCancelada({
+        alunos: existing.students,
+        emGrupo: true,
+        data: existing.date,
+        hora: existing.time,
+        horaFim: existing.endTime,
+        titulo: existing.title,
+      })
     }
 
     return { ok: true }
@@ -422,6 +466,20 @@ export const removeMentoriaGrupoStudent = createServerFn({ method: 'POST' })
       await activeGroupBookingStore().delete(data.email)
     } catch {
       // limpeza best-effort — não impede a remoção em si
+    }
+
+    // Só pro aluno removido: pra ele o grupo deixou de existir, e ninguém mais
+    // precisa saber. O grupo em si continua acontecendo pros outros.
+    const removido = slot.students.find((student) => student.email === data.email)
+    if (removido) {
+      await notificarMentoriaCancelada({
+        alunos: [removido],
+        emGrupo: true,
+        data: slot.date,
+        hora: slot.time,
+        horaFim: slot.endTime,
+        titulo: slot.title,
+      })
     }
 
     return updated

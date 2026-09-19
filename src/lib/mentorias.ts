@@ -5,6 +5,7 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
+import { notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
@@ -84,6 +85,10 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
     if (!result?.modified) throw new Error('Já existe um horário cadastrado nessa data e hora.')
+
+    // Só depois do horário gravado, e nunca lança — ver notificar-mentoria.ts.
+    await notificarNovaMentoria({ emGrupo: false, data: slot.date, hora: slot.time })
+
     return slot
   })
 
@@ -94,7 +99,21 @@ export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
     const store = slotsStore()
+    // Lê antes de apagar pra saber se alguém tinha esse horário reservado: quem
+    // marcou precisa ficar sabendo que não vai mais acontecer, senão aparece
+    // pra uma mentoria que não existe.
+    const existing = (await store.get(data.id, { type: 'json' })) as MentoriaSlot | null
     await store.delete(data.id)
+
+    if (existing?.student?.email) {
+      await notificarMentoriaCancelada({
+        alunos: [existing.student],
+        emGrupo: false,
+        data: existing.date,
+        hora: existing.time,
+      })
+    }
+
     return { ok: true }
   })
 
