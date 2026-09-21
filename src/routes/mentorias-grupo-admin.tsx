@@ -44,6 +44,7 @@ function MentoriasGrupoAdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [editDate, setEditDate] = useState('')
   const [editTime, setEditTime] = useState('')
   const [editEndTime, setEditEndTime] = useState('')
   const [editCapacity, setEditCapacity] = useState('')
@@ -141,6 +142,7 @@ function MentoriasGrupoAdminPage() {
     setEditingId(slot.id)
     setEditTitle(slot.title || '')
     setEditDescription(slot.description || '')
+    setEditDate(slot.date)
     setEditTime(slot.time)
     // Grupo antigo não tem término gravado: entra o derivado da duração, que é
     // o horário que ele já tinha na prática.
@@ -165,6 +167,10 @@ function MentoriasGrupoAdminPage() {
       setEditError('Escreva do que a mentoria trata.')
       return
     }
+    if (!editDate) {
+      setEditError('Preencha a data.')
+      return
+    }
     if (!editTime || !editEndTime) {
       setEditError('Preencha o horário de início e o de término.')
       return
@@ -180,7 +186,7 @@ function MentoriasGrupoAdminPage() {
     setEditSaving(true)
     try {
       await updateMentoriaGrupoSlot({
-        data: { id, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber },
+        data: { id, date: editDate, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber },
       })
       setEditingId(null)
       await load()
@@ -266,6 +272,10 @@ function MentoriasGrupoAdminPage() {
                       <textarea rows={2} value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <div className="field" style={{ flex: '1 1 140px' }}>
+                        <label>Data</label>
+                        <input type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} />
+                      </div>
                       <div className="field" style={{ flex: '1 1 110px' }}>
                         <label>Início</label>
                         <input type="time" value={editTime} onChange={(event) => setEditTime(event.target.value)} />

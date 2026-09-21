@@ -103,6 +103,21 @@ async function liberarClaimDeGrupo(email: string, slotId: string): Promise<void>
   }
 }
 
+// Atualiza a claim de UM grupo depois que o admin muda a data/horário dele
+// (o que troca o id do grupo — ver makeSlotId): sem isso, a claim de quem já
+// estava inscrito continuaria apontando pro id e pra data de antes da
+// mudança. Best-effort, igual liberarClaimDeGrupo.
+async function moverClaimDeGrupo(email: string, slotIdAntigo: string, slotIdNovo: string, novaData: string): Promise<void> {
+  const claimStore = activeGroupBookingStore()
+  const entry = await claimStore.getWithMetadata(email, { type: 'json' })
+  if (!entry) return
+
+  const claims = ((entry.data as ActiveGroupBookingClaims).claims ?? []).map((claim) =>
+    claim.slotId === slotIdAntigo ? { ...claim, slotId: slotIdNovo, date: novaData } : claim,
+  )
+  await claimStore.setJSON(email, { claims }, { onlyIfMatch: entry.etag })
+}
+
 function makeSlotId(date: string, time: string) {
   return `${date}_${time}`
 }
@@ -187,6 +202,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   .validator(
     z.object({
       id: idSchema,
+      date: isoDate,
       time: hhmm,
       endTime: hhmm,
       title: boundedText(200),
@@ -197,7 +213,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
-    if (!data.time) throw new Error('Preencha o horário.')
+    if (!data.date || !data.time) throw new Error('Preencha a data e o horário.')
     const capacity = Math.floor(data.capacity)
     if (!capacity || capacity < 1) throw new Error('Informe quantas pessoas o grupo terá (mínimo 1).')
 
@@ -213,8 +229,16 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       throw new Error(`Não é possível reduzir a capacidade abaixo do número de alunos já inscritos (${slot.students.length}).`)
     }
 
+    // O id é derivado de data+horário (ver makeSlotId) — mudar qualquer um
+    // dos dois significa mover o grupo pra uma chave nova, não só atualizar
+    // a existente.
+    const novoId = makeSlotId(data.date, data.time)
+    const mudouChave = novoId !== data.id
+
     const updated: MentoriaGrupoSlot = {
       ...slot,
+      id: novoId,
+      date: data.date,
       time: data.time,
       endTime: data.endTime,
       duration,
@@ -223,21 +247,40 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       capacity,
     }
 
-    const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
-    if (!result?.modified) throw new Error('Não foi possível salvar, tente novamente.')
+    if (mudouChave) {
+      const criado = await store.setJSON(novoId, updated, { onlyIfNew: true })
+      if (!criado?.modified) throw new Error('Já existe um grupo cadastrado nessa data e hora.')
+      await store.delete(data.id)
+
+      // As claims de quem já está inscrito apontam pro id (e pra data) de
+      // antes da mudança — sem atualizar, elas ficariam contando pro limite
+      // de MAX_GRUPOS_SIMULTANEOS com informação desatualizada.
+      await Promise.all(updated.students.map(async (student) => {
+        try {
+          await moverClaimDeGrupo(student.email, data.id, novoId, updated.date)
+        } catch {
+          // limpeza best-effort — não impede a edição em si
+        }
+      }))
+    } else {
+      const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
+      if (!result?.modified) throw new Error('Não foi possível salvar, tente novamente.')
+    }
 
     // Avisa só quem já está inscrito, e só quando mudou algo que a pessoa
-    // precisa reagendar na cabeça dela: horário, término ou título. Mexer na
-    // capacidade ou na descrição não muda onde nem quando ela precisa estar,
-    // então não vira e-mail — aviso demais treina o aluno a ignorar todos.
+    // precisa reagendar na cabeça dela: data, horário, término ou título.
+    // Mexer na capacidade ou na descrição não muda onde nem quando ela
+    // precisa estar, então não vira e-mail — aviso demais treina o aluno a
+    // ignorar todos.
     const mudouOQueImporta =
-      slot.time !== updated.time || slot.endTime !== updated.endTime || slot.title !== updated.title
+      slot.date !== updated.date || slot.time !== updated.time || slot.endTime !== updated.endTime || slot.title !== updated.title
 
     if (mudouOQueImporta && updated.students.length > 0) {
       await notificarMentoriaAlterada({
         alunos: updated.students,
         emGrupo: true,
-        data: updated.date,
+        dataAntes: slot.date,
+        dataDepois: updated.date,
         horaAntes: slot.time,
         horaFimAntes: slot.endTime,
         tituloAntes: slot.title,
