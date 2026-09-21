@@ -2,7 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { z } from 'zod'
 import { getServerUser } from './auth'
-import { userHasRole, isStaff, getStudentIdentity } from './roles'
+import { userHasRole, isStaff } from './roles'
+import { getRegisteredIdentity } from './identidade-cadastro'
 import { STORES } from './blob-stores'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
@@ -297,7 +298,7 @@ async function baixarArquivoSimulado(eventId: string, kind: SimuladoFileKind) {
     | null
   if (!rec) throw new Error('Arquivo não encontrado.')
 
-  const { name, cpf } = getStudentIdentity(user)
+  const { name, cpf } = await getRegisteredIdentity(user)
   let watermarked = rec.fileDataUrl
   try {
     watermarked = await watermarkPdfDataUrl(rec.fileDataUrl, name, cpf)

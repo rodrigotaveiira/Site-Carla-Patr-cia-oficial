@@ -2,7 +2,8 @@ import { createServerFn } from '@tanstack/react-start'
 import { getStore } from '@netlify/blobs'
 import { z } from 'zod'
 import { getServerUser } from './auth'
-import { userHasRole, getStudentIdentity } from './roles'
+import { userHasRole } from './roles'
+import { getRegisteredIdentity } from './identidade-cadastro'
 import { watermarkPdfDataUrl } from './watermark'
 import { validateUpload } from './upload-validation'
 import { MAX_CHUNKED_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
@@ -201,7 +202,7 @@ export const getContentItemFile = createServerFn({ method: 'GET' })
     const item = await store.get(data.id, { type: 'json' })
     if (!item) throw new Error('Arquivo não encontrado.')
     const { fileName, fileDataUrl } = item as ContentItem
-    const { name, cpf } = getStudentIdentity(user)
+    const { name, cpf } = await getRegisteredIdentity(user)
     let watermarked = fileDataUrl
     try {
       // Em Dicas a professora põe a marca d'água dela no meio da página, então a
