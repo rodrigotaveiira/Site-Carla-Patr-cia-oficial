@@ -1,4 +1,4 @@
-import { CirclePlay, FileCheck2, Files, X } from 'lucide-react'
+import { CirclePlay, FileCheck2, Files, Target, X } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { REDACOES_META_PROGRESSO, type StudentProgress } from '@/lib/progress'
@@ -121,6 +121,24 @@ export function ProgressRing({ progress }: { progress: StudentProgress | null })
                 <span><Files size={13} /> Materiais baixados</span>
               </div>
               <small>Nenhum material do curso liberado ainda — essa parte não entra na conta por enquanto.</small>
+            </div>
+          )}
+
+          {progress.simuladosTracked ? (
+            <div className="hero-ring-metric">
+              <div className="hero-ring-metric-head">
+                <span><Target size={13} /> Questões para treino</span>
+                <b>{progress.simuladosPercent}%</b>
+              </div>
+              <div className="hero-ring-bar"><i style={{ width: `${progress.simuladosPercent}%` }} /></div>
+              <small>{progress.simuladosRespondidos} de {progress.simuladosDisponiveis} conjuntos</small>
+            </div>
+          ) : (
+            <div className="hero-ring-metric">
+              <div className="hero-ring-metric-head">
+                <span><Target size={13} /> Questões para treino</span>
+              </div>
+              <small>Nenhum conjunto do curso liberado ainda — essa parte não entra na conta por enquanto.</small>
             </div>
           )}
 

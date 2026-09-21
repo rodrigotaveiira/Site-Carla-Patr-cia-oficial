@@ -55,7 +55,7 @@ function ProgressoPage() {
     <div className="panel">
       <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Meu progresso</h1>
-      <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas, nos materiais baixados e nas redações entregues.</p>
+      <p className="panel-subtitle">Sua evolução na plataforma, com base nas aulas assistidas, nos materiais baixados, nas questões para treino respondidas e nas redações entregues.</p>
 
       {progress && (
         <div style={{ marginTop: 20, padding: '20px', background: 'linear-gradient(135deg, var(--purple), #9333ea)', borderRadius: 12, color: '#fff' }}>
@@ -86,6 +86,17 @@ function ProgressoPage() {
                 </div>
               </div>
             )}
+            {progress.simuladosTracked && (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <span>Questões para treino</span>
+                  <span>{progress.simuladosRespondidos} de {progress.simuladosDisponiveis}</span>
+                </div>
+                <div style={{ marginTop: 4, height: 6, background: 'rgba(255,255,255,0.25)', borderRadius: 4, overflow: 'hidden' }}>
+                  <div style={{ width: `${progress.simuladosPercent}%`, height: '100%', background: '#fff' }} />
+                </div>
+              </div>
+            )}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                 <span>Redações entregues</span>
@@ -96,9 +107,9 @@ function ProgressoPage() {
               </div>
             </div>
           </div>
-          {!progress.aulasTracked && !progress.materiaisTracked && (
+          {!progress.aulasTracked && !progress.materiaisTracked && !progress.simuladosTracked && (
             <p style={{ margin: '14px 0 0', fontSize: 12.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)' }}>
-              Aulas e materiais entram nesta conta assim que a professora publicar os primeiros do curso.
+              Aulas, materiais e questões entram nesta conta assim que a professora publicar os primeiros do curso.
             </p>
           )}
         </div>

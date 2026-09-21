@@ -5,6 +5,8 @@ import { userHasRole } from './roles'
 import { CONTENT_SECTIONS, type ContentSection } from './content-library'
 import { isReleased, type Material } from './materials'
 import { lerMateriaisBaixados } from './material-downloads'
+import { isReleased as isSimuladoReleased } from './simulado-release'
+import type { Simulado, SimuladoAttempt } from './simulados'
 import type { Lesson } from './aulas'
 
 export type ContentCounts = {
@@ -67,6 +69,10 @@ export type StudentProgress = {
   materiaisDisponiveis: number
   materiaisPercent: number
   materiaisTracked: boolean // false = nenhum material liberado no período contado
+  simuladosRespondidos: number
+  simuladosDisponiveis: number
+  simuladosPercent: number
+  simuladosTracked: boolean // false = nenhum conjunto de questões liberado no período contado
   redacoesEntregues: number
   redacoesPercent: number
 }
@@ -123,6 +129,34 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
   const baixados = await lerMateriaisBaixados(user.email)
   const materiaisBaixados = baixados.filter((id) => materiaisContados.has(id)).length
 
+  // Questões para treino do período contado que já abriram pro aluno. Mesma
+  // regra dos materiais: conjunto agendado pro futuro não entra no denominador
+  // enquanto não libera, senão a barra do aluno cairia por causa de uma prova
+  // que ele ainda nem pode fazer.
+  const simuladosStore = getStore({ name: 'simulados', consistency: 'strong' })
+  const { blobs: simuladoBlobs } = await simuladosStore.list()
+  const agora = Date.now()
+  const simuladosContados = new Set<string>()
+  for (const blob of simuladoBlobs) {
+    const value = (await simuladosStore.get(blob.key, { type: 'json' })) as Simulado | null
+    if (!value || value.createdAt < corte) continue
+    if (!isSimuladoReleased(value, agora)) continue
+    simuladosContados.add(value.id)
+  }
+
+  // Cada aluno responde cada conjunto uma vez só, mas a contagem passa por um
+  // Set mesmo assim: se um dia existir mais de uma tentativa do mesmo conjunto,
+  // ela não pode contar duas vezes e estourar o denominador.
+  const attemptsStore = getStore({ name: 'simulado-attempts', consistency: 'strong' })
+  const { blobs: attemptBlobs } = await attemptsStore.list()
+  const simuladosRespondidosSet = new Set<string>()
+  for (const blob of attemptBlobs) {
+    const value = (await attemptsStore.get(blob.key, { type: 'json' })) as SimuladoAttempt | null
+    if (!value || value.studentEmail !== user.email) continue
+    if (simuladosContados.has(value.simuladoId)) simuladosRespondidosSet.add(value.simuladoId)
+  }
+  const simuladosRespondidos = simuladosRespondidosSet.size
+
   const redacoesStore = getStore({ name: 'redacoes-submissions', consistency: 'strong' })
   const { blobs } = await redacoesStore.list()
   let redacoesEntregues = 0
@@ -139,6 +173,9 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
   const materiaisTracked = materiaisContados.size > 0
   const materiaisPercent = materiaisTracked ? Math.min(100, (materiaisBaixados / materiaisContados.size) * 100) : 0
 
+  const simuladosTracked = simuladosContados.size > 0
+  const simuladosPercent = simuladosTracked ? Math.min(100, (simuladosRespondidos / simuladosContados.size) * 100) : 0
+
   const redacoesPercent = Math.min(100, (redacoesEntregues / REDACOES_META_PROGRESSO) * 100)
 
   // Fatia sem nada pra contar fica de FORA da média em vez de entrar como 0% —
@@ -148,6 +185,7 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
   const fatias = [redacoesPercent]
   if (aulasTracked) fatias.push(aulasPercent)
   if (materiaisTracked) fatias.push(materiaisPercent)
+  if (simuladosTracked) fatias.push(simuladosPercent)
   const overallPercent = Math.round(fatias.reduce((soma, valor) => soma + valor, 0) / fatias.length)
 
   const result: StudentProgress = {
@@ -160,6 +198,10 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
     materiaisDisponiveis: materiaisContados.size,
     materiaisPercent: Math.round(materiaisPercent),
     materiaisTracked,
+    simuladosRespondidos,
+    simuladosDisponiveis: simuladosContados.size,
+    simuladosPercent: Math.round(simuladosPercent),
+    simuladosTracked,
     redacoesEntregues,
     redacoesPercent: Math.round(redacoesPercent),
   }
