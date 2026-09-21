@@ -82,15 +82,16 @@ function formatarDataCurta(data: string): string {
   return `${dia}/${mes}/${ano}`
 }
 
-// A coluna "Horário" tem texto livre digitado à mão ("19h30 às 20h30", mas
-// também já vimos "16h as 17h" sem acento) — em vez de comparar a célula
-// inteira, extrai só o horário de início ("19h30" -> "19:30") e compara com
-// o horário do agendamento. Mais tolerante a como a Carla escreveu a célula.
+// A coluna "Horário" tem texto livre digitado à mão — já vimos "19h30 às
+// 20h30", "16h as 17h" (sem acento) e "09:30 às 11h" (com dois-pontos em vez
+// de "h"). Em vez de comparar a célula inteira, extrai só o horário de
+// início e compara com o horário do agendamento — tolerante a como a Carla
+// escreveu a célula.
 function horarioInicioDaCelula(celula: string): string | null {
-  const match = celula.match(/^(\d{1,2})h(\d{2})?/)
+  const match = celula.match(/^(\d{1,2})(?:h(\d{2})?|:(\d{2}))/)
   if (!match) return null
   const hh = match[1]!.padStart(2, '0')
-  const mm = match[2] ?? '00'
+  const mm = match[2] ?? match[3] ?? '00'
   return `${hh}:${mm}`
 }
 
