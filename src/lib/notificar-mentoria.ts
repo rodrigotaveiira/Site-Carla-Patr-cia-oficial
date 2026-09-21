@@ -37,7 +37,8 @@ export async function notificarNovaMentoria(params: {
 export async function notificarMentoriaAlterada(params: {
   alunos: { email: string; name: string }[]
   emGrupo: boolean
-  data: string
+  dataAntes: string
+  dataDepois: string
   horaAntes: string
   horaFimAntes?: string
   tituloAntes?: string

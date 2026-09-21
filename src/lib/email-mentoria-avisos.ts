@@ -123,7 +123,8 @@ export function montarEmailNovaMentoria(params: {
 export function montarEmailMentoriaAlterada(params: {
   nomeAluno: string
   emGrupo: boolean
-  data: string
+  dataAntes: string
+  dataDepois: string
   horaAntes: string
   horaFimAntes?: string
   tituloAntes?: string
@@ -131,14 +132,15 @@ export function montarEmailMentoriaAlterada(params: {
   horaFimDepois?: string
   tituloDepois?: string
 }) {
-  const { nomeAluno, emGrupo, data, horaAntes, horaFimAntes, tituloAntes, horaDepois, horaFimDepois, tituloDepois } = params
+  const { nomeAluno, emGrupo, dataAntes, dataDepois, horaAntes, horaFimAntes, tituloAntes, horaDepois, horaFimDepois, tituloDepois } = params
   const primeiroNome = primeiroNomeDe(nomeAluno)
-  const dataLonga = formatarDataLonga(data)
+  const dataLongaAntes = formatarDataLonga(dataAntes)
+  const dataLongaDepois = formatarDataLonga(dataDepois)
   const antes = horaFimAntes ? `${formatarHora(horaAntes)} às ${formatarHora(horaFimAntes)}` : formatarHora(horaAntes)
   const depois = horaFimDepois ? `${formatarHora(horaDepois)} às ${formatarHora(horaFimDepois)}` : formatarHora(horaDepois)
   const link = linkDa(emGrupo)
 
-  const assunto = `Mudou o horário da sua ${rotuloDe(emGrupo)} de ${dataLonga.toLowerCase()}`
+  const assunto = `Mudou o horário da sua ${rotuloDe(emGrupo)} de ${dataLongaDepois.toLowerCase()}`
 
   const html = moldura(
     `<p style="margin:0 0 16px;color:${NAVY};font-size:15px;line-height:1.6;">
@@ -148,10 +150,10 @@ export function montarEmailMentoriaAlterada(params: {
      <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;background:#f5f1fc;border-radius:10px;">
        <tr><td style="padding:16px 18px;">
          <div style="color:#667085;font-size:13px;line-height:1.5;text-decoration:line-through;">
-           ${tituloAntes ? `${escapar(tituloAntes)} — ` : ''}${escapar(dataLonga)}, ${escapar(antes)}
+           ${tituloAntes ? `${escapar(tituloAntes)} — ` : ''}${escapar(dataLongaAntes)}, ${escapar(antes)}
          </div>
          <div style="margin-top:8px;color:${NAVY};font-size:16px;font-weight:700;">
-           ${tituloDepois ? `${escapar(tituloDepois)} — ` : ''}${escapar(dataLonga)}, ${escapar(depois)}
+           ${tituloDepois ? `${escapar(tituloDepois)} — ` : ''}${escapar(dataLongaDepois)}, ${escapar(depois)}
          </div>
        </td></tr>
      </table>
@@ -166,8 +168,8 @@ export function montarEmailMentoriaAlterada(params: {
 
   const texto = `Olá, ${primeiroNome}!\n\n`
     + `A ${rotuloDe(emGrupo)} em que você está inscrito(a) foi alterada.\n\n`
-    + `Antes: ${tituloAntes ? `${tituloAntes} — ` : ''}${dataLonga}, ${antes}\n`
-    + `Agora: ${tituloDepois ? `${tituloDepois} — ` : ''}${dataLonga}, ${depois}\n\n`
+    + `Antes: ${tituloAntes ? `${tituloAntes} — ` : ''}${dataLongaAntes}, ${antes}\n`
+    + `Agora: ${tituloDepois ? `${tituloDepois} — ` : ''}${dataLongaDepois}, ${depois}\n\n`
     + `Sua vaga continua garantida — não precisa se inscrever de novo.\n\nAcesse: ${link}`
 
   return { assunto, html, texto }
