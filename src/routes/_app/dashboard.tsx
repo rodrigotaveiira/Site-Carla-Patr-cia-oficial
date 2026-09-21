@@ -1,8 +1,8 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
   Award, Bell, BookCheck, BookMarked, BookOpen, CalendarCheck, CalendarDays, CheckCircle2, ChevronRight, CircleHelp, CirclePlay,
-  Clock3, Download, FileCheck2, Files, Library, LogOut, MessageCircleHeart,
-  MoreHorizontal, PenLine, ScrollText, Search, Target, Trophy, Zap,
+  Clock3, Crown, Download, FileCheck2, Files, Library, LogOut, MessageCircleHeart,
+  MoreHorizontal, PenLine, ScrollText, Search, Target, TrendingUp, Trophy, Zap,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
@@ -22,6 +22,8 @@ import { getRecentContentNotifications, type ContentNotification } from '@/lib/n
 import { lerAvisosVistosEm, salvarAvisosVistosEm, temAvisoNaoVisto } from '@/lib/avisos-vistos'
 import { searchContent, type SearchResult, type SearchResultType } from '@/lib/search'
 import { downloadAchievementImage } from '@/lib/achievement-image'
+import { downloadJornadaEncarte } from '@/lib/encarte-jornada'
+import { getMyAchievements, markAchievementsSeen } from '@/lib/conquistas'
 import { JORNADA_SEMANAL } from '@/lib/conquistas-catalogo'
 import { IconeDaConquista } from '@/components/ConquistaBadge'
 import { baixarArquivoPreparado } from '@/lib/baixar-arquivo'
@@ -242,6 +244,39 @@ function DashboardPage() {
       await downloadAchievementImage(studentName.trim() || 'Aluno(a)', EXCELLENCE_GRADE_THRESHOLD, EXCELLENCE_WINDOW_DAYS)
     } finally {
       setGeneratingBadgeImage(false)
+    }
+  }
+
+  // Marco de 15/30 dias seguidos de estudo: uma lembrança de que o aluno está
+  // construindo o sonho, mostrada só uma vez (na primeira visita depois de
+  // bater o marco) — igual ao conceito de "novas" da coleção de conquistas,
+  // só que com um encarte de verdade pra baixar, não só o selo da coleção.
+  const [jornadaEncarte, setJornadaEncarte] = useState<15 | 30 | null>(null)
+  const [generatingJornadaImage, setGeneratingJornadaImage] = useState(false)
+  useEffect(() => {
+    getMyAchievements()
+      .then((estado) => {
+        if (!estado) return
+        // Prioriza o marco maior — se o aluno some por mais de 15 dias e volta
+        // direto aos 30, os dois estariam "novos" ao mesmo tempo.
+        if (estado.novas.includes('sequencia-30')) setJornadaEncarte(30)
+        else if (estado.novas.includes('sequencia-15')) setJornadaEncarte(15)
+      })
+      .catch(() => { /* sem essa lembrança agora, sem problema — não é crítico */ })
+  }, [])
+
+  function marcarJornadaVista(dias: 15 | 30) {
+    markAchievementsSeen({ data: { ids: [`sequencia-${dias}`] } }).catch(() => { /* tenta de novo na próxima visita */ })
+    setJornadaEncarte(null)
+  }
+
+  async function handleDownloadJornada(dias: 15 | 30) {
+    setGeneratingJornadaImage(true)
+    try {
+      await downloadJornadaEncarte(studentName.trim() || 'Aluno(a)', dias)
+      marcarJornadaVista(dias)
+    } finally {
+      setGeneratingJornadaImage(false)
     }
   }
 
@@ -561,6 +596,20 @@ function DashboardPage() {
         <div className="welcome-row"><div><span>{new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }).toUpperCase()}</span><h1>Olá, {studentName}! <span>✦</span></h1><p>Você está construindo um excelente ritmo. Continue assim!</p></div><Link className="outline-button" to="/calendario"><CalendarDays /> Ver calendário</Link></div>
 
         <section className="dashboard-hero-card"><div><span className="pill"><Zap /> Sua jornada</span><h2>Faltam <em>{diasParaEnem()} dias</em> para a Prova da FMC.</h2><p>Cada aula concluída hoje deixa você mais perto da aprovação.</p><Link to="/aulas">Continuar estudando <CirclePlay /></Link></div><ProgressRing progress={studentProgress} /><div className="dashboard-decoration">A+</div></section>
+
+        {jornadaEncarte && (
+          <section className={`achievement-banner jornada-banner jornada-${jornadaEncarte}`}>
+            <button type="button" className="achievement-dismiss" onClick={() => marcarJornadaVista(jornadaEncarte)} aria-label="Dispensar">×</button>
+            <span className="achievement-icon">{jornadaEncarte === 30 ? <Crown /> : <TrendingUp />}</span>
+            <div>
+              <b>{jornadaEncarte} dias seguidos de estudo</b>
+              <p>Você está construindo o seu sonho. Essa é uma lembrança disso — guarde ou compartilhe.</p>
+            </div>
+            <button type="button" className="achievement-share" onClick={() => handleDownloadJornada(jornadaEncarte)} disabled={generatingJornadaImage}>
+              <Download size={15} /> {generatingJornadaImage ? 'Gerando...' : 'Baixar encarte'}
+            </button>
+          </section>
+        )}
 
         {excellenceBadge && (
           <section className="achievement-banner">
