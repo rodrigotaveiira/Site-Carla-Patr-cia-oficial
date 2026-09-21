@@ -6,7 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import {
   joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots,
-  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, type MentoriaGrupoSlot,
+  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, MAX_GRUPOS_SIMULTANEOS, type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
@@ -63,7 +63,9 @@ function MentoriasGrupoPage() {
   const today = new Date().toISOString().slice(0, 10)
   const futureSlots = slots.filter((slot) => slot.date >= today)
   const mySlots = futureSlots.filter((slot) => slot.students.some((student) => student.email === user?.email))
-  const hasGroup = mySlots.length > 0
+  // Até MAX_GRUPOS_SIMULTANEOS grupos ao mesmo tempo — sem distinção de tipo
+  // (ver joinMentoriaGrupoSlot).
+  const grupoCheio = mySlots.length >= MAX_GRUPOS_SIMULTANEOS
   const openSlots = futureSlots.filter(
     (slot) => slot.students.length < slot.capacity && !slot.students.some((student) => student.email === user?.email),
   )
@@ -149,8 +151,15 @@ function MentoriasGrupoPage() {
 
       <section>
         <h2 className="panel-section-title">Grupos com vaga</h2>
-        {hasGroup && (
-          <p className="panel-section-hint">Você já está inscrito em um grupo. Saia dele acima pra poder entrar em outro.</p>
+        {mySlots.length === 1 && (
+          <p className="panel-section-hint">
+            Você já está inscrito em um grupo. Ainda pode entrar em mais {MAX_GRUPOS_SIMULTANEOS - mySlots.length}.
+          </p>
+        )}
+        {grupoCheio && (
+          <p className="panel-section-hint">
+            Você já tem {MAX_GRUPOS_SIMULTANEOS} grupos marcados — o máximo permitido ao mesmo tempo. Saia de um deles acima pra poder entrar em outro.
+          </p>
         )}
         {loading && <p className="panel-subtitle">Carregando...</p>}
         {!loading && Object.keys(grouped).length === 0 && (
@@ -184,8 +193,8 @@ function MentoriasGrupoPage() {
                     </div>
                     <button
                       onClick={() => setPendingSlot(slot)}
-                      disabled={hasGroup}
-                      title={hasGroup ? 'Saia do seu grupo atual pra poder entrar em outro.' : undefined}
+                      disabled={grupoCheio}
+                      title={grupoCheio ? `Você já tem ${MAX_GRUPOS_SIMULTANEOS} grupos marcados. Saia de um pra poder entrar em outro.` : undefined}
                       className="btn btn-primary btn-sm"
                     >
                       Entrar no grupo

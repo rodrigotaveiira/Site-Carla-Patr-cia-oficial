@@ -70,15 +70,37 @@ function slotsStore() {
 }
 
 type ActiveGroupBookingClaim = { slotId: string; date: string; claimedAt: string }
+type ActiveGroupBookingClaims = { claims: ActiveGroupBookingClaim[] }
 
-// Um registro por aluno (no máximo um) com o grupo de mentoria futuro em que
-// está inscrito agora. Existe só pra tornar atômica a regra "um grupo futuro
-// por aluno" — mesmo padrão de `mentoriaAtiva` em mentorias.ts (mentoria
-// individual): sem isso, dois pedidos concorrentes do MESMO aluno pra DOIS
-// grupos diferentes passariam os dois (ler-então-agir em chaves diferentes é
-// corrida clássica). Aqui os dois disputam a mesma chave, e só um grava primeiro.
+// Quantos grupos de mentoria um aluno pode ter marcados ao mesmo tempo. Não
+// existe "tipo" de grupo no cadastro (só a Carla decide a capacidade de cada
+// um na hora de criar) — o limite é só uma contagem simples.
+export const MAX_GRUPOS_SIMULTANEOS = 2
+
+// Um registro por aluno com a lista (até MAX_GRUPOS_SIMULTANEOS) de grupos de
+// mentoria futuros em que está inscrito agora. Existe só pra tornar atômica a
+// regra acima — mesmo padrão de `mentoriaAtiva` em mentorias.ts (mentoria
+// individual): sem isso, pedidos concorrentes do MESMO aluno pra vários
+// grupos diferentes passariam todos (ler-então-agir em chaves diferentes é
+// corrida clássica). Aqui todos disputam a mesma chave, e só um grava por vez.
 function activeGroupBookingStore() {
   return getStore({ name: STORES.mentoriaGrupoAtiva, consistency: 'strong' })
+}
+
+// Tira a claim de UM grupo da lista do aluno (mantendo as outras), sem
+// derrubar a trava inteira dele. Best-effort: usada em saída/remoção/exclusão
+// de grupo, onde uma falha aqui não deve impedir a ação principal.
+async function liberarClaimDeGrupo(email: string, slotId: string): Promise<void> {
+  const claimStore = activeGroupBookingStore()
+  const entry = await claimStore.getWithMetadata(email, { type: 'json' })
+  if (!entry) return
+
+  const restante = ((entry.data as ActiveGroupBookingClaims).claims ?? []).filter((claim) => claim.slotId !== slotId)
+  if (restante.length === 0) {
+    await claimStore.delete(email)
+  } else {
+    await claimStore.setJSON(email, { claims: restante }, { onlyIfMatch: entry.etag })
+  }
 }
 
 function makeSlotId(date: string, time: string) {
@@ -236,17 +258,16 @@ export const deleteMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     const store = slotsStore()
     // Lê antes de apagar pra saber quem estava inscrito: cada um precisa ter a
-    // trava de "um grupo por vez" liberada — sem isso, todo mundo que estava
-    // nesse grupo ficaria impedido de entrar em outro até a data do grupo
-    // apagado passar sozinha (a trava só expira pela data, ver joinMentoriaGrupoSlot).
+    // vaga deste grupo liberada da contagem de MAX_GRUPOS_SIMULTANEOS — sem
+    // isso, ela ficaria contando pra sempre (a claim só expira pela data, ver
+    // joinMentoriaGrupoSlot).
     const existing = (await store.get(data.id, { type: 'json' })) as MentoriaGrupoSlot | null
     await store.delete(data.id)
 
     if (existing?.students?.length) {
-      const claimStore = activeGroupBookingStore()
       await Promise.all(existing.students.map(async (student) => {
         try {
-          await claimStore.delete(student.email)
+          await liberarClaimDeGrupo(student.email, data.id)
         } catch {
           // limpeza best-effort — não impede a exclusão do grupo em si
         }
@@ -284,39 +305,45 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     const claimStore = activeGroupBookingStore()
     const today = new Date().toISOString().slice(0, 10)
 
-    // Cada aluno só pode estar em um grupo de mentoria futuro por vez — mesma
-    // regra e mesmo motivo da mentoria individual (ver bookMentoriaSlot em
-    // mentorias.ts). Admin fica isento, pra poder testar um grupo sem que isso
-    // conte como "vaga ocupada" de verdade.
+    // Cada aluno pode ter, no máximo, MAX_GRUPOS_SIMULTANEOS grupos de
+    // mentoria futuros (ou em andamento) ao mesmo tempo — sem distinção de
+    // tipo, é só uma contagem. Mesma ideia e mesmo motivo da mentoria
+    // individual (ver bookMentoriaSlot em mentorias.ts): sem isso, dois
+    // pedidos concorrentes do mesmo aluno passariam os dois. Admin fica
+    // isento, pra poder testar um grupo sem que isso conte como "vaga
+    // ocupada" de verdade.
     const INFLIGHT_TTL_MS = 2 * 60 * 1000
     let claimedNow = false
     if (!isAdmin) {
       const claimEntry = await claimStore.getWithMetadata(email, { type: 'json' })
-      const claim = claimEntry?.data as ActiveGroupBookingClaim | undefined
+      const claimsAtuais = (claimEntry?.data as ActiveGroupBookingClaims | undefined)?.claims ?? []
 
-      if (claim) {
+      const claimsValidas = claimsAtuais.filter((claim) => {
         // `date` preenchida e futura = inscrição ativa de verdade.
         const inscricaoFutura = claim.date !== '' && claim.date >= today
         // `date` vazia = outro pedido deste aluno está no meio do caminho
         // agora. Só é considerado abandonado (e substituível) se ficou preso
         // por mais de 2 min.
         const emAndamento = claim.date === '' && Date.now() - Date.parse(claim.claimedAt) < INFLIGHT_TTL_MS
-        if (inscricaoFutura || emAndamento) {
-          throw new Error('Você já está inscrito em outro grupo de mentoria. Saia dele antes de entrar em outro.')
-        }
-        // Sobra: inscrição passada nunca finalizada (saiu, ou o grupo foi
-        // apagado), ou tentativa abandonada — pode ser substituída (CAS abaixo).
+        return inscricaoFutura || emAndamento
+      })
+
+      if (claimsValidas.length >= MAX_GRUPOS_SIMULTANEOS) {
+        throw new Error(
+          `Você já tem ${MAX_GRUPOS_SIMULTANEOS} agendamentos de grupo marcados, o máximo permitido. Saia de um deles antes de entrar em outro.`,
+        )
       }
 
-      const newClaim: ActiveGroupBookingClaim = { slotId: data.id, date: '', claimedAt: new Date().toISOString() }
+      const novaClaim: ActiveGroupBookingClaim = { slotId: data.id, date: '', claimedAt: new Date().toISOString() }
+      const novasClaims: ActiveGroupBookingClaims = { claims: [...claimsValidas, novaClaim] }
       const claimResult = claimEntry
-        ? await claimStore.setJSON(email, newClaim, { onlyIfMatch: claimEntry.etag })
-        : await claimStore.setJSON(email, newClaim, { onlyIfNew: true })
+        ? await claimStore.setJSON(email, novasClaims, { onlyIfMatch: claimEntry.etag })
+        : await claimStore.setJSON(email, novasClaims, { onlyIfNew: true })
 
       if (!claimResult?.modified) {
         // Perdeu a corrida: outro pedido (do mesmo aluno, quase no mesmo
-        // instante) gravou a inscrição ativa primeiro.
-        throw new Error('Você já está inscrito em outro grupo de mentoria. Saia dele antes de entrar em outro.')
+        // instante) gravou uma inscrição primeiro.
+        throw new Error('Algo mudou nos seus agendamentos de grupo agora mesmo. Atualize a página e tente de novo.')
       }
       claimedNow = true
     }
@@ -351,16 +378,16 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
         throw new Error('Esse grupo acabou de mudar. Atualize a página e tente de novo.')
       }
 
-      // Agora que a entrada está mesmo gravada, grava a data real na trava
-      // (antes ficava em branco só pra reservar a chave — ver acima).
+      // Agora que a entrada está mesmo gravada, grava a data real na claim
+      // deste grupo (antes ficava em branco só pra reservar a vaga na lista —
+      // ver acima), sem mexer nas outras claims do aluno.
       if (!isAdmin) {
         const claimEntry = await claimStore.getWithMetadata(email, { type: 'json' })
         if (claimEntry) {
-          await claimStore.setJSON(
-            email,
-            { slotId: data.id, date: slot.date, claimedAt: (claimEntry.data as ActiveGroupBookingClaim).claimedAt },
-            { onlyIfMatch: claimEntry.etag },
+          const claims = (claimEntry.data as ActiveGroupBookingClaims).claims.map((claim) =>
+            claim.slotId === data.id && claim.date === '' ? { ...claim, date: slot.date } : claim,
           )
+          await claimStore.setJSON(email, { claims }, { onlyIfMatch: claimEntry.etag })
         }
       }
 
@@ -385,15 +412,15 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
       return updated
     } catch (error) {
-      // A entrada não foi gravada (grupo sumiu, lotou, etc.) — libera a trava
-      // que este pedido tinha acabado de criar, senão o aluno fica bloqueado
-      // de tentar outro grupo sem ter entrado em nenhum.
+      // A entrada não foi gravada (grupo sumiu, lotou, etc.) — libera a vaga
+      // na lista que este pedido tinha acabado de reservar, senão ela conta
+      // pro limite sem o aluno ter entrado em lugar nenhum.
       if (claimedNow) {
         try {
-          await claimStore.delete(email)
+          await liberarClaimDeGrupo(email, data.id)
         } catch {
           // limpeza best-effort: se falhar, o próximo `joinMentoriaGrupoSlot`
-          // deste aluno vê a trava com `date: ''` (< today) e a substitui sozinho.
+          // deste aluno vê a claim com `date: ''` (expira em 2min) e a ignora.
         }
       }
       throw error
@@ -426,13 +453,13 @@ export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
     if (!result?.modified) throw new Error('Não foi possível sair do grupo, tente novamente.')
 
-    // Libera a trava de "um grupo por vez" de quem saiu — mesmo padrão do
+    // Libera a vaga deste grupo na contagem de quem saiu — mesmo padrão do
     // cancelMentoriaSlot da mentoria individual. Só libera se quem saiu foi o
     // próprio aluno (a remoção acima só tira `user.email`; admin sem ser
-    // membro do grupo não tira ninguém, então não há trava de terceiro a liberar).
+    // membro do grupo não tira ninguém, então não há claim de terceiro a liberar).
     if (alreadyIn) {
       try {
-        await activeGroupBookingStore().delete(user.email ?? '')
+        await liberarClaimDeGrupo(user.email ?? '', data.id)
       } catch {
         // limpeza best-effort — não impede a saída em si
       }
@@ -478,11 +505,11 @@ export const removeMentoriaGrupoStudent = createServerFn({ method: 'POST' })
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
     if (!result?.modified) throw new Error('Não foi possível remover, tente novamente.')
 
-    // Libera a trava de "um grupo por vez" do aluno removido — mesmo padrão
-    // de leaveMentoriaGrupoSlot. Sem isso ele ficaria impedido de entrar em
-    // outro grupo até a data deste passar sozinha.
+    // Libera a vaga deste grupo na contagem do aluno removido — mesmo padrão
+    // de leaveMentoriaGrupoSlot. Sem isso ela ficaria contando pro limite de
+    // MAX_GRUPOS_SIMULTANEOS até a data deste grupo passar sozinha.
     try {
-      await activeGroupBookingStore().delete(data.email)
+      await liberarClaimDeGrupo(data.email, data.id)
     } catch {
       // limpeza best-effort — não impede a remoção em si
     }
