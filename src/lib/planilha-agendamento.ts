@@ -1,21 +1,22 @@
 import { formatarHora } from './formato'
 
-// Atualiza a planilha de mentoria em grupo quando um aluno agenda: acha a
-// linha da sessão certa (por data + horário) e junta o nome do aluno na
-// coluna de inscritos, sem nunca criar linha nova. As linhas são pré-
-// cadastradas manualmente pela Carla (Grupo 1, Grupo 2, ..., Grupão 1,
-// Grupão 2), então uma sessão sem linha correspondente só gera um aviso no
-// log — a automação nunca escreve fora da estrutura que já existe.
+// Atualiza a planilha de mentoria em grupo quando um aluno agenda ou
+// cancela: acha a linha da sessão certa (por data + horário) e junta ou
+// tira o nome do aluno da coluna de inscritos, sem nunca criar ou apagar
+// linha. As linhas são pré-cadastradas manualmente pela Carla (Grupo 1,
+// Grupo 2, ..., Grupão 1, Grupão 2), então uma sessão sem linha
+// correspondente só gera um aviso no log — a automação nunca escreve fora
+// da estrutura que já existe.
 //
 // Autentica como service account do Google (JWT bearer flow assinado com a
 // chave privada, via fetch puro — sem SDK googleapis, mesma filosofia de
 // email.ts). Mentoria individual não entra aqui: só grupo tem essa planilha.
 //
-// Chamada de dentro de bookMentoriaGrupoSlot, DEPOIS que a reserva já foi
-// gravada e do aviso por e-mail. Nunca lança: se a service account não
-// estiver configurada, a planilha tiver sido desconectada ou o Google
-// estiver fora do ar, o agendamento do aluno continua valendo — o problema
-// fica só no log.
+// Chamada de dentro de bookMentoriaGrupoSlot / leaveMentoriaGrupoSlot /
+// removeMentoriaGrupoStudent, DEPOIS que a reserva/saída já foi gravada e do
+// aviso por e-mail. Nunca lança: se a service account não estiver
+// configurada, a planilha tiver sido desconectada ou o Google estiver fora
+// do ar, o agendamento do aluno continua valendo — o problema fica só no log.
 
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
 const SHEETS_API = 'https://sheets.googleapis.com/v4/spreadsheets'
@@ -95,17 +96,23 @@ function horarioInicioDaCelula(celula: string): string | null {
   return `${hh}:${mm}`
 }
 
-export async function registrarAgendamentoGrupoNaPlanilha(params: {
-  nomeAluno: string
-  data: string
-  hora: string
-  totalInscritos: number
-}): Promise<void> {
+type LinhaEncontrada = {
+  accessToken: string
+  planilhaId: string
+  aba: string
+  linhaPlanilha: number
+  nomesAtuais: string
+}
+
+// Autentica, lê a aba inteira e acha a linha da sessão certa por Data +
+// Horário. Cada branch de falha já loga o motivo, então quem chama só
+// precisa checar `null` e voltar.
+async function localizarLinhaGrupo(params: { data: string; hora: string }): Promise<LinhaEncontrada | null> {
   const clientEmail = typeof process !== 'undefined' ? process.env.GOOGLE_SHEETS_CLIENT_EMAIL : undefined
   const chaveBruta = typeof process !== 'undefined' ? process.env.GOOGLE_SHEETS_PRIVATE_KEY : undefined
   if (!clientEmail || !chaveBruta) {
     console.log('[planilha-agendamento] não configurado — faltam GOOGLE_SHEETS_CLIENT_EMAIL/GOOGLE_SHEETS_PRIVATE_KEY')
-    return
+    return null
   }
 
   const planilhaId = (typeof process !== 'undefined' && process.env.GOOGLE_SHEETS_ID) || PLANILHA_ID_PADRAO
@@ -113,67 +120,117 @@ export async function registrarAgendamentoGrupoNaPlanilha(params: {
   // No painel da Netlify a chave vira uma linha só; as quebras chegam como "\n" literal.
   const chavePrivada = chaveBruta.replace(/\\n/g, '\n')
 
-  try {
-    const accessToken = await obterAccessToken(clientEmail, chavePrivada)
-    if (!accessToken) {
-      console.log('[planilha-agendamento] sem access token — ver erro de autenticação acima')
-      return
-    }
+  const accessToken = await obterAccessToken(clientEmail, chavePrivada)
+  if (!accessToken) {
+    console.log('[planilha-agendamento] sem access token — ver erro de autenticação acima')
+    return null
+  }
 
-    const dataFormatada = formatarDataCurta(params.data)
-    const horarioBusca = params.hora
+  const dataFormatada = formatarDataCurta(params.data)
+  const horarioBusca = params.hora
 
-    const leitura = await fetch(`${SHEETS_API}/${planilhaId}/values/${encodeURIComponent(aba)}!A1:F1000`, {
+  const leitura = await fetch(`${SHEETS_API}/${planilhaId}/values/${encodeURIComponent(aba)}!A1:F1000`, {
+    signal: AbortSignal.timeout(REQUISICAO_TIMEOUT_MS),
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  if (!leitura.ok) {
+    console.error('[planilha-agendamento] falha ao ler a planilha —', await leitura.text())
+    return null
+  }
+
+  const { values } = (await leitura.json()) as { values?: string[][] }
+  const linhas = values ?? []
+
+  const indice = linhas.findIndex((linha) => {
+    const data = (linha[COLUNA_DATA] ?? '').trim()
+    const horario = horarioInicioDaCelula((linha[COLUNA_HORARIO] ?? '').trim())
+    return data === dataFormatada && horario === horarioBusca
+  })
+
+  if (indice === -1) {
+    console.log(
+      `[planilha-agendamento] nenhuma linha encontrada na aba "${aba}" para ${dataFormatada} às ${formatarHora(horarioBusca)} — nada foi alterado`,
+    )
+    return null
+  }
+
+  return {
+    accessToken,
+    planilhaId,
+    aba,
+    linhaPlanilha: indice + 1, // values[] é 0-based; a planilha é 1-based
+    nomesAtuais: (linhas[indice]?.[COLUNA_NOMES] ?? '').trim(),
+  }
+}
+
+async function escreverNomesEVagas(alvo: LinhaEncontrada, novosNomes: string, totalInscritos: number): Promise<void> {
+  const escrita = await fetch(
+    `${SHEETS_API}/${alvo.planilhaId}/values/${encodeURIComponent(alvo.aba)}!E${alvo.linhaPlanilha}:F${alvo.linhaPlanilha}?valueInputOption=USER_ENTERED`,
+    {
+      method: 'PUT',
       signal: AbortSignal.timeout(REQUISICAO_TIMEOUT_MS),
-      headers: { Authorization: `Bearer ${accessToken}` },
-    })
+      headers: {
+        Authorization: `Bearer ${alvo.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ values: [[novosNomes, totalInscritos]] }),
+    },
+  )
 
-    if (!leitura.ok) {
-      console.error('[planilha-agendamento] falha ao ler a planilha —', await leitura.text())
-      return
-    }
+  if (!escrita.ok) {
+    console.error('[planilha-agendamento] falha ao atualizar a linha —', await escrita.text())
+  } else {
+    console.log(`[planilha-agendamento] linha ${alvo.linhaPlanilha} da aba "${alvo.aba}" atualizada`)
+  }
+}
 
-    const { values } = (await leitura.json()) as { values?: string[][] }
-    const linhas = values ?? []
+export async function registrarAgendamentoGrupoNaPlanilha(params: {
+  nomeAluno: string
+  data: string
+  hora: string
+  totalInscritos: number
+}): Promise<void> {
+  try {
+    const alvo = await localizarLinhaGrupo(params)
+    if (!alvo) return
 
-    const indice = linhas.findIndex((linha) => {
-      const data = (linha[COLUNA_DATA] ?? '').trim()
-      const horario = horarioInicioDaCelula((linha[COLUNA_HORARIO] ?? '').trim())
-      return data === dataFormatada && horario === horarioBusca
-    })
+    const jaTemAluno = alvo.nomesAtuais.length > 0 && alvo.nomesAtuais.toLowerCase() !== PLACEHOLDER_VAZIO
+    const novosNomes = jaTemAluno ? `${alvo.nomesAtuais}\n${params.nomeAluno}` : params.nomeAluno
 
-    if (indice === -1) {
+    await escreverNomesEVagas(alvo, novosNomes, params.totalInscritos)
+  } catch (erro) {
+    // Rede caiu, timeout, chave inválida: o agendamento já está gravado.
+    console.error('[planilha-agendamento] erro inesperado ao registrar —', erro)
+  }
+}
+
+export async function removerAgendamentoGrupoNaPlanilha(params: {
+  nomeAluno: string
+  data: string
+  hora: string
+  totalInscritos: number
+}): Promise<void> {
+  try {
+    const alvo = await localizarLinhaGrupo(params)
+    if (!alvo) return
+
+    const linhasDeNomes = alvo.nomesAtuais.split('\n').map((n) => n.trim()).filter(Boolean)
+    const posicao = linhasDeNomes.findIndex((n) => n.toLowerCase() === params.nomeAluno.trim().toLowerCase())
+
+    if (posicao === -1) {
       console.log(
-        `[planilha-agendamento] nenhuma linha encontrada na aba "${aba}" para ${dataFormatada} às ${formatarHora(horarioBusca)} — nada foi alterado`,
+        `[planilha-agendamento] nome "${params.nomeAluno}" não encontrado na linha ${alvo.linhaPlanilha} da aba "${alvo.aba}" — nada foi alterado`,
       )
       return
     }
 
-    const linhaPlanilha = indice + 1 // values[] é 0-based; a planilha é 1-based
-    const nomesAtuais = (linhas[indice]?.[COLUNA_NOMES] ?? '').trim()
-    const jaTemAluno = nomesAtuais.length > 0 && nomesAtuais.toLowerCase() !== PLACEHOLDER_VAZIO
-    const novosNomes = jaTemAluno ? `${nomesAtuais}\n${params.nomeAluno}` : params.nomeAluno
+    linhasDeNomes.splice(posicao, 1)
+    const novosNomes = linhasDeNomes.length > 0 ? linhasDeNomes.join('\n') : 'Nenhum aluno inscrito'
 
-    const escrita = await fetch(
-      `${SHEETS_API}/${planilhaId}/values/${encodeURIComponent(aba)}!E${linhaPlanilha}:F${linhaPlanilha}?valueInputOption=USER_ENTERED`,
-      {
-        method: 'PUT',
-        signal: AbortSignal.timeout(REQUISICAO_TIMEOUT_MS),
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ values: [[novosNomes, params.totalInscritos]] }),
-      },
-    )
-
-    if (!escrita.ok) {
-      console.error('[planilha-agendamento] falha ao atualizar a linha —', await escrita.text())
-    } else {
-      console.log(`[planilha-agendamento] linha ${linhaPlanilha} da aba "${aba}" atualizada`)
-    }
+    await escreverNomesEVagas(alvo, novosNomes, params.totalInscritos)
   } catch (erro) {
-    // Rede caiu, timeout, chave inválida: o agendamento já está gravado.
-    console.error('[planilha-agendamento] erro inesperado ao registrar —', erro)
+    // Rede caiu, timeout, chave inválida: o cancelamento já está gravado.
+    console.error('[planilha-agendamento] erro inesperado ao remover —', erro)
   }
 }

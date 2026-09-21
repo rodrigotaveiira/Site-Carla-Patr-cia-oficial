@@ -4,7 +4,7 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
-import { registrarAgendamentoGrupoNaPlanilha } from './planilha-agendamento'
+import { registrarAgendamentoGrupoNaPlanilha, removerAgendamentoGrupoNaPlanilha } from './planilha-agendamento'
 import { notificarMentoriaAlterada, notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
@@ -436,6 +436,17 @@ export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       } catch {
         // limpeza best-effort — não impede a saída em si
       }
+
+      // Mesma lógica de registrarAgendamentoGrupoNaPlanilha: também nunca lança.
+      const aluno = slot.students.find((student) => student.email === user.email)
+      if (aluno) {
+        await removerAgendamentoGrupoNaPlanilha({
+          nomeAluno: aluno.name,
+          data: slot.date,
+          hora: slot.time,
+          totalInscritos: updated.students.length,
+        })
+      }
     }
 
     return updated
@@ -487,6 +498,13 @@ export const removeMentoriaGrupoStudent = createServerFn({ method: 'POST' })
         hora: slot.time,
         horaFim: slot.endTime,
         titulo: slot.title,
+      })
+      // Mesma lógica de registrarAgendamentoGrupoNaPlanilha: também nunca lança.
+      await removerAgendamentoGrupoNaPlanilha({
+        nomeAluno: removido.name,
+        data: slot.date,
+        hora: slot.time,
+        totalInscritos: updated.students.length,
       })
     }
 
