@@ -586,11 +586,14 @@ function DashboardPage() {
               studentProgress.materiaisTracked
                 ? ['Materiais baixados', `${studentProgress.materiaisBaixados} de ${studentProgress.materiaisDisponiveis} materiais`, studentProgress.materiaisPercent, '#7c3aed']
                 : null,
+              studentProgress.simuladosTracked
+                ? ['Questões para treino', `${studentProgress.simuladosRespondidos} de ${studentProgress.simuladosDisponiveis} conjuntos`, studentProgress.simuladosPercent, '#a855f7']
+                : null,
               ['Redações entregues', `${studentProgress.redacoesEntregues} de ${REDACOES_META_PROGRESSO} redações`, studentProgress.redacoesPercent, '#0f7890'],
             ].filter(Boolean) as [string, string, number, string][]).map(([title, detail, percent, color]) => (
               // A barra só sobe de acordo com o progresso real do aluno (aulas assistidas,
-              // materiais baixados e redações entregues) — não com a quantidade de conteúdo
-              // disponível na plataforma.
+              // materiais baixados, questões respondidas e redações entregues) — não com a
+              // quantidade de conteúdo disponível na plataforma.
               <div key={title as string}><span><b>{title}</b><small>{detail}</small></span><div><i style={{ width: `${percent}%`, background: color }} /></div><strong>{percent}%</strong></div>
             )) : Array.from({ length: 2 }).map((_, index) => (
               <div key={index} style={{ display: 'grid', gridTemplateColumns: '105px 1fr 34px', alignItems: 'center', gap: 13 }}>
