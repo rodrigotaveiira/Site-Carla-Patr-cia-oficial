@@ -18,6 +18,7 @@ import { Route as AulaAoVivoAdminRouteImport } from './routes/aula-ao-vivo-admin
 import { Route as AulasAdminRouteImport } from './routes/aulas-admin'
 import { Route as CalendarioAdminRouteImport } from './routes/calendario-admin'
 import { Route as ConfirmarPresencaRouteImport } from './routes/confirmar-presenca'
+import { Route as ConviteMentoriasAdminRouteImport } from './routes/convite-mentorias-admin'
 import { Route as EsqueciSenhaRouteImport } from './routes/esqueci-senha'
 import { Route as EvolucaoAdminRouteImport } from './routes/evolucao-admin'
 import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
@@ -93,6 +94,11 @@ const CalendarioAdminRoute = CalendarioAdminRouteImport.update({
 const ConfirmarPresencaRoute = ConfirmarPresencaRouteImport.update({
   id: '/confirmar-presenca',
   path: '/confirmar-presenca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteMentoriasAdminRoute = ConviteMentoriasAdminRouteImport.update({
+  id: '/convite-mentorias-admin',
+  path: '/convite-mentorias-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EsqueciSenhaRoute = EsqueciSenhaRouteImport.update({
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/convite-mentorias-admin': typeof ConviteMentoriasAdminRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
@@ -307,6 +314,7 @@ export interface FileRoutesByTo {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/convite-mentorias-admin': typeof ConviteMentoriasAdminRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
@@ -351,6 +359,7 @@ export interface FileRoutesById {
   '/aulas-admin': typeof AulasAdminRoute
   '/calendario-admin': typeof CalendarioAdminRoute
   '/confirmar-presenca': typeof ConfirmarPresencaRoute
+  '/convite-mentorias-admin': typeof ConviteMentoriasAdminRoute
   '/esqueci-senha': typeof EsqueciSenhaRoute
   '/evolucao-admin': typeof EvolucaoAdminRoute
   '/lembretes-admin': typeof LembretesAdminRoute
@@ -395,6 +404,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/convite-mentorias-admin'
     | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/convite-mentorias-admin'
     | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
@@ -480,6 +491,7 @@ export interface FileRouteTypes {
     | '/aulas-admin'
     | '/calendario-admin'
     | '/confirmar-presenca'
+    | '/convite-mentorias-admin'
     | '/esqueci-senha'
     | '/evolucao-admin'
     | '/lembretes-admin'
@@ -524,6 +536,7 @@ export interface RootRouteChildren {
   AulasAdminRoute: typeof AulasAdminRoute
   CalendarioAdminRoute: typeof CalendarioAdminRoute
   ConfirmarPresencaRoute: typeof ConfirmarPresencaRoute
+  ConviteMentoriasAdminRoute: typeof ConviteMentoriasAdminRoute
   EsqueciSenhaRoute: typeof EsqueciSenhaRoute
   EvolucaoAdminRoute: typeof EvolucaoAdminRoute
   LembretesAdminRoute: typeof LembretesAdminRoute
@@ -609,6 +622,13 @@ declare module '@tanstack/react-router' {
       path: '/confirmar-presenca'
       fullPath: '/confirmar-presenca'
       preLoaderRoute: typeof ConfirmarPresencaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite-mentorias-admin': {
+      id: '/convite-mentorias-admin'
+      path: '/convite-mentorias-admin'
+      fullPath: '/convite-mentorias-admin'
+      preLoaderRoute: typeof ConviteMentoriasAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/esqueci-senha': {
@@ -880,6 +900,7 @@ const rootRouteChildren: RootRouteChildren = {
   AulasAdminRoute: AulasAdminRoute,
   CalendarioAdminRoute: CalendarioAdminRoute,
   ConfirmarPresencaRoute: ConfirmarPresencaRoute,
+  ConviteMentoriasAdminRoute: ConviteMentoriasAdminRoute,
   EsqueciSenhaRoute: EsqueciSenhaRoute,
   EvolucaoAdminRoute: EvolucaoAdminRoute,
   LembretesAdminRoute: LembretesAdminRoute,
