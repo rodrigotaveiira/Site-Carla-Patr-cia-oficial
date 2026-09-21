@@ -6,7 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
   createMentoriaGrupoSlot, deleteMentoriaGrupoSlot, listMentoriaGrupoSlots, removeMentoriaGrupoStudent, updateMentoriaGrupoSlot,
-  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, tipoDoGrupo, rotuloTipoGrupo,
+  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo,
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { formatarHora } from '@/lib/formato'
@@ -38,7 +38,6 @@ function MentoriasGrupoAdminPage() {
   const [time, setTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [capacity, setCapacity] = useState('6')
-  const [tipo, setTipo] = useState<'pequeno' | 'grande'>('pequeno')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -48,7 +47,6 @@ function MentoriasGrupoAdminPage() {
   const [editTime, setEditTime] = useState('')
   const [editEndTime, setEditEndTime] = useState('')
   const [editCapacity, setEditCapacity] = useState('')
-  const [editTipo, setEditTipo] = useState<'pequeno' | 'grande'>('pequeno')
   const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
@@ -98,14 +96,13 @@ function MentoriasGrupoAdminPage() {
     }
     setSaving(true)
     try {
-      await createMentoriaGrupoSlot({ data: { date, time, endTime, title, description, capacity: capacityNumber, tipo } })
+      await createMentoriaGrupoSlot({ data: { date, time, endTime, title, description, capacity: capacityNumber } })
       setTitle('')
       setDescription('')
       setDate('')
       setTime('')
       setEndTime('')
       setCapacity('6')
-      setTipo('pequeno')
       await load()
       showToast('Grupo adicionado.')
     } catch (err) {
@@ -149,7 +146,6 @@ function MentoriasGrupoAdminPage() {
     // o horário que ele já tinha na prática.
     setEditEndTime(terminoDoGrupo(slot))
     setEditCapacity(String(slot.capacity))
-    setEditTipo(tipoDoGrupo(slot))
     setEditError('')
   }
 
@@ -184,7 +180,7 @@ function MentoriasGrupoAdminPage() {
     setEditSaving(true)
     try {
       await updateMentoriaGrupoSlot({
-        data: { id, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber, tipo: editTipo },
+        data: { id, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber },
       })
       setEditingId(null)
       await load()
@@ -244,13 +240,6 @@ function MentoriasGrupoAdminPage() {
             <label htmlFor="grupo-vagas">Vagas</label>
             <input id="grupo-vagas" type="number" min={1} value={capacity} onChange={(event) => setCapacity(event.target.value)} />
           </div>
-          <div className="field" style={{ flex: '1 1 160px' }}>
-            <label htmlFor="grupo-tipo">Tipo</label>
-            <select id="grupo-tipo" value={tipo} onChange={(event) => setTipo(event.target.value as 'pequeno' | 'grande')}>
-              <option value="pequeno">Grupo pequeno</option>
-              <option value="grande">Grupão</option>
-            </select>
-          </div>
         </div>
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Adicionando...' : 'Adicionar grupo'}
@@ -294,17 +283,6 @@ function MentoriasGrupoAdminPage() {
                           onChange={(event) => setEditCapacity(event.target.value)}
                         />
                       </div>
-                      <div className="field" style={{ flex: '1 1 160px' }}>
-                        <label>Tipo</label>
-                        <select
-                          value={editTipo}
-                          disabled={slot.students.length > 0}
-                          onChange={(event) => setEditTipo(event.target.value as 'pequeno' | 'grande')}
-                        >
-                          <option value="pequeno">Grupo pequeno</option>
-                          <option value="grande">Grupão</option>
-                        </select>
-                      </div>
                     </div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <button onClick={() => handleSaveEdit(slot.id)} disabled={editSaving} className="btn btn-primary btn-sm">
@@ -320,7 +298,7 @@ function MentoriasGrupoAdminPage() {
                   <div style={{ minWidth: 0 }}>
                     <b style={{ color: 'var(--navy)' }}>{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</b>
                     <div className="list-meta" style={{ marginTop: 2 }}>
-                      {slot.date} · {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))} · {slot.students.length}/{slot.capacity} vagas · {rotuloTipoGrupo(tipoDoGrupo(slot))}
+                      {slot.date} · {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))} · {slot.students.length}/{slot.capacity} vagas
                     </div>
                     {slot.description && (
                       <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>

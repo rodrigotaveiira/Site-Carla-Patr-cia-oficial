@@ -6,7 +6,7 @@ import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
 import {
   joinMentoriaGrupoSlot, leaveMentoriaGrupoSlot, listMentoriaGrupoSlots,
-  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, tipoDoGrupo, rotuloTipoGrupo, type MentoriaGrupoSlot,
+  MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, MAX_GRUPOS_SIMULTANEOS, type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
@@ -63,9 +63,9 @@ function MentoriasGrupoPage() {
   const today = new Date().toISOString().slice(0, 10)
   const futureSlots = slots.filter((slot) => slot.date >= today)
   const mySlots = futureSlots.filter((slot) => slot.students.some((student) => student.email === user?.email))
-  // Pequeno e grupão contam separado: o aluno pode estar num de cada tipo ao
-  // mesmo tempo, só não pode repetir o mesmo tipo (ver joinMentoriaGrupoSlot).
-  const meusTipos = new Set(mySlots.map((slot) => tipoDoGrupo(slot)))
+  // Até MAX_GRUPOS_SIMULTANEOS grupos ao mesmo tempo — sem distinção de tipo
+  // (ver joinMentoriaGrupoSlot).
+  const grupoCheio = mySlots.length >= MAX_GRUPOS_SIMULTANEOS
   const openSlots = futureSlots.filter(
     (slot) => slot.students.length < slot.capacity && !slot.students.some((student) => student.email === user?.email),
   )
@@ -151,16 +151,14 @@ function MentoriasGrupoPage() {
 
       <section>
         <h2 className="panel-section-title">Grupos com vaga</h2>
-        {meusTipos.size === 1 && (
+        {mySlots.length === 1 && (
           <p className="panel-section-hint">
-            Você já está inscrito em um {rotuloTipoGrupo([...meusTipos][0]!)}. Ainda pode entrar em um{' '}
-            {rotuloTipoGrupo(meusTipos.has('pequeno') ? 'grande' : 'pequeno')}, mas não em outro{' '}
-            {rotuloTipoGrupo([...meusTipos][0]!)} — saia dele acima primeiro.
+            Você já está inscrito em um grupo. Ainda pode entrar em mais {MAX_GRUPOS_SIMULTANEOS - mySlots.length}.
           </p>
         )}
-        {meusTipos.size >= 2 && (
+        {grupoCheio && (
           <p className="panel-section-hint">
-            Você já está inscrito em um grupo pequeno e em um grupão — o máximo permitido ao mesmo tempo.
+            Você já tem {MAX_GRUPOS_SIMULTANEOS} grupos marcados — o máximo permitido ao mesmo tempo. Saia de um deles acima pra poder entrar em outro.
           </p>
         )}
         {loading && <p className="panel-subtitle">Carregando...</p>}
@@ -177,36 +175,32 @@ function MentoriasGrupoPage() {
                   aluno precisa saber do que a mentoria trata antes de ocupar uma
                   vaga, e título e descrição não cabiam numa etiqueta de horário. */}
               <div style={{ display: 'grid', gap: 10 }}>
-                {dateSlots.map((slot) => {
-                  const tipoDesteSlot = tipoDoGrupo(slot)
-                  const bloqueadoPorTipo = meusTipos.has(tipoDesteSlot)
-                  return (
-                    <div key={slot.id} className="list-row">
-                      <div style={{ minWidth: 0 }}>
-                        <div className="list-title">{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</div>
-                        <div className="list-meta" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Clock3 size={14} /> {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))}
-                          </span>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Users size={14} /> {slot.students.length}/{slot.capacity} vagas
-                          </span>
-                        </div>
-                        {slot.description && (
-                          <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
-                        )}
+                {dateSlots.map((slot) => (
+                  <div key={slot.id} className="list-row">
+                    <div style={{ minWidth: 0 }}>
+                      <div className="list-title">{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</div>
+                      <div className="list-meta" style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Clock3 size={14} /> {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))}
+                        </span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          <Users size={14} /> {slot.students.length}/{slot.capacity} vagas
+                        </span>
                       </div>
-                      <button
-                        onClick={() => setPendingSlot(slot)}
-                        disabled={bloqueadoPorTipo}
-                        title={bloqueadoPorTipo ? `Saia do seu ${rotuloTipoGrupo(tipoDesteSlot)} atual pra poder entrar em outro do mesmo tipo.` : undefined}
-                        className="btn btn-primary btn-sm"
-                      >
-                        Entrar no grupo
-                      </button>
+                      {slot.description && (
+                        <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
+                      )}
                     </div>
-                  )
-                })}
+                    <button
+                      onClick={() => setPendingSlot(slot)}
+                      disabled={grupoCheio}
+                      title={grupoCheio ? `Você já tem ${MAX_GRUPOS_SIMULTANEOS} grupos marcados. Saia de um pra poder entrar em outro.` : undefined}
+                      className="btn btn-primary btn-sm"
+                    >
+                      Entrar no grupo
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
