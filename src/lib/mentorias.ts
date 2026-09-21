@@ -5,7 +5,6 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
-import { registrarAgendamentoNaPlanilha } from './planilha-agendamento'
 import { notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
@@ -238,13 +237,6 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
         data: slot.date,
         hora: slot.time,
         duracao: slot.duration,
-        emGrupo: false,
-      })
-      // Mesma lógica: `registrarAgendamentoNaPlanilha` também nunca lança.
-      await registrarAgendamentoNaPlanilha({
-        nomeAluno: studentName,
-        data: slot.date,
-        hora: slot.time,
         emGrupo: false,
       })
 

@@ -4,7 +4,7 @@ import { getServerUser } from './auth'
 import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
-import { registrarAgendamentoNaPlanilha } from './planilha-agendamento'
+import { registrarAgendamentoGrupoNaPlanilha } from './planilha-agendamento'
 import { notificarMentoriaAlterada, notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
@@ -375,12 +375,12 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
         emGrupo: true,
         ocupacaoGrupo: { inscritos: updated.students.length, capacidade: slot.capacity },
       })
-      // Mesma lógica: `registrarAgendamentoNaPlanilha` também nunca lança.
-      await registrarAgendamentoNaPlanilha({
+      // Mesma lógica: `registrarAgendamentoGrupoNaPlanilha` também nunca lança.
+      await registrarAgendamentoGrupoNaPlanilha({
         nomeAluno: studentName,
         data: slot.date,
         hora: slot.time,
-        emGrupo: true,
+        totalInscritos: updated.students.length,
       })
 
       return updated
