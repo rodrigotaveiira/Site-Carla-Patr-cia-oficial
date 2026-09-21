@@ -36,6 +36,13 @@ export const durationMinutes = z.coerce.number().int().min(5).max(480)
 /** Número de vagas de um grupo — inteiro entre 1 e 100. */
 export const capacity = z.coerce.number().int().min(1).max(100)
 
+/**
+ * Tipo de mentoria em grupo — 'pequeno' (até ~5) e 'grande' (grupão, até
+ * ~15) são categorias distintas: um aluno pode estar numa de cada ao mesmo
+ * tempo, mas só numa de cada tipo (ver mentorias-grupo.ts).
+ */
+export const tipoGrupo = z.enum(['pequeno', 'grande'])
+
 /** URL http(s) — usada em link de aula ao vivo, vídeo do YouTube, etc. */
 export const httpUrl = z
   .url()

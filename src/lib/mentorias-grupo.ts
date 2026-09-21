@@ -9,7 +9,7 @@ import { notificarMentoriaAlterada, notificarMentoriaCancelada, notificarNovaMen
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
-import { boundedText, capacity as capacitySchema, hhmm, id as idSchema, isoDate } from './schemas'
+import { boundedText, capacity as capacitySchema, hhmm, id as idSchema, isoDate, tipoGrupo as tipoGrupoSchema } from './schemas'
 import { z } from 'zod'
 
 const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
@@ -36,12 +36,28 @@ export type MentoriaGrupoSlot = {
   /** Do que a mentoria trata. Ausente nos grupos antigos. */
   description?: string
   capacity: number // quantas pessoas cabem no grupo
+  /**
+   * 'pequeno' ou 'grande' (grupão) — grupos diferentes o bastante pra um
+   * aluno poder estar num de cada ao mesmo tempo. Ausente nos grupos criados
+   * antes deste campo existir — ver `tipoDoGrupo`.
+   */
+  tipo?: 'pequeno' | 'grande'
   students: MentoriaGrupoStudent[]
   createdAt: string
 }
 
 /** Título mostrado quando o grupo é anterior ao campo existir. */
 export const MENTORIA_GRUPO_TITULO_PADRAO = 'Mentoria em grupo'
+
+/** Tipo do grupo — grupos antigos sem o campo contam como 'pequeno', que era o único tipo que existia até então. */
+export function tipoDoGrupo(slot: Pick<MentoriaGrupoSlot, 'tipo'>): 'pequeno' | 'grande' {
+  return slot.tipo ?? 'pequeno'
+}
+
+/** Rótulo pro aluno ler, ex. na mensagem de bloqueio. */
+export function rotuloTipoGrupo(tipo: 'pequeno' | 'grande'): string {
+  return tipo === 'grande' ? 'grupão' : 'grupo pequeno'
+}
 
 function minutosDoRelogio(hhmmTexto: string): number {
   const [h, m] = hhmmTexto.split(':').map(Number)
@@ -117,6 +133,7 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: boundedText(200),
       description: boundedText(2000),
       capacity: capacitySchema,
+      tipo: tipoGrupoSchema,
     }),
   )
   .handler(async ({ data }) => {
@@ -141,6 +158,7 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: data.title.trim(),
       description: data.description.trim(),
       capacity,
+      tipo: data.tipo,
       students: [],
       createdAt: new Date().toISOString(),
     }
@@ -170,6 +188,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: boundedText(200),
       description: boundedText(2000),
       capacity: capacitySchema,
+      tipo: tipoGrupoSchema,
     }),
   )
   .handler(async ({ data }) => {
@@ -190,6 +209,12 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     if (capacity < slot.students.length) {
       throw new Error(`Não é possível reduzir a capacidade abaixo do número de alunos já inscritos (${slot.students.length}).`)
     }
+    // Trocar o tipo com gente já inscrita deixaria a trava de "uma vaga por
+    // tipo" desses alunos apontando pro tipo errado — mais simples pedir pra
+    // esvaziar o grupo antes.
+    if (data.tipo !== tipoDoGrupo(slot) && slot.students.length > 0) {
+      throw new Error('Não é possível mudar o tipo com alunos já inscritos. Remova-os antes.')
+    }
 
     const updated: MentoriaGrupoSlot = {
       ...slot,
@@ -199,6 +224,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: data.title.trim(),
       description: data.description.trim(),
       capacity,
+      tipo: data.tipo,
     }
 
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
@@ -244,9 +270,10 @@ export const deleteMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     if (existing?.students?.length) {
       const claimStore = activeGroupBookingStore()
+      const chaveTrava = (email: string) => `${email}::${tipoDoGrupo(existing)}`
       await Promise.all(existing.students.map(async (student) => {
         try {
-          await claimStore.delete(student.email)
+          await claimStore.delete(chaveTrava(student.email))
         } catch {
           // limpeza best-effort — não impede a exclusão do grupo em si
         }
@@ -284,14 +311,24 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     const claimStore = activeGroupBookingStore()
     const today = new Date().toISOString().slice(0, 10)
 
-    // Cada aluno só pode estar em um grupo de mentoria futuro por vez — mesma
-    // regra e mesmo motivo da mentoria individual (ver bookMentoriaSlot em
-    // mentorias.ts). Admin fica isento, pra poder testar um grupo sem que isso
-    // conte como "vaga ocupada" de verdade.
+    // Precisa saber o TIPO do grupo alvo antes de travar — a trava é por
+    // tipo, não por aluno (ver abaixo), então tem que travar a chave certa.
+    const alvoInicial = await store.get(data.id, { type: 'json' })
+    if (!alvoInicial) throw new Error('Esse grupo não existe mais. Atualize a página.')
+    const tipoAlvo = tipoDoGrupo(alvoInicial as MentoriaGrupoSlot)
+    const chaveTrava = `${email}::${tipoAlvo}`
+
+    // Cada aluno só pode estar em um grupo de mentoria futuro POR TIPO —
+    // pequeno e grupão são mentorias diferentes o bastante pra valer uma de
+    // cada ao mesmo tempo, mas duas do mesmo tipo continuam bloqueadas.
+    // Mesma ideia e mesmo motivo da mentoria individual (ver bookMentoriaSlot
+    // em mentorias.ts), só que com a chave da trava incluindo o tipo. Admin
+    // fica isento, pra poder testar um grupo sem que isso conte como "vaga
+    // ocupada" de verdade.
     const INFLIGHT_TTL_MS = 2 * 60 * 1000
     let claimedNow = false
     if (!isAdmin) {
-      const claimEntry = await claimStore.getWithMetadata(email, { type: 'json' })
+      const claimEntry = await claimStore.getWithMetadata(chaveTrava, { type: 'json' })
       const claim = claimEntry?.data as ActiveGroupBookingClaim | undefined
 
       if (claim) {
@@ -302,7 +339,7 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
         // por mais de 2 min.
         const emAndamento = claim.date === '' && Date.now() - Date.parse(claim.claimedAt) < INFLIGHT_TTL_MS
         if (inscricaoFutura || emAndamento) {
-          throw new Error('Você já está inscrito em outro grupo de mentoria. Saia dele antes de entrar em outro.')
+          throw new Error(`Você já está inscrito em outro ${rotuloTipoGrupo(tipoAlvo)}. Saia dele antes de entrar em outro.`)
         }
         // Sobra: inscrição passada nunca finalizada (saiu, ou o grupo foi
         // apagado), ou tentativa abandonada — pode ser substituída (CAS abaixo).
@@ -310,13 +347,13 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
       const newClaim: ActiveGroupBookingClaim = { slotId: data.id, date: '', claimedAt: new Date().toISOString() }
       const claimResult = claimEntry
-        ? await claimStore.setJSON(email, newClaim, { onlyIfMatch: claimEntry.etag })
-        : await claimStore.setJSON(email, newClaim, { onlyIfNew: true })
+        ? await claimStore.setJSON(chaveTrava, newClaim, { onlyIfMatch: claimEntry.etag })
+        : await claimStore.setJSON(chaveTrava, newClaim, { onlyIfNew: true })
 
       if (!claimResult?.modified) {
         // Perdeu a corrida: outro pedido (do mesmo aluno, quase no mesmo
         // instante) gravou a inscrição ativa primeiro.
-        throw new Error('Você já está inscrito em outro grupo de mentoria. Saia dele antes de entrar em outro.')
+        throw new Error(`Você já está inscrito em outro ${rotuloTipoGrupo(tipoAlvo)}. Saia dele antes de entrar em outro.`)
       }
       claimedNow = true
     }
@@ -354,10 +391,10 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       // Agora que a entrada está mesmo gravada, grava a data real na trava
       // (antes ficava em branco só pra reservar a chave — ver acima).
       if (!isAdmin) {
-        const claimEntry = await claimStore.getWithMetadata(email, { type: 'json' })
+        const claimEntry = await claimStore.getWithMetadata(chaveTrava, { type: 'json' })
         if (claimEntry) {
           await claimStore.setJSON(
-            email,
+            chaveTrava,
             { slotId: data.id, date: slot.date, claimedAt: (claimEntry.data as ActiveGroupBookingClaim).claimedAt },
             { onlyIfMatch: claimEntry.etag },
           )
@@ -390,7 +427,7 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       // de tentar outro grupo sem ter entrado em nenhum.
       if (claimedNow) {
         try {
-          await claimStore.delete(email)
+          await claimStore.delete(chaveTrava)
         } catch {
           // limpeza best-effort: se falhar, o próximo `joinMentoriaGrupoSlot`
           // deste aluno vê a trava com `date: ''` (< today) e a substitui sozinho.
@@ -432,7 +469,7 @@ export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
     // membro do grupo não tira ninguém, então não há trava de terceiro a liberar).
     if (alreadyIn) {
       try {
-        await activeGroupBookingStore().delete(user.email ?? '')
+        await activeGroupBookingStore().delete(`${user.email ?? ''}::${tipoDoGrupo(slot)}`)
       } catch {
         // limpeza best-effort — não impede a saída em si
       }
@@ -482,7 +519,7 @@ export const removeMentoriaGrupoStudent = createServerFn({ method: 'POST' })
     // de leaveMentoriaGrupoSlot. Sem isso ele ficaria impedido de entrar em
     // outro grupo até a data deste passar sozinha.
     try {
-      await activeGroupBookingStore().delete(data.email)
+      await activeGroupBookingStore().delete(`${data.email}::${tipoDoGrupo(slot)}`)
     } catch {
       // limpeza best-effort — não impede a remoção em si
     }
