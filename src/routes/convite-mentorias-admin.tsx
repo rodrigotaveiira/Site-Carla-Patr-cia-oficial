@@ -157,7 +157,12 @@ function ConviteMentoriasAdminPage() {
 
           {loading && <p className="panel-subtitle">Carregando...</p>}
 
-          {!loading && vagas.length === 0 && (
+          {/* Erro na busca é outra coisa que "não há grupo": mostrar os dois juntos
+              ("nenhum grupo aberto" ao lado de "acesso negado") deixa a professora sem
+              saber se é falta de horário cadastrado ou falha de verdade. */}
+          {!loading && error && vagas.length === 0 && <p className="form-error">{error}</p>}
+
+          {!loading && !error && vagas.length === 0 && (
             <p className="empty-state">
               Nenhum grupo futuro com vaga aberta. Cadastre horários em "Mentorias em grupo" —
               ou todos os grupos já estão cheios.
@@ -242,8 +247,6 @@ function ConviteMentoriasAdminPage() {
             </div>
           </section>
         )}
-
-        {vagas.length === 0 && error && <p className="form-error">{error}</p>}
       </form>
     </main>
   )
