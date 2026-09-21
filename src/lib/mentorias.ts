@@ -101,11 +101,20 @@ export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
     const store = slotsStore()
     // Lê antes de apagar pra saber se alguém tinha esse horário reservado: quem
     // marcou precisa ficar sabendo que não vai mais acontecer, senão aparece
-    // pra uma mentoria que não existe.
+    // pra uma mentoria que não existe — e precisa ter a trava de "uma mentoria
+    // futura por aluno" liberada, senão fica impedido de marcar outro horário
+    // até a data do horário apagado passar sozinha (a trava só expira pela
+    // data, ver bookMentoriaSlot).
     const existing = (await store.get(data.id, { type: 'json' })) as MentoriaSlot | null
     await store.delete(data.id)
 
     if (existing?.student?.email) {
+      try {
+        await activeBookingStore().delete(existing.student.email)
+      } catch {
+        // limpeza best-effort — não impede a exclusão do horário em si
+      }
+
       await notificarMentoriaCancelada({
         alunos: [existing.student],
         emGrupo: false,
