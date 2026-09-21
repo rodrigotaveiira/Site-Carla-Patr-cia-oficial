@@ -14,6 +14,7 @@ import { TextoBase } from '@/components/TextoBase'
 import { agruparPorTextoBase } from '@/lib/simulado-parser'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 import { APARENCIA_PADRAO, estiloDaParte, getAparenciaQuestoes, type AparenciaQuestoes } from '@/lib/aparencia-questoes'
+import { renderComDestaque } from '@/lib/texto-destacado'
 
 export const Route = createFileRoute('/_app/simulados')({
   beforeLoad: async () => {
@@ -153,7 +154,7 @@ function SimuladosPage() {
                   <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       {correction?.correct ? <CheckCircle2 size={18} color="#15803d" style={{ flexShrink: 0, marginTop: 1 }} /> : <XCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 1 }} />}
-                      <b style={estiloEnunciado}>{question.number}) {question.statement}</b>
+                      <b style={estiloEnunciado}>{question.number}) {renderComDestaque(question.statement)}</b>
                     </div>
                     <div style={{ display: 'grid', gap: 4, marginTop: 10, marginLeft: 26 }}>
                       {question.options.map((option) => {
@@ -166,7 +167,7 @@ function SimuladosPage() {
                         else if (isChosen && !isCorrect) color = '#dc2626'
                         return (
                           <div key={option.letter} style={{ ...estiloAlternativas, color, fontWeight: isCorrect || isChosen ? 700 : 400 }}>
-                            {option.letter}) {option.text} {isChosen && !isCorrect ? '(sua resposta)' : ''} {isCorrect ? '✓' : ''}
+                            {option.letter}) {renderComDestaque(option.text)} {isChosen && !isCorrect ? '(sua resposta)' : ''} {isCorrect ? '✓' : ''}
                           </div>
                         )
                       })}
@@ -197,7 +198,7 @@ function SimuladosPage() {
               {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} estilo={estiloTextoBase} />)}
               {grupo.questions.map((question) => (
                 <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
-                  <b style={estiloEnunciado}>{question.number}) {question.statement}</b>
+                  <b style={estiloEnunciado}>{question.number}) {renderComDestaque(question.statement)}</b>
                   <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
                     {question.options.map((option) => {
                       const checked = answers[question.id] === option.letter
@@ -217,7 +218,7 @@ function SimuladosPage() {
                             style={{ accentColor: 'var(--purple)', width: 'auto' }}
                           />
                           {checked ? <CheckCircle2 size={15} color="var(--purple)" /> : <Circle size={15} color="#c9befd" />}
-                          <span style={estiloAlternativas}>{option.letter}) {option.text}</span>
+                          <span style={estiloAlternativas}>{option.letter}) {renderComDestaque(option.text)}</span>
                         </label>
                       )
                     })}

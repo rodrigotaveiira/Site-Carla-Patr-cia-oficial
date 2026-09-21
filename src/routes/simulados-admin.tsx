@@ -16,6 +16,7 @@ import {
   estiloDaParte, getAparenciaQuestoes, salvarAparenciaQuestoes,
   type AparenciaQuestoes, type EstiloParte, type FonteQuestao, type ParteQuestao,
 } from '@/lib/aparencia-questoes'
+import { renderComDestaque } from '@/lib/texto-destacado'
 
 export const Route = createFileRoute('/simulados-admin')({
   beforeLoad: async () => {
@@ -180,7 +181,7 @@ function SimuladoCard({ simulado, onChanged }: { simulado: Simulado; onChanged: 
               {grupo.questions.map((question) => (
                 <div key={question.id} style={{ background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                    <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {question.statement}</b>
+                    <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {renderComDestaque(question.statement)}</b>
                     {question.correctLetter ? (
                       <span style={{ color: '#15803d', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Gabarito: {question.correctLetter}</span>
                     ) : (
@@ -190,7 +191,7 @@ function SimuladoCard({ simulado, onChanged }: { simulado: Simulado; onChanged: 
                   <div style={{ display: 'grid', gap: 3, marginTop: 6 }}>
                     {question.options.map((option) => (
                       <div key={option.letter} style={{ fontSize: 12, color: option.letter === question.correctLetter ? '#15803d' : '#4b5563', fontWeight: option.letter === question.correctLetter ? 700 : 400 }}>
-                        {option.letter}) {option.text}
+                        {option.letter}) {renderComDestaque(option.text)}
                       </div>
                     ))}
                   </div>
