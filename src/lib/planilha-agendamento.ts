@@ -96,7 +96,10 @@ export async function registrarAgendamentoNaPlanilha(params: {
 }): Promise<void> {
   const clientEmail = typeof process !== 'undefined' ? process.env.GOOGLE_SHEETS_CLIENT_EMAIL : undefined
   const chaveBruta = typeof process !== 'undefined' ? process.env.GOOGLE_SHEETS_PRIVATE_KEY : undefined
-  if (!clientEmail || !chaveBruta) return
+  if (!clientEmail || !chaveBruta) {
+    console.log('[planilha-agendamento] não configurado — faltam GOOGLE_SHEETS_CLIENT_EMAIL/GOOGLE_SHEETS_PRIVATE_KEY')
+    return
+  }
 
   const planilhaId = (typeof process !== 'undefined' && process.env.GOOGLE_SHEETS_ID) || PLANILHA_ID_PADRAO
   // No painel da Netlify a chave vira uma linha só; as quebras chegam como "\n" literal.
@@ -104,10 +107,16 @@ export async function registrarAgendamentoNaPlanilha(params: {
 
   try {
     const accessToken = await obterAccessToken(clientEmail, chavePrivada)
-    if (!accessToken) return
+    if (!accessToken) {
+      console.log('[planilha-agendamento] sem access token — ver erro de autenticação acima')
+      return
+    }
 
     const aba = await obterPrimeiraAba(planilhaId, accessToken)
-    if (!aba) return
+    if (!aba) {
+      console.log('[planilha-agendamento] não achei a primeira aba da planilha — ver erro acima')
+      return
+    }
 
     const linha = [params.nomeAluno, formatarDataCurta(params.data), formatarHora(params.hora), params.emGrupo ? 'Em grupo' : 'Individual']
 
@@ -126,6 +135,8 @@ export async function registrarAgendamentoNaPlanilha(params: {
 
     if (!resposta.ok) {
       console.error('[planilha-agendamento] falha ao gravar a linha —', await resposta.text())
+    } else {
+      console.log(`[planilha-agendamento] linha gravada na aba "${aba}"`)
     }
   } catch (erro) {
     // Rede caiu, timeout, chave inválida: o agendamento já está gravado.
