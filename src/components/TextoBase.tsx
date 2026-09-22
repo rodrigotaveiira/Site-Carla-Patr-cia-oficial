@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { SimuladoPassage } from '@/lib/simulado-parser'
+import { renderComDestaque } from '@/lib/texto-destacado'
 
 // Texto-base de uma atividade: aparece logo antes das questões que dependem
 // dele. O corpo vai com `white-space: pre-wrap` porque parágrafos, citações e
@@ -11,7 +12,7 @@ export function TextoBase({ passage, estilo }: { passage: SimuladoPassage; estil
   return (
     <article className="texto-base">
       {passage.label && <div className="texto-base-label">{passage.label}</div>}
-      <div className="texto-base-corpo" style={estilo}>{passage.content}</div>
+      <div className="texto-base-corpo" style={estilo}>{renderComDestaque(passage.content)}</div>
     </article>
   )
 }
