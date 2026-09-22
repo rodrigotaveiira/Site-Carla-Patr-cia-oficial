@@ -13,6 +13,9 @@ export const STORES = {
   // Um registro por (simulado, aluno, fase) já avisado — chave de idempotência
   // do lembrete de simulado (ver netlify/functions/lembrete-simulado.mts).
   lembretesSimulado: 'simulado-reminders',
+  // Mesma ideia, só que pro lembrete de aula ao vivo, 30 min antes (ver
+  // netlify/functions/lembrete-aula.mts).
+  lembretesAula: 'aula-reminders',
   // PDFs da prova e do gabarito comentado anexados a um evento de simulado do
   // calendário. Chaves: `<eventoId>__prova` e `<eventoId>__gabarito`.
   simuladoArquivos: 'simulado-arquivos',

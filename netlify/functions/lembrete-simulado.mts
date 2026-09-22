@@ -18,6 +18,8 @@ import { listApprovedStudents } from '../../src/lib/student-evolution'
 // aqui existe o lembrete de "30 minutos antes" — precisão de horas não serve.
 export const config = { schedule: '*/15 * * * *' }
 
+const SITE_URL = 'https://carlapatriciamedina.com'
+
 // Fora dessa janela antes do início, o alvo nem é considerado — evita varrer a
 // agenda inteira toda execução. 27h cobre a véspera (18h da véspera de um
 // simulado às 21h = 27h de antecedência) com folga.
@@ -61,6 +63,23 @@ type Alvo = {
   date: string
   time: string
   link: string
+}
+
+// Um registro por (simulado, aluno, fase) já avisado. Guarda token e
+// data/hora direto aqui — não em cima do evento do calendário — pra
+// `confirmarPresenca` conseguir responder mesmo que o evento tenha sido
+// editado ou apagado depois do envio.
+type RegistroLembreteSimulado = {
+  chave: string
+  eventoId: string
+  contexto: Contexto
+  email: string
+  fase: FaseLembreteSimulado
+  token: string
+  data: string
+  hora: string
+  enviadoEm: string
+  confirmadoEm: string | null
 }
 
 async function lerJson<T>(storeName: string): Promise<{ key: string; valor: T }[]> {
@@ -140,10 +159,14 @@ export default async function handler() {
 
         // Idempotência atômica: reserva a chave ANTES de enviar, com onlyIfNew.
         // Se já existe (aluno já recebeu, ou outra execução concorrente acabou
-        // de reservar), pula.
+        // de reservar), pula. Token vazio por enquanto — só entra depois do
+        // envio confirmado, igual ao lembrete de mentoria.
         const claim = await store.setJSON(
           chave,
-          { chave, eventoId: alvo.eventoId, contexto: alvo.contexto, email: aluno.email, fase, enviadoEm: agora.toISOString() },
+          {
+            chave, eventoId: alvo.eventoId, contexto: alvo.contexto, email: aluno.email, fase,
+            token: '', data: alvo.date, hora: alvo.time, enviadoEm: agora.toISOString(), confirmadoEm: null,
+          } satisfies RegistroLembreteSimulado,
           { onlyIfNew: true },
         )
         if (!claim?.modified) {
@@ -151,6 +174,7 @@ export default async function handler() {
           continue
         }
 
+        const token = crypto.randomUUID()
         const { assunto, html, texto } = montarEmailLembreteSimulado({
           nomeAluno: aluno.name || 'Aluno(a)',
           tipo: alvo.tipo,
@@ -160,6 +184,7 @@ export default async function handler() {
           fase,
           contexto: alvo.contexto,
           link: alvo.link || undefined,
+          linkConfirmacao: `${SITE_URL}/confirmar-presenca?t=${token}`,
         })
 
         const resultado = await enviarEmail({ para: aluno.email, assunto, html, texto, timeoutMs: ENVIO_TIMEOUT_MS })
@@ -188,6 +213,14 @@ export default async function handler() {
           continue
         }
 
+        const registro: RegistroLembreteSimulado = {
+          chave, eventoId: alvo.eventoId, contexto: alvo.contexto, email: aluno.email, fase,
+          token, data: alvo.date, hora: alvo.time, enviadoEm: agora.toISOString(), confirmadoEm: null,
+        }
+        // Atualiza a chave já reservada com o token real do envio.
+        await store.setJSON(chave, registro)
+        // Índice por token, pra tela de confirmação achar o registro sem varrer tudo.
+        await store.setJSON(`token__${token}`, registro)
         enviados += 1
       }
     }
