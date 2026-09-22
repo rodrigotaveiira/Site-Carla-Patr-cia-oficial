@@ -2,8 +2,12 @@ import type { ReactNode } from 'react'
 
 // Marcador de destaque dentro do texto colado em "Questões para treino": a
 // professora escreve `==palavra==` ao redor do trecho que quer realçar (no
-// texto-base, no enunciado ou numa alternativa), e isso vira um <mark> na
-// tela — tanto na conferência do admin quanto na prova do aluno.
+// texto-base, no enunciado ou numa alternativa), e isso vira um <strong> em
+// negrito na tela — tanto na conferência do admin quanto na prova do aluno.
+// `<strong>` (não `<mark>`): é negrito de verdade que se destaca, não uma
+// marcação com fundo — e o peso em CSS é forçado pra 900 porque o enunciado
+// já é exibido dentro de um <b>, então um simples "bold" ficaria do mesmo
+// peso do resto do texto e o destaque desapareceria ali.
 //
 // Não é HTML de verdade: nunca passa por dangerouslySetInnerHTML, só
 // reconhece esse marcador específico dentro de uma string e devolve o resto
@@ -23,9 +27,9 @@ export function renderComDestaque(texto: string): ReactNode {
     const indice = match.index ?? 0
     if (indice > ultimoIndice) partes.push(texto.slice(ultimoIndice, indice))
     partes.push(
-      <mark key={chave++} className="texto-destacado">
+      <strong key={chave++} className="texto-destacado">
         {match[1]}
-      </mark>,
+      </strong>,
     )
     ultimoIndice = indice + match[0].length
   }
