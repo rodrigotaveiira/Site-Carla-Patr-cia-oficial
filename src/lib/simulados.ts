@@ -38,6 +38,13 @@ export type Simulado = {
   /** Textos-base colados junto das questões. Vazio nas atividades antigas. */
   passages: SimuladoPassage[]
   questions: SimuladoQuestion[]
+  /**
+   * Texto original colado pela professora (questões e gabarito), guardado
+   * pra poder reabrir e editar depois — ver `updateSimuladoQuestions`.
+   * Vazio nas atividades criadas antes desse campo existir.
+   */
+  questionsText: string
+  gabaritoText: string
 }
 
 // O que o aluno recebe pra fazer a prova: sem a resposta certa embutida.
@@ -58,6 +65,8 @@ function normalizeSimulado(value: unknown): Simulado {
     releaseDate: '',
     releaseTime: '',
     passages: [],
+    questionsText: '',
+    gabaritoText: '',
     ...raw,
     questions: (raw.questions ?? []).map(
       (q) => ({ passageIds: [], ...(q as Partial<SimuladoQuestion>) }) as SimuladoQuestion,
@@ -109,6 +118,29 @@ function studentDisplayName(user: unknown) {
 
 // --------------------------------------------------------------------------
 
+// Compartilhado entre criar e editar: lê o texto colado, casa com o gabarito
+// e devolve tudo pronto pra gravar. Lança se não reconhecer nenhuma questão.
+function parseQuestoesEGabarito(questionsText: string, gabaritoText: string) {
+  const parsed = parseActivityText(questionsText)
+  if (parsed.questions.length === 0) {
+    // A mensagem específica do parser diz o que deu errado (formato do
+    // número, alternativa faltando, etc.) — melhor que um texto genérico.
+    const motivo = parsed.issues.find((i) => i.level === 'erro')?.message
+    throw new Error(motivo ?? 'Não consegui reconhecer nenhuma questão nesse texto.')
+  }
+
+  const gabarito = parseGabaritoText(gabaritoText)
+  let matched = 0
+  const questions: SimuladoQuestion[] = parsed.questions.map((question) => {
+    const letter = gabarito.get(question.number)
+    const correctLetter = letter && question.options.some((o) => o.letter === letter) ? letter : null
+    if (correctLetter) matched++
+    return { ...question, correctLetter }
+  })
+
+  return { passages: parsed.passages, questions, issues: parsed.issues, matched }
+}
+
 export const createSimulado = createServerFn({ method: 'POST' })
   .validator(
     z.object({
@@ -123,22 +155,7 @@ export const createSimulado = createServerFn({ method: 'POST' })
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    const parsed = parseActivityText(data.questionsText)
-    if (parsed.questions.length === 0) {
-      // A mensagem específica do parser diz o que deu errado (formato do
-      // número, alternativa faltando, etc.) — melhor que um texto genérico.
-      const motivo = parsed.issues.find((i) => i.level === 'erro')?.message
-      throw new Error(motivo ?? 'Não consegui reconhecer nenhuma questão nesse texto.')
-    }
-
-    const gabarito = parseGabaritoText(data.gabaritoText)
-    let matched = 0
-    const questions: SimuladoQuestion[] = parsed.questions.map((question) => {
-      const letter = gabarito.get(question.number)
-      const correctLetter = letter && question.options.some((o) => o.letter === letter) ? letter : null
-      if (correctLetter) matched++
-      return { ...question, correctLetter }
-    })
+    const { passages, questions, issues, matched } = parseQuestoesEGabarito(data.questionsText, data.gabaritoText)
 
     const store = simuladosStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -148,16 +165,64 @@ export const createSimulado = createServerFn({ method: 'POST' })
       createdAt: new Date().toISOString(),
       releaseDate: data.releaseDate,
       releaseTime: data.releaseTime,
-      passages: parsed.passages,
+      passages,
       questions,
+      questionsText: data.questionsText,
+      gabaritoText: data.gabaritoText,
     }
     await store.setJSON(id, simulado)
     return {
       simulado,
       questionsFound: questions.length,
-      passagesFound: parsed.passages.length,
+      passagesFound: passages.length,
       answersMatched: matched,
-      issues: parsed.issues,
+      issues,
+    }
+  })
+
+// Reprocessa o texto colado de um conjunto já publicado — título, textos-base
+// e questões são substituídos, mas id, createdAt e a liberação continuam os
+// mesmos (liberação tem tela própria, "Reagendar"). Não apaga as tentativas
+// já registradas: se os alunos já responderam, a nota deles fica gravada como
+// estava, mas o gabarito exibido no "Ver questões" passa a ser o novo — o
+// admin já foi avisado disso na tela antes de salvar (ver simulados-admin.tsx).
+export const updateSimuladoQuestions = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({
+      id: idSchema,
+      title: boundedText(200),
+      questionsText: z.string().max(200_000),
+      gabaritoText: z.string().max(50_000),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+
+    const entry = await simuladosStore().getWithMetadata(data.id, { type: 'json' })
+    if (!entry) throw new Error('Esse conjunto não existe mais. Atualize a página.')
+    const existente = normalizeSimulado(entry.data)
+
+    const { passages, questions, issues, matched } = parseQuestoesEGabarito(data.questionsText, data.gabaritoText)
+
+    const simulado: Simulado = {
+      ...existente,
+      title: data.title.trim(),
+      passages,
+      questions,
+      questionsText: data.questionsText,
+      gabaritoText: data.gabaritoText,
+    }
+
+    const result = await simuladosStore().setJSON(data.id, simulado, { onlyIfMatch: entry.etag })
+    if (!result?.modified) throw new Error('Esse conjunto acabou de mudar. Atualize a página e tente de novo.')
+
+    return {
+      simulado,
+      questionsFound: questions.length,
+      passagesFound: passages.length,
+      answersMatched: matched,
+      issues,
     }
   })
 

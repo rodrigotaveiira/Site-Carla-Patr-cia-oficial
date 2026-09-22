@@ -1,10 +1,13 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Palette, Trash2, XCircle } from 'lucide-react'
+import { AlertTriangle, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, ClipboardList, Palette, Pencil, Trash2, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { createSimulado, deleteSimulado, listAllSimulados, updateSimuladoRelease, type Simulado } from '@/lib/simulados'
+import {
+  createSimulado, deleteSimulado, listAllSimulados, listAllSimuladoAttempts,
+  updateSimuladoQuestions, updateSimuladoRelease, type Simulado,
+} from '@/lib/simulados'
 import { agruparPorTextoBase, parseActivityText, parseGabaritoText } from '@/lib/simulado-parser'
 import { releaseInstantMs } from '@/lib/simulado-release'
 import { formatarHora } from '@/lib/formato'
@@ -87,7 +90,7 @@ function ReleaseStatus({ simulado }: { simulado: Simulado }) {
   )
 }
 
-function SimuladoCard({ simulado, onChanged }: { simulado: Simulado; onChanged: () => void }) {
+function SimuladoCard({ simulado, onChanged, onEdit }: { simulado: Simulado; onChanged: () => void; onEdit: (simulado: Simulado) => void }) {
   const showToast = useToast()
   const [open, setOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -140,6 +143,9 @@ function SimuladoCard({ simulado, onChanged }: { simulado: Simulado; onChanged: 
           )}
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button onClick={() => onEdit(simulado)} className="btn btn-ghost btn-sm">
+            <Pencil size={14} /> Editar
+          </button>
           <button onClick={() => setReagendando((v) => !v)} className="btn btn-ghost btn-sm">
             <CalendarClock size={14} /> Reagendar
           </button>
@@ -394,11 +400,18 @@ function AparenciaEditor() {
 }
 
 function SimuladosAdminPage() {
+  const showToast = useToast()
   const [simulados, setSimulados] = useState<Simulado[]>([])
   const [loading, setLoading] = useState(true)
   const [title, setTitle] = useState('')
   const [questionsText, setQuestionsText] = useState('')
   const [gabaritoText, setGabaritoText] = useState('')
+  // Id do conjunto sendo editado, ou null quando o formulário é pra criar um
+  // novo. Reaproveita o mesmo formulário — ver handleEditar/handleCancelEdit.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  // Quantos alunos já responderam o conjunto em edição — carregado só quando
+  // entra em modo de edição, pra avisar antes de ela salvar por cima.
+  const [tentativasExistentes, setTentativasExistentes] = useState<number | null>(null)
   const [releaseDate, setReleaseDate] = useState('')
   const [releaseTime, setReleaseTime] = useState('')
   const [saving, setSaving] = useState(false)
@@ -429,6 +442,42 @@ function SimuladosAdminPage() {
 
   useEffect(() => { void load() }, [])
 
+  function limparFormulario() {
+    setEditingId(null)
+    setTentativasExistentes(null)
+    setTitle('')
+    setQuestionsText('')
+    setGabaritoText('')
+    setReleaseDate('')
+    setReleaseTime('')
+  }
+
+  function handleCancelEdit() {
+    limparFormulario()
+    setError('')
+    setNotice('')
+  }
+
+  async function handleEditar(simulado: Simulado) {
+    setError('')
+    setNotice('')
+    setEditingId(simulado.id)
+    setTitle(simulado.title)
+    setQuestionsText(simulado.questionsText)
+    setGabaritoText(simulado.gabaritoText)
+    setTentativasExistentes(null)
+    if (!simulado.questionsText.trim()) {
+      showToast('Esse conjunto foi criado antes de guardarmos o texto original — cole tudo de novo pra editar.', 'error')
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    try {
+      const todasAsTentativas = await listAllSimuladoAttempts()
+      setTentativasExistentes(todasAsTentativas.filter((a) => a.simuladoId === simulado.id).length)
+    } catch {
+      // Não bloqueia a edição por causa disso — só fica sem o aviso de quantos já responderam.
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
@@ -439,23 +488,22 @@ function SimuladosAdminPage() {
     }
     setSaving(true)
     try {
-      const result = await createSimulado({ data: { title, questionsText, gabaritoText, releaseDate, releaseTime } })
+      const result = editingId
+        ? await updateSimuladoQuestions({ data: { id: editingId, title, questionsText, gabaritoText } })
+        : await createSimulado({ data: { title, questionsText, gabaritoText, releaseDate, releaseTime } })
       const textos = result.passagesFound > 0
         ? ` e ${result.passagesFound} ${result.passagesFound === 1 ? 'texto-base' : 'textos-base'}`
         : ''
+      const acao = editingId ? 'Salvo' : 'Publicado'
       setNotice(
         result.answersMatched < result.questionsFound
-          ? `${result.questionsFound} questões reconhecidas${textos}, mas só ${result.answersMatched} com gabarito. Publicado — confira o texto do gabarito.`
-          : `${result.questionsFound} questões reconhecidas${textos}, todas com gabarito. Publicado!`,
+          ? `${result.questionsFound} questões reconhecidas${textos}, mas só ${result.answersMatched} com gabarito. ${acao} — confira o texto do gabarito.`
+          : `${result.questionsFound} questões reconhecidas${textos}, todas com gabarito. ${acao}!`,
       )
-      setTitle('')
-      setQuestionsText('')
-      setGabaritoText('')
-      setReleaseDate('')
-      setReleaseTime('')
+      limparFormulario()
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível publicar.')
+      setError(err instanceof Error ? err.message : (editingId ? 'Não foi possível salvar.' : 'Não foi possível publicar.'))
     } finally {
       setSaving(false)
     }
@@ -472,6 +520,20 @@ function SimuladosAdminPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="panel-card">
+        {editingId && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <b style={{ color: 'var(--purple)' }}>Editando conjunto já publicado</b>
+            <button type="button" onClick={handleCancelEdit} className="btn btn-ghost btn-sm">Cancelar edição</button>
+          </div>
+        )}
+        {editingId && tentativasExistentes !== null && tentativasExistentes > 0 && (
+          <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start', color: '#a16207', fontSize: 13, background: '#fef9ec', border: '1px solid #fde68a', borderRadius: 8, padding: 10 }}>
+            <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+            {tentativasExistentes} {tentativasExistentes === 1 ? 'aluno já respondeu' : 'alunos já responderam'} esse conjunto.
+            Salvar essas alterações não muda a nota já registrada, mas o gabarito exibido pra quem já respondeu passa a
+            ser o novo — pode ficar inconsistente com o que foi corrigido antes.
+          </div>
+        )}
         <div className="field">
           <label>Título</label>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Questões de Linguagens — Semana 1" />
@@ -505,21 +567,30 @@ function SimuladosAdminPage() {
 
         {conferencia && <Conferencia conferencia={conferencia} />}
 
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <div className="field" style={{ margin: 0 }}>
-            <label>Liberar em <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
-            <input type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} />
-          </div>
-          <div className="field" style={{ margin: 0 }}>
-            <label>Horário <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
-            <input type="time" value={releaseTime} onChange={(e) => setReleaseTime(e.target.value)} />
-          </div>
-        </div>
-        <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
-          Em branco, libera na hora. Antes da data/horário, o aluno não vê nem consegue responder.
-        </p>
+        {!editingId && (
+          <>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <div className="field" style={{ margin: 0 }}>
+                <label>Liberar em <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+                <input type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} />
+              </div>
+              <div className="field" style={{ margin: 0 }}>
+                <label>Horário <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(opcional)</span></label>
+                <input type="time" value={releaseTime} onChange={(e) => setReleaseTime(e.target.value)} />
+              </div>
+            </div>
+            <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: '6px 0 0' }}>
+              Em branco, libera na hora. Antes da data/horário, o aluno não vê nem consegue responder.
+            </p>
+          </>
+        )}
+        {editingId && (
+          <p className="field-hint" style={{ color: 'var(--muted)', fontSize: 12, margin: 0 }}>
+            A liberação não muda aqui — use "Reagendar" no conjunto, na lista abaixo.
+          </p>
+        )}
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
-          {saving ? 'Processando...' : 'Publicar'}
+          {saving ? 'Processando...' : editingId ? 'Salvar alterações' : 'Publicar'}
         </button>
         {error && <p className="form-error">{error}</p>}
         {notice && <p className="form-success">{notice}</p>}
@@ -532,7 +603,7 @@ function SimuladosAdminPage() {
         {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {simulados.map((simulado) => (
-            <SimuladoCard key={simulado.id} simulado={simulado} onChanged={load} />
+            <SimuladoCard key={simulado.id} simulado={simulado} onChanged={load} onEdit={handleEditar} />
           ))}
           {!loading && simulados.length === 0 && <p className="empty-state">Nenhum conjunto publicado ainda.</p>}
         </div>
