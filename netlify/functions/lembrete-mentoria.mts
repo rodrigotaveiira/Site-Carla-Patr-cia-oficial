@@ -86,20 +86,6 @@ function chaveLembrete(slotId: string, email: string) {
 export default async function handler() {
   const agora = new Date()
 
-  // DIAGNÓSTICO TEMPORÁRIO — investigando por que o mesmo lembrete sai de
-  // novo a cada execução (ver conversa com o usuário, 2026-09-23). Remove
-  // assim que a causa for confirmada.
-  try {
-    const diag = getStore({ name: STORES.lembretesMentoria, consistency: 'strong' })
-    const anterior = (await diag.get('__diagnostico__', { type: 'json' })) as { contagem: number; historico: string[] } | null
-    const contagem = (anterior?.contagem ?? 0) + 1
-    const historico = [...(anterior?.historico ?? []), agora.toISOString()].slice(-5)
-    await diag.setJSON('__diagnostico__', { contagem, historico })
-    console.log('[lembrete-mentoria] DIAG contagem persistida entre execuções:', contagem, '| NETLIFY_BLOBS_CONTEXT presente?', Boolean(process.env.NETLIFY_BLOBS_CONTEXT), '| DEPLOY_ID:', process.env.DEPLOY_ID, '| historico:', JSON.stringify(historico))
-  } catch (diagErro) {
-    console.error('[lembrete-mentoria] DIAG erro ao ler/gravar:', diagErro instanceof Error ? diagErro.message : diagErro)
-  }
-
   const [individuais, grupos, eventos] = await Promise.all([
     lerJson<MentoriaSlot>(STORES.mentorias),
     lerJson<MentoriaGrupoSlot>(STORES.mentoriasGrupo),
