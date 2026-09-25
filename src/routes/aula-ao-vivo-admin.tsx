@@ -28,7 +28,7 @@ function AulaAoVivoAdminPage() {
   const [title, setTitle] = useState('')
   const [moduleName, setModuleName] = useState('')
   const [description, setDescription] = useState('')
-  const [dateTime, setDateTime] = useState('')
+  const [time, setTime] = useState('')
   const [durationMinutes, setDurationMinutes] = useState(90)
   const [zoomLink, setZoomLink] = useState('')
   const [loading, setLoading] = useState(true)
@@ -42,7 +42,7 @@ function AulaAoVivoAdminPage() {
           setTitle(liveClass.title)
           setModuleName(liveClass.module)
           setDescription(liveClass.description)
-          setDateTime(liveClass.dateTime)
+          setTime(liveClass.time)
           setDurationMinutes(liveClass.durationMinutes)
           setZoomLink(liveClass.zoomLink)
         }
@@ -55,7 +55,7 @@ function AulaAoVivoAdminPage() {
     setError('')
     setSaving(true)
     try {
-      await updateLiveClass({ data: { title, module: moduleName, description, dateTime, durationMinutes, zoomLink } })
+      await updateLiveClass({ data: { title, module: moduleName, description, time, durationMinutes, zoomLink } })
       showToast('Salvo! Já aparece no dashboard dos alunos.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar a aula ao vivo.')
@@ -69,8 +69,9 @@ function AulaAoVivoAdminPage() {
       <VoltarAoPainel />
       <h1><Radio /> Próxima aula ao vivo</h1>
       <p className="panel-subtitle">
-        Configure os dados da próxima aula ao vivo. Eles aparecem no card "Próxima aula" do dashboard do aluno,
-        com o botão "Entrar na aula" levando direto para o link do Zoom.
+        Configure os dados da aula ao vivo, de segunda a sexta. Eles aparecem no card "Próxima aula" do dashboard
+        do aluno, com o botão "Entrar na aula" levando direto para o link do Zoom. A data não precisa ser editada
+        todo dia — é sempre a próxima ocorrência, calculada sozinha a partir do horário abaixo.
       </p>
 
       {loading ? (
@@ -90,9 +91,10 @@ function AulaAoVivoAdminPage() {
             <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div className="field" style={{ flex: 1, minWidth: 200 }}>
-              <label>Data e horário</label>
-              <input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} />
+            <div className="field" style={{ flex: 1, minWidth: 160 }}>
+              <label>Horário</label>
+              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              <p className="field-hint">Repete de segunda a sexta — a data é sempre a próxima ocorrência.</p>
             </div>
             <div className="field" style={{ width: 140 }}>
               <label>Duração (min)</label>
