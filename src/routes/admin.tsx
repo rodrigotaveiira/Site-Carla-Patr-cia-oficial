@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, Monitor, PencilLine, PenLine, ScrollText, Send, Target, TrendingUp, Users, Video, Zap,
+  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, MessageSquareText, Monitor, PencilLine, PenLine, ScrollText, Send, Target, TrendingUp, Users, Video, Zap,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
@@ -40,6 +40,7 @@ const links = [
   { icon: CalendarDays, label: 'Mentoria individual', to: '/mentorias-admin', description: 'Cadastre horários de mentoria individual.', badgeKey: undefined },
   { icon: Users, label: 'Mentorias em grupo', to: '/mentorias-grupo-admin', description: 'Cadastre grupos com horário e número de vagas.', badgeKey: undefined },
   { icon: Send, label: 'Convite para as mentorias', to: '/convite-mentorias-admin', description: 'Lembre os alunos de reservar vaga nos grupos que ainda têm lugar.', badgeKey: undefined },
+  { icon: MessageSquareText, label: 'Mensagem para os alunos', to: '/mensagem-alunos-admin', description: 'Mande um recado por e-mail pra turma toda — como lembrar da importância dos exercícios e das redações.', badgeKey: undefined },
   { icon: Library, label: 'Biblioteca', to: '/conteudo-admin/biblioteca', description: 'PDFs da seção Biblioteca.', badgeKey: undefined },
   { icon: CircleHelp, label: 'Questões (PDF)', to: '/conteudo-admin/questoes', description: 'Listas de exercício em PDF.', badgeKey: undefined },
   { icon: Target, label: 'Questões para treino', to: '/simulados-admin', description: 'Cole questões objetivas e o gabarito — o aluno responde no site, com nota na hora.', badgeKey: undefined },
