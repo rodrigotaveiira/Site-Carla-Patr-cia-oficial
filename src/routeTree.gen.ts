@@ -25,6 +25,7 @@ import { Route as LembretesAdminRouteImport } from './routes/lembretes-admin'
 import { Route as LgpdRouteImport } from './routes/lgpd'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MateriaisAdminRouteImport } from './routes/materiais-admin'
+import { Route as MensagemAlunosAdminRouteImport } from './routes/mensagem-alunos-admin'
 import { Route as MentoriasAdminRouteImport } from './routes/mentorias-admin'
 import { Route as MentoriasGrupoAdminRouteImport } from './routes/mentorias-grupo-admin'
 import { Route as NotasAdminRouteImport } from './routes/notas-admin'
@@ -129,6 +130,11 @@ const LoginRoute = LoginRouteImport.update({
 const MateriaisAdminRoute = MateriaisAdminRouteImport.update({
   id: '/materiais-admin',
   path: '/materiais-admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MensagemAlunosAdminRoute = MensagemAlunosAdminRouteImport.update({
+  id: '/mensagem-alunos-admin',
+  path: '/mensagem-alunos-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentoriasAdminRoute = MentoriasAdminRouteImport.update({
@@ -278,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
+  '/mensagem-alunos-admin': typeof MensagemAlunosAdminRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
   '/notas-admin': typeof NotasAdminRoute
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
+  '/mensagem-alunos-admin': typeof MensagemAlunosAdminRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
   '/notas-admin': typeof NotasAdminRoute
@@ -366,6 +374,7 @@ export interface FileRoutesById {
   '/lgpd': typeof LgpdRoute
   '/login': typeof LoginRoute
   '/materiais-admin': typeof MateriaisAdminRoute
+  '/mensagem-alunos-admin': typeof MensagemAlunosAdminRoute
   '/mentorias-admin': typeof MentoriasAdminRoute
   '/mentorias-grupo-admin': typeof MentoriasGrupoAdminRoute
   '/notas-admin': typeof NotasAdminRoute
@@ -411,6 +420,7 @@ export interface FileRouteTypes {
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
+    | '/mensagem-alunos-admin'
     | '/mentorias-admin'
     | '/mentorias-grupo-admin'
     | '/notas-admin'
@@ -454,6 +464,7 @@ export interface FileRouteTypes {
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
+    | '/mensagem-alunos-admin'
     | '/mentorias-admin'
     | '/mentorias-grupo-admin'
     | '/notas-admin'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/lgpd'
     | '/login'
     | '/materiais-admin'
+    | '/mensagem-alunos-admin'
     | '/mentorias-admin'
     | '/mentorias-grupo-admin'
     | '/notas-admin'
@@ -543,6 +555,7 @@ export interface RootRouteChildren {
   LgpdRoute: typeof LgpdRoute
   LoginRoute: typeof LoginRoute
   MateriaisAdminRoute: typeof MateriaisAdminRoute
+  MensagemAlunosAdminRoute: typeof MensagemAlunosAdminRoute
   MentoriasAdminRoute: typeof MentoriasAdminRoute
   MentoriasGrupoAdminRoute: typeof MentoriasGrupoAdminRoute
   NotasAdminRoute: typeof NotasAdminRoute
@@ -671,6 +684,13 @@ declare module '@tanstack/react-router' {
       path: '/materiais-admin'
       fullPath: '/materiais-admin'
       preLoaderRoute: typeof MateriaisAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mensagem-alunos-admin': {
+      id: '/mensagem-alunos-admin'
+      path: '/mensagem-alunos-admin'
+      fullPath: '/mensagem-alunos-admin'
+      preLoaderRoute: typeof MensagemAlunosAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mentorias-admin': {
@@ -907,6 +927,7 @@ const rootRouteChildren: RootRouteChildren = {
   LgpdRoute: LgpdRoute,
   LoginRoute: LoginRoute,
   MateriaisAdminRoute: MateriaisAdminRoute,
+  MensagemAlunosAdminRoute: MensagemAlunosAdminRoute,
   MentoriasAdminRoute: MentoriasAdminRoute,
   MentoriasGrupoAdminRoute: MentoriasGrupoAdminRoute,
   NotasAdminRoute: NotasAdminRoute,

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { Bell, BookCheck, FileCheck2, PenLine, Zap } from 'lucide-react'
+import { Bell, BookCheck, FileCheck2, MessageSquareText, PenLine, Zap } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
@@ -26,6 +26,7 @@ const links = [
   { icon: FileCheck2, label: 'Correção de redações', to: '/redacoes-admin', description: 'Veja e corrija as redações enviadas pelos alunos.', badgeKey: 'redacoesPendentes' as const },
   { icon: PenLine, label: 'Temas de redação', to: '/temas-redacao-admin', description: 'Publique os temas e propostas que os alunos devem escrever.', badgeKey: undefined },
   { icon: Bell, label: 'Lembretes', to: '/lembretes-admin', description: 'Envie avisos para todos os alunos.', badgeKey: undefined },
+  { icon: MessageSquareText, label: 'Mensagem para os alunos', to: '/mensagem-alunos-admin', description: 'Mande um recado por e-mail pra turma toda — como lembrar da importância dos exercícios e das redações.', badgeKey: undefined },
   { icon: Zap, label: 'Dicas', to: '/conteudo-admin/dicas', description: 'Envie PDFs para a seção Dicas.', badgeKey: undefined },
   { icon: BookCheck, label: 'Gabaritos dos Simulados', to: '/conteudo-admin/gabaritos', description: 'Envie os gabaritos em PDF dos simulados.', badgeKey: undefined },
 ] as const
