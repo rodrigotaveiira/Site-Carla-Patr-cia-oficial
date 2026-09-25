@@ -82,39 +82,39 @@ function MensagemAlunosAdminPage() {
         Alcança todo aluno com conta aprovada, mesmo quem ainda não entrou no site.
       </p>
 
-      <form onSubmit={handleSubmit}>
-        <section className="panel-card" style={{ marginTop: 12 }}>
-          <label>
-            Assunto
-            <input
-              type="text"
-              value={assunto}
-              onChange={(e) => setAssunto(e.target.value)}
-              maxLength={150}
-            />
-          </label>
+      <form onSubmit={handleSubmit} className="panel-card">
+        <div className="field">
+          <label htmlFor="mensagem-assunto">Assunto</label>
+          <input
+            id="mensagem-assunto"
+            type="text"
+            value={assunto}
+            onChange={(e) => setAssunto(e.target.value)}
+            maxLength={150}
+          />
+        </div>
 
-          <label style={{ marginTop: 14, display: 'block' }}>
-            Mensagem
-            <textarea
-              value={mensagem}
-              onChange={(e) => setMensagem(e.target.value)}
-              rows={7}
-              maxLength={5000}
-            />
-          </label>
+        <div className="field">
+          <label htmlFor="mensagem-corpo">Mensagem</label>
+          <textarea
+            id="mensagem-corpo"
+            value={mensagem}
+            onChange={(e) => setMensagem(e.target.value)}
+            rows={7}
+            maxLength={5000}
+          />
+        </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginTop: 14 }}>
-            <button type="submit" disabled={enviando} className="btn btn-primary" style={{ width: 'fit-content' }}>
-              {enviando ? 'Enviando...' : 'Enviar para a turma'}
-            </button>
-            <span className="list-meta">
-              {total === null ? 'Carregando turma...' : `${total} ${total === 1 ? 'aluno aprovado' : 'alunos aprovados'}`}
-            </span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+          <button type="submit" disabled={enviando} className="btn btn-primary" style={{ width: 'fit-content' }}>
+            {enviando ? 'Enviando...' : 'Enviar para a turma'}
+          </button>
+          <span className="list-meta">
+            {total === null ? 'Carregando turma...' : `${total} ${total === 1 ? 'aluno aprovado' : 'alunos aprovados'}`}
+          </span>
+        </div>
 
-          {error && <p className="form-error">{error}</p>}
-        </section>
+        {error && <p className="form-error">{error}</p>}
       </form>
     </main>
   )
