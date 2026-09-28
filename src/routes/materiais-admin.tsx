@@ -5,7 +5,7 @@ import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import {
-  addMaterial, deleteMaterial, listMaterials, MATERIAS, resolveMateria,
+  addMaterial, deleteMaterial, listMaterials, MATERIAS, resolveMateria, updateMaterial,
   type Materia, type MaterialCategory, type MaterialListItem,
 } from '@/lib/materials'
 import { useToast } from '@/lib/toast'
@@ -70,6 +70,10 @@ function MateriaisAdminPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [progresso, setProgresso] = useState(0)
+  // Id do material sendo editado, ou null quando o formulário é pra enviar um
+  // novo. Reaproveita o mesmo formulário — ver handleEditar/handleCancelEdit.
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingFileName, setEditingFileName] = useState('')
 
   async function load() {
     setLoading(true)
@@ -85,6 +89,42 @@ function MateriaisAdminPage() {
     void load()
   }, [])
 
+  function limparFormulario() {
+    setEditingId(null)
+    setEditingFileName('')
+    setTitle('')
+    setDescription('')
+    setTag('Material')
+    setAccent(ACCENT_OPTIONS[0].value)
+    setClassDate('')
+    setClassTime('')
+    setCategory('geral')
+    setSubject('gramatica')
+    setFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function handleEditar(material: MaterialMeta) {
+    setEditingId(material.id)
+    setEditingFileName(material.fileName)
+    setTitle(material.title)
+    setDescription(material.description)
+    setTag(material.tag)
+    setAccent(material.accent)
+    setClassDate(material.classDate ?? '')
+    setClassTime(material.classTime ?? '')
+    setCategory(material.category)
+    setSubject(resolveMateria(material))
+    setFile(null)
+    setError('')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function handleCancelEdit() {
+    limparFormulario()
+    setError('')
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
@@ -93,14 +133,16 @@ function MateriaisAdminPage() {
       setError('Dê um título para o material.')
       return
     }
-    if (!file) {
+    if (!editingId && !file) {
       setError('Escolha um arquivo Word (.docx) ou PDF para enviar.')
       return
     }
-    const tamanhoInvalido = erroDeTamanhoDeUploadGrande(file)
-    if (tamanhoInvalido) {
-      setError(tamanhoInvalido)
-      return
+    if (!editingId && file) {
+      const tamanhoInvalido = erroDeTamanhoDeUploadGrande(file)
+      if (tamanhoInvalido) {
+        setError(tamanhoInvalido)
+        return
+      }
     }
     if (classDate && !classTime) {
       setError('Informe também o horário da aula, pra liberar o material 15 minutos antes.')
@@ -110,33 +152,38 @@ function MateriaisAdminPage() {
     setSaving(true)
     setProgresso(0)
     try {
-      // Arquivo grande sobe em pedaços; o progresso é o que evita a sensação de
-      // travamento numa espera que agora pode passar de meio minuto.
-      const enviado = await enviarArquivo(file, setProgresso)
-      await addMaterial({
-        data: {
-          title, description, tag, accent, fileName: file.name, category,
-          ...(enviado.modo === 'direto'
-            ? { fileDataUrl: enviado.fileDataUrl }
-            : { upload: { uploadId: enviado.uploadId, mime: enviado.mime } }),
-          classDate: classDate || undefined,
-          classTime: classTime || undefined,
-          // A folha de redação fica fora da divisão — não faz sentido marcar frente nela.
-          subject: category === 'folha_redacao' ? undefined : subject,
-        },
-      })
-      setTitle('')
-      setDescription('')
-      setTag('Material')
-      setClassDate('')
-      setClassTime('')
-      setCategory('geral')
-      setFile(null)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      if (editingId) {
+        await updateMaterial({
+          data: {
+            id: editingId, title, description, tag, accent, category,
+            classDate: classDate || undefined,
+            classTime: classTime || undefined,
+            subject: category === 'folha_redacao' ? undefined : subject,
+          },
+        })
+        showToast('Material atualizado.')
+      } else {
+        // Arquivo grande sobe em pedaços; o progresso é o que evita a sensação de
+        // travamento numa espera que agora pode passar de meio minuto.
+        const enviado = await enviarArquivo(file!, setProgresso)
+        await addMaterial({
+          data: {
+            title, description, tag, accent, fileName: file!.name, category,
+            ...(enviado.modo === 'direto'
+              ? { fileDataUrl: enviado.fileDataUrl }
+              : { upload: { uploadId: enviado.uploadId, mime: enviado.mime } }),
+            classDate: classDate || undefined,
+            classTime: classTime || undefined,
+            // A folha de redação fica fora da divisão — não faz sentido marcar frente nela.
+            subject: category === 'folha_redacao' ? undefined : subject,
+          },
+        })
+        showToast('Material adicionado.')
+      }
+      limparFormulario()
       await load()
-      showToast('Material adicionado.')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Não foi possível enviar o arquivo.')
+      setError(err instanceof Error ? err.message : 'Não foi possível salvar.')
     } finally {
       setSaving(false)
       setProgresso(0)
@@ -164,6 +211,12 @@ function MateriaisAdminPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="panel-card" style={{ maxWidth: 480 }}>
+        {editingId && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+            <b style={{ color: 'var(--purple)' }}>Editando material já enviado</b>
+            <button type="button" onClick={handleCancelEdit} className="btn btn-ghost btn-sm">Cancelar edição</button>
+          </div>
+        )}
         <div className="field">
           <label>Título</label>
           <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex.: Mapa mental da redação" />
@@ -249,33 +302,42 @@ function MateriaisAdminPage() {
             </select>
           </div>
         </div>
-        <div className="field">
-          <label>Arquivo (Word ou PDF)</label>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
-            onChange={(event) => {
-              // Confere o tamanho já na escolha: acima do teto a requisição morre
-              // na borda da Netlify e o formulário ficaria preso em "Enviando...".
-              const escolhido = event.target.files?.[0] ?? null
-              const problema = escolhido ? erroDeTamanhoDeUploadGrande(escolhido) : null
-              setError(problema ?? '')
-              setFile(problema ? null : escolhido)
-              if (problema) event.target.value = ''
-            }}
-            style={{ display: 'none' }}
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: 'var(--lilac-tint)', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, cursor: 'pointer' }}
-          >
-            <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
-          </button>
-        </div>
+        {editingId ? (
+          <p className="field-hint">
+            Arquivo atual: <b>{editingFileName}</b> — editar aqui só muda o texto e as opções acima, não troca o
+            arquivo. Pra isso, exclua e envie de novo.
+          </p>
+        ) : (
+          <div className="field">
+            <label>Arquivo (Word ou PDF)</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".docx,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+              onChange={(event) => {
+                // Confere o tamanho já na escolha: acima do teto a requisição morre
+                // na borda da Netlify e o formulário ficaria preso em "Enviando...".
+                const escolhido = event.target.files?.[0] ?? null
+                const problema = escolhido ? erroDeTamanhoDeUploadGrande(escolhido) : null
+                setError(problema ?? '')
+                setFile(problema ? null : escolhido)
+                if (problema) event.target.value = ''
+              }}
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', boxSizing: 'border-box', padding: '14px 16px', background: 'var(--lilac-tint)', border: '2px dashed #c9befd', borderRadius: 8, color: 'var(--purple)', fontWeight: 700, cursor: 'pointer' }}
+            >
+              <Upload size={18} /> {file ? file.name : 'Toque aqui para escolher o arquivo'}
+            </button>
+          </div>
+        )}
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
-          {saving ? (progresso > 0 && progresso < 1 ? `Enviando... ${Math.round(progresso * 100)}%` : 'Enviando...') : 'Adicionar material'}
+          {saving
+            ? (progresso > 0 && progresso < 1 ? `Enviando... ${Math.round(progresso * 100)}%` : 'Salvando...')
+            : editingId ? 'Salvar alterações' : 'Adicionar material'}
         </button>
         {error && <p className="form-error">{error}</p>}
       </form>
@@ -306,7 +368,10 @@ function MateriaisAdminPage() {
                   </div>
                 )}
               </div>
-              <button onClick={() => handleDelete(material.id)} className="btn btn-danger btn-sm">Excluir</button>
+              <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                <button onClick={() => handleEditar(material)} className="btn btn-ghost btn-sm">Editar</button>
+                <button onClick={() => handleDelete(material.id)} className="btn btn-danger btn-sm">Excluir</button>
+              </div>
             </div>
           ))}
           {!loading && materials.length === 0 && <p className="empty-state">Nenhum material enviado ainda.</p>}

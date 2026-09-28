@@ -247,6 +247,58 @@ export const addMaterial = createServerFn({ method: 'POST' })
     return meta
   })
 
+// Edita o texto e as opções de um material já enviado — título, descrição,
+// etiqueta, cor, categoria, frente e data/horário da aula. Não mexe no
+// arquivo (fileName/fileDataUrl continuam os mesmos): pra trocar o arquivo, a
+// professora exclui e reenvia. Sem aviso novo por e-mail — é edição de texto
+// de algo que já foi publicado, não conteúdo novo.
+export const updateMaterial = createServerFn({ method: 'POST' })
+  .validator(
+    z.object({
+      id: idSchema,
+      title: boundedText(300),
+      description: z.string().trim().max(2000),
+      tag: z.string().trim().max(60),
+      accent: z.string().trim().max(20),
+      classDate: z.union([isoDate, z.literal('')]).optional(),
+      classTime: z.union([hhmm, z.literal('')]).optional(),
+      category: z.string().trim().max(30).optional(),
+      subject: materiaSchema.optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    await requireAdmin()
+
+    const store = materialsStore()
+    const stored = await store.get(data.id, { type: 'json' })
+    if (!stored) throw new Error('Esse material não existe mais. Atualize a página.')
+    const { subject: _oldSubject, ...existente } = normalizeMaterial(stored as StoredMaterial)
+
+    const classTime = data.classTime?.trim() || ''
+    const category = MATERIAL_CATEGORIES.includes(data.category as MaterialCategory)
+      ? (data.category as MaterialCategory)
+      : 'geral'
+
+    const material: Material = {
+      ...existente,
+      title: data.title.trim(),
+      description: data.description.trim(),
+      tag: data.tag.trim() || 'Material',
+      accent: data.accent || existente.accent,
+      classDate: data.classDate?.trim() || null,
+      classTime: classTime || null,
+      category,
+      // A folha de redação fica fora da divisão Gramática/Redação — mesma
+      // regra de addMaterial.
+      ...(category !== 'folha_redacao' && data.subject ? { subject: data.subject } : {}),
+    }
+
+    await store.setJSON(data.id, material)
+
+    const { fileDataUrl: _omit, ...meta } = material
+    return meta
+  })
+
 export const deleteMaterial = createServerFn({ method: 'POST' })
   .validator(z.object({ id: idSchema }))
   .handler(async ({ data }) => {
