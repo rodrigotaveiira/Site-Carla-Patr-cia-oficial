@@ -8,7 +8,7 @@ import {
   createSimulado, deleteSimulado, listAllSimulados, listAllSimuladoAttempts,
   updateSimuladoQuestions, updateSimuladoRelease, type Simulado,
 } from '@/lib/simulados'
-import { agruparPorTextoBase, parseActivityText, parseGabaritoText } from '@/lib/simulado-parser'
+import { agruparPorTextoBase, parseActivityText, parseGabaritoText, serializarAtividade, serializarGabarito } from '@/lib/simulado-parser'
 import { releaseInstantMs } from '@/lib/simulado-release'
 import { formatarHora } from '@/lib/formato'
 import { TextoBase } from '@/components/TextoBase'
@@ -463,11 +463,19 @@ function SimuladosAdminPage() {
     setNotice('')
     setEditingId(simulado.id)
     setTitle(simulado.title)
-    setQuestionsText(simulado.questionsText)
-    setGabaritoText(simulado.gabaritoText)
     setTentativasExistentes(null)
-    if (!simulado.questionsText.trim()) {
-      showToast('Esse conjunto foi criado antes de guardarmos o texto original — cole tudo de novo pra editar.', 'error')
+
+    // Conjunto criado antes de guardarmos o texto original (ver comentário em
+    // Simulado.questionsText): não tem o que reabrir de verdade, mas dá pra
+    // reconstituir um texto equivalente a partir das questões já estruturadas,
+    // em vez de abrir o formulário só com o título.
+    if (simulado.questionsText.trim()) {
+      setQuestionsText(simulado.questionsText)
+      setGabaritoText(simulado.gabaritoText)
+    } else {
+      setQuestionsText(serializarAtividade(simulado.passages, simulado.questions))
+      setGabaritoText(serializarGabarito(simulado.questions))
+      showToast('Reconstituímos o texto original desse conjunto — confira antes de salvar.', 'success')
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
     try {
@@ -544,7 +552,8 @@ function SimuladosAdminPage() {
             Cada questão começa numa linha nova — <b>QUESTÃO 1</b> ou <b>1)</b> — e cada alternativa com <b>(A)</b>, <b>A)</b> ou <b>a)</b>.
             Texto-base é opcional: comece com uma linha <b>TEXTO 1</b> e cole o texto embaixo;
             ele vale para as questões que vierem depois, até aparecer um novo bloco TEXTO. Linha cortada no meio pelo
-            PDF é remontada sozinha.
+            PDF é remontada sozinha. Pra destacar uma palavra, envolva com <b>==negrito==</b> ou <b>~~itálico~~</b>
+            (no texto-base, no enunciado ou numa alternativa).
           </p>
           <textarea
             value={questionsText}
