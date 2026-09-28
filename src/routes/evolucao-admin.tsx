@@ -1,10 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, ClipboardList, Download, Flame, PenLine, Search, TrendingUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, ClipboardList, Download, PenLine, Search, TrendingUp } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getStudentEvolution, type StudentEvolution, type StudentEvolutionSummary } from '@/lib/student-evolution'
+import { REDACOES_META_PROGRESSO } from '@/lib/progress'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/evolucao-admin')({
@@ -58,7 +59,11 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
   const redacaoColor = redacao.average !== null ? gradeColor(redacao.average) : '#c7c5d1'
   const materiaisPercent = maxDownloads > 0 ? (materiais.totalDownloads / maxDownloads) * 100 : 0
   const testesColor = testes.averagePercent !== null ? percentColor(testes.averagePercent) : '#c7c5d1'
-  const progressoPercent = (progresso.completedThisWeek / progresso.weeklyGoal) * 100
+  // Sem cor de "bom/ruim" aqui: diferente de nota e acerto, progresso de
+  // conteúdo é naturalmente baixo no início do curso — pintar de vermelho um
+  // aluno em dia, só porque o curso começou há pouco, seria enganoso. Mesma
+  // cor roxa fixa que a própria tela do aluno usa em "Meu progresso".
+  const progressoColor = 'var(--purple)'
 
   return (
     <div className="panel-card plain" style={{ marginTop: 0 }}>
@@ -108,11 +113,11 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
           <div style={{ flex: 1, minWidth: 90 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--muted)', marginBottom: 4 }}>
               <span>Progresso</span>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontWeight: 700, color: 'var(--purple)', fontVariantNumeric: 'tabular-nums' }}>
-                <Flame size={12} /> {progresso.streak}
+              <span style={{ fontWeight: 700, color: progressoColor, fontVariantNumeric: 'tabular-nums' }}>
+                {progresso.overallPercent}%
               </span>
             </div>
-            <Bar percent={progressoPercent} color="var(--purple)" />
+            <Bar percent={progresso.overallPercent} color={progressoColor} />
           </div>
         </div>
 
@@ -179,10 +184,33 @@ function StudentRow({ student, maxDownloads }: { student: StudentEvolution; maxD
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--navy)', fontWeight: 700, fontSize: 13, marginBottom: 8 }}>
               <TrendingUp size={14} /> Progresso
             </div>
-            <p className="list-meta" style={{ margin: '0 0 8px' }}>
-              Sequência de {progresso.streak} dia{progresso.streak === 1 ? '' : 's'} · meta semanal {progresso.completedThisWeek}/{progresso.weeklyGoal}
+            <p className="list-meta" style={{ margin: '0 0 10px' }}>
+              {progresso.overallPercent}% de progresso geral — mesmo cálculo que o aluno vê em "Meu progresso".
             </p>
-            <Bar percent={progressoPercent} color="var(--purple)" />
+            <div style={{ display: 'grid', gap: 8 }}>
+              {progresso.aulasTracked && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--navy)' }}>
+                  <span>Aulas assistidas</span>
+                  <span style={{ fontWeight: 700 }}>{progresso.aulasAssistidas}/{progresso.aulasDisponiveis}</span>
+                </div>
+              )}
+              {progresso.materiaisTracked && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--navy)' }}>
+                  <span>Materiais baixados</span>
+                  <span style={{ fontWeight: 700 }}>{progresso.materiaisBaixados}/{progresso.materiaisDisponiveis}</span>
+                </div>
+              )}
+              {progresso.simuladosTracked && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--navy)' }}>
+                  <span>Questões para treino</span>
+                  <span style={{ fontWeight: 700 }}>{progresso.simuladosRespondidos}/{progresso.simuladosDisponiveis}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--navy)' }}>
+                <span>Redações entregues</span>
+                <span style={{ fontWeight: 700 }}>{progresso.redacoesEntregues}/{REDACOES_META_PROGRESSO}</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -239,9 +267,9 @@ function EvolucaoAdminPage() {
           </div>
         </div>
         <div style={{ background: 'var(--lilac-tint)', borderRadius: 10, padding: '14px 16px' }}>
-          <div className="list-meta" style={{ marginTop: 0 }}>Sequência média</div>
+          <div className="list-meta" style={{ marginTop: 0 }}>Progresso médio da turma</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--navy)', fontVariantNumeric: 'tabular-nums' }}>
-            {data?.averageStreak !== null && data?.averageStreak !== undefined ? `${data.averageStreak} dias` : '—'}
+            {data?.averageProgress !== null && data?.averageProgress !== undefined ? `${data.averageProgress}%` : '—'}
           </div>
         </div>
       </div>

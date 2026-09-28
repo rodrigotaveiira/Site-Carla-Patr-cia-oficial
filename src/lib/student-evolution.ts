@@ -5,8 +5,11 @@ import { getServerUser } from './auth'
 import { userHasRole, isStaff } from './roles'
 import type { RedacaoSubmission } from './redacoes'
 import type { MaterialDownloadRecord } from './material-downloads'
-import type { SimuladoAttempt } from './simulados'
-import { WEEKLY_GOAL } from './weekly-activity'
+import type { Simulado, SimuladoAttempt } from './simulados'
+import type { Lesson } from './aulas'
+import { isReleased as isMaterialReleased, type Material } from './materials'
+import { isReleased as isSimuladoReleased } from './simulado-release'
+import { PROGRESSO_CONTA_A_PARTIR_DE, REDACOES_META_PROGRESSO } from './progress'
 
 // Visão de "como os alunos estão" pro painel admin, separada em blocos
 // (Redação, Materiais, Testes, Progresso).
@@ -49,31 +52,28 @@ function simuladoAttemptsStore() {
   return getStore({ name: 'simulado-attempts', consistency: 'strong' })
 }
 
-// Mesmo store usado em weekly-activity.ts, indexado por `${userId}:${data}`.
-function activityStore() {
-  return getStore({ name: 'weekly-activity', consistency: 'strong' })
+function simuladosCatalogoStore() {
+  return getStore({ name: 'simulados', consistency: 'strong' })
 }
 
-function toISODate(date: Date): string {
-  return date.toISOString().slice(0, 10)
+function lessonsStore() {
+  return getStore({ name: 'lessons', consistency: 'strong' })
 }
 
-function startOfWeek(date: Date): Date {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  d.setDate(d.getDate() + diff)
-  d.setHours(0, 0, 0, 0)
-  return d
+// Mesmo índice usado em progress.ts pra saber quais aulas cada aluno já
+// assistiu — chave = e-mail, valor = lista de ids de aula.
+function lessonWatchProgressStore() {
+  return getStore({ name: 'lesson-watch-progress', consistency: 'strong' })
 }
 
-function weekDates(date: Date): string[] {
-  const monday = startOfWeek(date)
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday)
-    d.setDate(monday.getDate() + i)
-    return toISODate(d)
-  })
+function materiaisCatalogoStore() {
+  return getStore({ name: 'student-materials', consistency: 'strong' })
+}
+
+// Mesmo índice usado em progress.ts (ver material-downloads.ts) pra saber
+// quais materiais cada aluno já baixou — chave = e-mail, valor = lista de ids.
+function materialDownloadProgressoStore() {
+  return getStore({ name: 'material-download-progress', consistency: 'strong' })
 }
 
 export type RedacaoResumo = {
@@ -115,10 +115,26 @@ export type StudentEvolution = {
     attemptsCount: number
     recent: SimuladoAttemptResumo[]
   }
+  /**
+   * Mesma lógica de `getStudentProgress` (src/lib/progress.ts) — o que o
+   * aluno vê em "Meu progresso" — só que calculada pra turma inteira de uma
+   * vez em vez de pro usuário logado. Antes esse bloco mostrava a sequência
+   * de acesso (dias abrindo o dashboard), que não tinha nada a ver com os
+   * outros três blocos (todos medem trabalho de verdade, não login).
+   */
   progresso: {
-    streak: number
-    completedThisWeek: number
-    weeklyGoal: number
+    overallPercent: number
+    aulasAssistidas: number
+    aulasDisponiveis: number
+    aulasTracked: boolean
+    materiaisBaixados: number
+    materiaisDisponiveis: number
+    materiaisTracked: boolean
+    simuladosRespondidos: number
+    simuladosDisponiveis: number
+    simuladosTracked: boolean
+    redacoesEntregues: number
+    redacoesPercent: number
   }
 }
 
@@ -127,36 +143,7 @@ export type StudentEvolutionSummary = {
   classRedacaoAverage: number | null
   totalDownloads: number
   classTestesAverage: number | null
-  averageStreak: number | null
-}
-
-const MAX_STREAK_LOOKBACK = 365
-
-// Mesmo cálculo de getStreak/getWeeklyGoal em weekly-activity.ts, mas
-// parametrizado por id de aluno em vez de pegar da sessão logada — porque
-// aqui é a equipe olhando o progresso de outra pessoa.
-async function computeStreakAndWeek(userId: string): Promise<{ streak: number; completedThisWeek: number }> {
-  const store = activityStore()
-
-  const cursor = new Date()
-  const today = toISODate(cursor)
-  const todayMarked = !!(await store.get(`${userId}:${today}`))
-  if (!todayMarked) cursor.setDate(cursor.getDate() - 1)
-
-  let streak = 0
-  for (let i = 0; i < MAX_STREAK_LOOKBACK; i++) {
-    const marked = await store.get(`${userId}:${toISODate(cursor)}`)
-    if (!marked) break
-    streak++
-    cursor.setDate(cursor.getDate() - 1)
-  }
-
-  let completedThisWeek = 0
-  for (const date of weekDates(new Date())) {
-    if (await store.get(`${userId}:${date}`)) completedThisWeek++
-  }
-
-  return { streak, completedThisWeek }
+  averageProgress: number | null
 }
 
 export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
@@ -231,6 +218,73 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
       console.error('Evolução dos alunos: falha ao listar tentativas de teste:', error)
     }
 
+    // Denominadores do bloco "Progresso" — comuns a todo mundo, calculados
+    // uma vez só (mesmo corte e mesma regra de "já liberado" de progress.ts).
+    const corte = PROGRESSO_CONTA_A_PARTIR_DE
+    const agora = Date.now()
+
+    const aulasContadas = new Set<string>()
+    try {
+      const store = lessonsStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        const value = (await store.get(blob.key, { type: 'json' })) as Lesson | null
+        if (value && value.createdAt >= corte) aulasContadas.add(value.id)
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar aulas:', error)
+    }
+
+    const materiaisContados = new Set<string>()
+    try {
+      const store = materiaisCatalogoStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        const value = (await store.get(blob.key, { type: 'json' })) as Material | null
+        if (value && value.createdAt >= corte && isMaterialReleased(value)) materiaisContados.add(value.id)
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar materiais:', error)
+    }
+
+    const simuladosContados = new Set<string>()
+    try {
+      const store = simuladosCatalogoStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        const value = (await store.get(blob.key, { type: 'json' })) as Simulado | null
+        if (value && value.createdAt >= corte && isSimuladoReleased(value, agora)) simuladosContados.add(value.id)
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar questões para treino:', error)
+    }
+
+    // Numeradores: os mesmos índices por e-mail que progress.ts já usa pro
+    // aluno logado, aqui lidos de uma vez pra turma inteira.
+    const assistidasByEmail = new Map<string, Set<string>>()
+    try {
+      const store = lessonWatchProgressStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        const value = (await store.get(blob.key, { type: 'json' })) as string[] | null
+        if (Array.isArray(value)) assistidasByEmail.set(blob.key, new Set(value))
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar aulas assistidas:', error)
+    }
+
+    const baixadosByEmail = new Map<string, Set<string>>()
+    try {
+      const store = materialDownloadProgressoStore()
+      const { blobs } = await store.list()
+      for (const blob of blobs) {
+        const value = (await store.get(blob.key, { type: 'json' })) as string[] | null
+        if (Array.isArray(value)) baixadosByEmail.set(blob.key, new Set(value))
+      }
+    } catch (error) {
+      console.error('Evolução dos alunos: falha ao listar materiais baixados:', error)
+    }
+
     const students: StudentEvolution[] = []
     for (const entry of directory) {
       const submissions = (redByEmail.get(entry.email) ?? []).sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))
@@ -246,13 +300,34 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
         ? Math.round((attempts.reduce((sum, a) => sum + a.percent, 0) / attempts.length) * 100) / 100
         : null
 
-      let streak = 0
-      let completedThisWeek = 0
-      try {
-        ;({ streak, completedThisWeek } = await computeStreakAndWeek(entry.id))
-      } catch (error) {
-        console.error(`Evolução dos alunos: falha ao calcular progresso de "${entry.email}":`, error)
-      }
+      const aulasDisponiveis = aulasContadas.size
+      const aulasAssistidas = [...(assistidasByEmail.get(entry.email) ?? [])].filter((id) => aulasContadas.has(id)).length
+      const aulasTracked = aulasDisponiveis > 0
+      const aulasPercent = aulasTracked ? Math.min(100, (aulasAssistidas / aulasDisponiveis) * 100) : 0
+
+      const materiaisDisponiveis = materiaisContados.size
+      const materiaisBaixados = [...(baixadosByEmail.get(entry.email) ?? [])].filter((id) => materiaisContados.has(id)).length
+      const materiaisTracked = materiaisDisponiveis > 0
+      const materiaisProgressoPercent = materiaisTracked ? Math.min(100, (materiaisBaixados / materiaisDisponiveis) * 100) : 0
+
+      const simuladosDisponiveis = simuladosContados.size
+      const simuladosRespondidos = new Set(
+        attempts.filter((a) => simuladosContados.has(a.simuladoId)).map((a) => a.simuladoId),
+      ).size
+      const simuladosTracked = simuladosDisponiveis > 0
+      const simuladosPercent = simuladosTracked ? Math.min(100, (simuladosRespondidos / simuladosDisponiveis) * 100) : 0
+
+      const redacoesEntregues = submissions.filter((s) => s.submittedAt >= corte).length
+      const redacoesPercent = Math.min(100, (redacoesEntregues / REDACOES_META_PROGRESSO) * 100)
+
+      // Fatia sem nada pra contar fica de fora da média — mesma regra de
+      // progress.ts, pra não afundar o progresso por causa de conteúdo que
+      // ainda nem existe.
+      const fatias = [redacoesPercent]
+      if (aulasTracked) fatias.push(aulasPercent)
+      if (materiaisTracked) fatias.push(materiaisProgressoPercent)
+      if (simuladosTracked) fatias.push(simuladosPercent)
+      const overallPercent = Math.round(fatias.reduce((soma, valor) => soma + valor, 0) / fatias.length)
 
       students.push({
         email: entry.email,
@@ -272,7 +347,20 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
           attemptsCount: attempts.length,
           recent: attempts.slice(0, 5).map((a) => ({ simuladoTitle: a.simuladoTitle, score: a.score, total: a.total, percent: a.percent, submittedAt: a.submittedAt })),
         },
-        progresso: { streak, completedThisWeek, weeklyGoal: WEEKLY_GOAL },
+        progresso: {
+          overallPercent,
+          aulasAssistidas,
+          aulasDisponiveis,
+          aulasTracked,
+          materiaisBaixados,
+          materiaisDisponiveis,
+          materiaisTracked,
+          simuladosRespondidos,
+          simuladosDisponiveis,
+          simuladosTracked,
+          redacoesEntregues,
+          redacoesPercent: Math.round(redacoesPercent),
+        },
       })
     }
 
@@ -290,11 +378,14 @@ export const getStudentEvolution = createServerFn({ method: 'GET' }).handler(
       ? Math.round((withTestes.reduce((sum, s) => sum + (s.testes.averagePercent ?? 0), 0) / withTestes.length) * 100) / 100
       : null
 
-    const withStreak = students.filter((s) => s.progresso.streak > 0)
-    const averageStreak = withStreak.length > 0
-      ? Math.round(withStreak.reduce((sum, s) => sum + s.progresso.streak, 0) / withStreak.length)
+    // Diferente das médias acima, ninguém fica de fora aqui: overallPercent
+    // sempre existe (a fatia de redação sempre entra na conta, mesmo em 0%),
+    // então um aluno que nunca acessou pesa na média com 0% — é isso que
+    // torna esse número útil pra turma: mostra quem realmente está de fora.
+    const averageProgress = students.length > 0
+      ? Math.round(students.reduce((sum, s) => sum + s.progresso.overallPercent, 0) / students.length)
       : null
 
-    return { students, classRedacaoAverage, totalDownloads, classTestesAverage, averageStreak }
+    return { students, classRedacaoAverage, totalDownloads, classTestesAverage, averageProgress }
   },
 )
