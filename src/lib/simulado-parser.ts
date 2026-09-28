@@ -338,6 +338,45 @@ export function agruparPorTextoBase<T extends { passageIds?: string[] }>(
 }
 
 /**
+ * Caminho inverso de `parseActivityText`: reconstrói o texto colável a partir
+ * dos textos-base e questões já estruturados. Serve pra reabrir pra edição um
+ * conjunto publicado antes de o texto original passar a ser guardado (ver
+ * `Simulado.questionsText` em simulados.ts) — sem isso, editar um desses
+ * conjuntos antigos abria o formulário sem nada além do título.
+ *
+ * Reaproveita `agruparPorTextoBase` pra saber onde recolocar cada texto-base:
+ * o agrupamento é o mesmo, então o texto reconstruído recai exatamente no
+ * mesmo parseamento de onde saiu.
+ */
+export function serializarAtividade(
+  passages: SimuladoPassage[],
+  questions: { number: number; statement: string; options: ParsedOption[]; passageIds?: string[] }[],
+): string {
+  const grupos = agruparPorTextoBase(questions, passages)
+  const blocos: string[] = []
+
+  for (const grupo of grupos) {
+    for (const passage of grupo.passages) {
+      blocos.push(passage.label ? `${passage.label}\n${passage.content}` : passage.content)
+    }
+    for (const question of grupo.questions) {
+      const alternativas = question.options.map((o) => `(${o.letter}) ${o.text}`).join('\n')
+      blocos.push(`QUESTÃO ${question.number}) ${question.statement}\n${alternativas}`)
+    }
+  }
+
+  return blocos.join('\n\n')
+}
+
+/** Par de `serializarAtividade`: reconstrói o texto do gabarito, "N) letra" por linha. */
+export function serializarGabarito(questions: { number: number; correctLetter?: string | null }[]): string {
+  return questions
+    .filter((q): q is typeof q & { correctLetter: string } => !!q.correctLetter)
+    .map((q) => `${q.number}) ${q.correctLetter}`)
+    .join('\n')
+}
+
+/**
  * Lê o gabarito. Aceita "1) d", "1-d", "1. d", "1 d" — uma linha por questão ou
  * tudo na mesma linha ("1) C 2) A 3) E").
  */
