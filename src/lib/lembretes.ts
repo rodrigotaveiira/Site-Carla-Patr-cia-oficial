@@ -4,6 +4,9 @@ import { z } from 'zod'
 import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { isStaff, userHasRole } from './roles'
+import { listApprovedStudents } from './student-evolution'
+import { avisarAlunos } from './notificar-alunos'
+import { montarEmailMensagemAlunos } from './email-mensagem-alunos'
 
 export type Lembrete = {
   id: string
@@ -71,7 +74,24 @@ export const createLembrete = createServerFn({ method: 'POST' })
     if (!user || !isStaff(user)) throw new Error('Acesso negado.')
     if (!data.message.trim()) throw new Error('Escreva o texto do lembrete.')
 
-    return salvarLembrete(data.message, nomeDoAutor(user))
+    const lembrete = await salvarLembrete(data.message, nomeDoAutor(user))
+
+    // E-mail além do sino — o sino sozinho só alcança quem abre o dashboard;
+    // antes disso o lembrete não chegava a quem não tinha o hábito de entrar
+    // no site. Falha aqui não desfaz o lembrete, que já está salvo e visível.
+    try {
+      const aprovados = await listApprovedStudents()
+      const alunos = aprovados
+        .filter((u): u is typeof u & { email: string } => !!u.email)
+        .map((u) => ({ email: u.email, nome: u.name || 'Aluno(a)' }))
+      await avisarAlunos('lembrete', alunos, ({ nome }) =>
+        montarEmailMensagemAlunos({ nomeAluno: nome, assunto: 'Lembrete', mensagem: data.message }),
+      )
+    } catch (erro) {
+      console.error('[lembrete] não foi possível avisar os alunos por e-mail:', erro)
+    }
+
+    return lembrete
   })
 
 export const deleteLembrete = createServerFn({ method: 'POST' })

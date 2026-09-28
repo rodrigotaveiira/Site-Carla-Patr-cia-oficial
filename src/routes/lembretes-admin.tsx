@@ -75,7 +75,7 @@ function LembretesAdminPage() {
     <main className="panel">
       <VoltarAoPainel />
       <h1><Bell /> Lembretes para os alunos</h1>
-      <p className="panel-subtitle">Escreva um aviso curto. Ele aparece no sininho de notificações de todos os alunos, no dashboard.</p>
+      <p className="panel-subtitle">Escreva um aviso curto. Ele vai por e-mail pra todos os alunos e também aparece no sininho de notificações do dashboard.</p>
 
       <form onSubmit={handleSubmit} className="panel-card">
         <textarea
