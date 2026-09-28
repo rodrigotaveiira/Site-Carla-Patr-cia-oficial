@@ -129,6 +129,29 @@ function formatDuration(minutes: number): string {
   return `${hours}h${mins}min`
 }
 
+// Horário relativo pro painel de avisos: "agora", "há 3h", "ontem", "há 5
+// dias" — cai pra data curta depois de uma semana, quando "há X dias" deixa
+// de ajudar a situar no tempo.
+function formatarTempoDoAviso(iso: string): string {
+  const data = new Date(iso)
+  if (Number.isNaN(data.getTime())) return ''
+
+  const agora = new Date()
+  const diffMin = Math.floor((agora.getTime() - data.getTime()) / 60000)
+  if (diffMin < 1) return 'agora'
+  if (diffMin < 60) return `há ${diffMin} min`
+
+  const diffHoras = Math.floor(diffMin / 60)
+  if (diffHoras < 24) return `há ${diffHoras}h`
+
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0)
+  const diaDoAviso = new Date(data); diaDoAviso.setHours(0, 0, 0, 0)
+  const diffDias = Math.round((hoje.getTime() - diaDoAviso.getTime()) / 86_400_000)
+  if (diffDias === 1) return 'ontem'
+  if (diffDias < 7) return `há ${diffDias} dias`
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+}
+
 function DashboardPage() {
   const { user, logout } = useIdentity()
   const showToast = useToast()
@@ -577,9 +600,38 @@ function DashboardPage() {
         {notificationsOpen && (
           <div className="notifications-panel">
             <b>Avisos</b>
-            {novidades.length === 0 && rotina.length === 0 && <p>Nenhum aviso por enquanto.</p>}
-            {novidades.map((aviso) => <p key={aviso.id}>{aviso.text}</p>)}
-            {rotina.map((aviso) => <p key={aviso.id}>{aviso.text}</p>)}
+            {novidades.length === 0 && rotina.length === 0 ? (
+              <p className="notifications-empty">Nenhum aviso por enquanto.<br />Volte mais tarde — é aqui que os recados da professora aparecem.</p>
+            ) : (
+              <div className="notifications-list">
+                {novidades.length > 0 && (
+                  <div className="notifications-group">
+                    <span className="notifications-group-label">Novidades</span>
+                    {novidades.map((aviso) => (
+                      <div key={aviso.id} className="notification-item is-new">
+                        <span className="notification-dot" aria-hidden="true" />
+                        <div className="notification-item-body">
+                          <p>{aviso.text}</p>
+                          <time>{formatarTempoDoAviso(aviso.date)}</time>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {rotina.length > 0 && (
+                  <div className="notifications-group">
+                    <span className="notifications-group-label">Sempre por aqui</span>
+                    {rotina.map((aviso) => (
+                      <div key={aviso.id} className="notification-item">
+                        <div className="notification-item-body">
+                          <p>{aviso.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div><div className="user-chip">
