@@ -1,11 +1,14 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { ChevronDown, ChevronUp, Download, HandHelping, ImagePlus, PenLine, Settings } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ChevronDown, ChevronUp, Download, HandHelping, ImagePlus, PenLine, Settings, UserPlus } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
 import { getCompetencyScheme, updateCompetencyScheme, type Competency } from '@/lib/competencies'
-import { correctRedacao, deleteRedacao, getRedacaoFile, listAllRedacoes, type CompetencyScore, type RedacaoSubmission } from '@/lib/redacoes'
+import {
+  correctRedacao, criarRedacaoParaAluno, deleteRedacao, getRedacaoFile, listAllRedacoes,
+  listStudentsForManualRedacao, type CompetencyScore, type RedacaoSubmission,
+} from '@/lib/redacoes'
 import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
@@ -238,6 +241,75 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
   )
 }
 
+// Pra lançar a nota de uma redação que chegou por fora da plataforma (outro
+// canal, ou corrigida em papel) — sem depender de o aluno ter enviado arquivo
+// ou confirmado entrega presencial primeiro. Só cria o registro pendente; a
+// correção em si usa a mesma tela de sempre, uma vez que ele aparece na lista.
+function LancarNotaForm({ onCreated }: { onCreated: () => void }) {
+  const showToast = useToast()
+  const [students, setStudents] = useState<{ email: string; name: string }[]>([])
+  const [loadingStudents, setLoadingStudents] = useState(true)
+  const [studentEmail, setStudentEmail] = useState('')
+  const [title, setTitle] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    listStudentsForManualRedacao()
+      .then(setStudents)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Não foi possível carregar a lista de alunos.'))
+      .finally(() => setLoadingStudents(false))
+  }, [])
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    setError('')
+    if (!studentEmail) {
+      setError('Escolha o aluno.')
+      return
+    }
+    setSaving(true)
+    try {
+      await criarRedacaoParaAluno({ data: { studentEmail, title } })
+      const aluno = students.find((s) => s.email === studentEmail)
+      showToast(`Redação criada pra ${aluno?.name ?? 'o aluno'} — já está em "Aguardando correção".`)
+      setStudentEmail('')
+      setTitle('')
+      onCreated()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível criar a redação.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="panel-card">
+      <p className="field-hint" style={{ margin: '0 0 4px' }}>
+        Pra redação recebida por outro canal ou corrigida em papel, sem o aluno ter feito nada no site.
+        Cria a entrada em "Aguardando correção" — a nota é lançada logo abaixo, na mesma tela de sempre.
+      </p>
+      <div className="field">
+        <label>Aluno</label>
+        <select value={studentEmail} onChange={(e) => setStudentEmail(e.target.value)} disabled={loadingStudents}>
+          <option value="">{loadingStudents ? 'Carregando...' : 'Escolha o aluno'}</option>
+          {students.map((s) => (
+            <option key={s.email} value={s.email}>{s.name} — {s.email}</option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label>Título (opcional)</label>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Redação do simuladão de setembro" />
+      </div>
+      <button type="submit" disabled={saving || loadingStudents} className="btn btn-primary" style={{ width: 'fit-content' }}>
+        {saving ? 'Criando...' : 'Criar e lançar nota'}
+      </button>
+      {error && <p className="form-error">{error}</p>}
+    </form>
+  )
+}
+
 function RedacoesAdminPage() {
   const showToast = useToast()
   const [submissions, setSubmissions] = useState<SubmissionMeta[]>([])
@@ -247,6 +319,7 @@ function RedacoesAdminPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
   const [showSchemeEditor, setShowSchemeEditor] = useState(false)
+  const [showLancarNota, setShowLancarNota] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -301,14 +374,18 @@ function RedacoesAdminPage() {
               Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
             </div>
           </div>
-          {submission.deliveryMethod === 'presencial' ? (
+          {submission.deliveryMethod === 'upload' ? (
+            <button onClick={() => handleDownload(submission.id)} disabled={downloadingId === submission.id} className="btn btn-ghost btn-sm">
+              <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo'}
+            </button>
+          ) : submission.deliveryMethod === 'presencial' ? (
             <span className="badge badge-brand" style={{ padding: '8px 12px' }}>
               <HandHelping size={14} /> Entregue presencialmente
             </span>
           ) : (
-            <button onClick={() => handleDownload(submission.id)} disabled={downloadingId === submission.id} className="btn btn-ghost btn-sm">
-              <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo'}
-            </button>
+            <span className="badge badge-brand" style={{ padding: '8px 12px' }}>
+              <UserPlus size={14} /> Nota lançada manualmente
+            </span>
           )}
         </div>
 
@@ -356,10 +433,17 @@ function RedacoesAdminPage() {
         <button onClick={() => setShowSchemeEditor((v) => !v)} className="btn btn-ghost btn-sm">
           <Settings size={15} /> {showSchemeEditor ? 'Fechar edição de competências' : 'Editar valores das competências'}
         </button>
+        <button onClick={() => setShowLancarNota((v) => !v)} className="btn btn-ghost btn-sm">
+          <UserPlus size={15} /> {showLancarNota ? 'Fechar' : 'Lançar nota pra um aluno'}
+        </button>
       </div>
 
       {showSchemeEditor && !loading && (
         <SchemeEditor scheme={scheme} onSaved={(saved) => { setScheme(saved); setShowSchemeEditor(false) }} />
+      )}
+
+      {showLancarNota && (
+        <LancarNotaForm onCreated={() => { setShowLancarNota(false); void load() }} />
       )}
 
       {loading && <p className="panel-subtitle">Carregando...</p>}

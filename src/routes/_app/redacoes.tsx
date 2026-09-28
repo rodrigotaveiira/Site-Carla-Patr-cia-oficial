@@ -297,6 +297,11 @@ function RedacoesPage() {
                         <HandHelping size={12} /> Entregue presencialmente
                       </span>
                     )}
+                    {submission.deliveryMethod === 'lancada' && (
+                      <span style={{ marginLeft: 8, display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--purple)', fontWeight: 700 }}>
+                        <PenLine size={12} /> Nota lançada pela professora
+                      </span>
+                    )}
                   </div>
                 </div>
                 <span className={submission.status === 'corrigida' ? 'badge badge-success' : 'badge badge-warning'}>
@@ -336,7 +341,7 @@ function RedacoesPage() {
                 </div>
               )}
 
-              {submission.deliveryMethod !== 'presencial' && (
+              {submission.deliveryMethod === 'upload' && (
                 <button onClick={() => handleDownload(submission.id)} disabled={downloadingId === submission.id} className="btn btn-ghost btn-sm" style={{ marginTop: 12 }}>
                   <Download size={14} /> {downloadingId === submission.id ? 'Abrindo...' : 'Ver arquivo enviado'}
                 </button>
