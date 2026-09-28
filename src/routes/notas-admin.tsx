@@ -130,6 +130,7 @@ function StudentCard({ group }: { group: StudentGroup }) {
                 <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 2 }}>
                   Enviada em {new Date(submission.submittedAt).toLocaleDateString('pt-BR')}
                   {submission.deliveryMethod === 'presencial' && ' · presencial'}
+                  {submission.deliveryMethod === 'lancada' && ' · lançada pela professora'}
                 </div>
               </div>
               {submission.status === 'corrigida' && submission.grade !== null ? (

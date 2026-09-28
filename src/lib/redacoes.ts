@@ -11,6 +11,7 @@ import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, o
 import type { Competency } from './competencies'
 import { notificarNovaRedacao } from './notificar-redacao'
 import { notificarRedacaoCorrigida } from './notificar-redacao-corrigida'
+import { listApprovedStudents } from './student-evolution'
 
 export type CompetencyScore = Competency & { value: number }
 
@@ -19,7 +20,11 @@ export type RedacaoSubmission = {
   studentEmail: string
   studentName: string
   title: string
-  deliveryMethod: 'upload' | 'presencial'
+  // 'upload': aluno enviou o arquivo. 'presencial': aluno confirmou que
+  // entregou em sala, sem arquivo. 'lancada': professora criou o registro
+  // direto pra um aluno (redação recebida por outro canal, ou corrigida fora
+  // da plataforma) — ver `criarRedacaoParaAluno`.
+  deliveryMethod: 'upload' | 'presencial' | 'lancada'
   fileName: string
   fileDataUrl: string
   submittedAt: string
@@ -96,7 +101,7 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       nomeAluno: submission.studentName,
       emailAluno: submission.studentEmail,
       titulo: submission.title,
-      deliveryMethod: submission.deliveryMethod,
+      deliveryMethod: 'upload',
     })
 
     const { fileDataUrl: _omit, ...meta } = submission
@@ -140,8 +145,67 @@ export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
       nomeAluno: submission.studentName,
       emailAluno: submission.studentEmail,
       titulo: submission.title,
-      deliveryMethod: submission.deliveryMethod,
+      deliveryMethod: 'presencial',
     })
+
+    const { fileDataUrl: _omit, ...meta } = submission
+    return meta
+  })
+
+// Diretório de alunos aprovados pra alimentar o seletor de "lançar nota pra
+// um aluno" — mesma fonte de verdade de student-evolution.ts (Identity), não
+// o histórico de sessões: um aluno que nunca logou também pode ter entregado
+// a redação por fora e precisar da nota lançada.
+export const listStudentsForManualRedacao = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await getServerUser()
+  if (!user || !isStaff(user)) throw new Error('Acesso negado.')
+
+  const aprovados = await listApprovedStudents()
+  return aprovados
+    .filter((u): u is typeof u & { email: string } => !!u.email)
+    .map((u) => ({ email: u.email, name: u.name || 'Aluno' }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+})
+
+// A professora escolhe o aluno e cria o registro direto — sem depender de o
+// aluno ter enviado arquivo ou confirmado entrega presencial primeiro. Cai na
+// fila de "Aguardando correção" igual as outras, e a professora corrige com a
+// mesma tela de sempre. Sem notificação na criação (o aluno não fez nada
+// agora): o aviso que importa é o de correção, que já dispara normalmente
+// quando a nota é lançada.
+export const criarRedacaoParaAluno = createServerFn({ method: 'POST' })
+  .validator(z.object({ studentEmail: z.string().trim().min(1).max(200), title: optionalText(300) }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
+
+    // Confere contra o diretório de verdade — não confia em e-mail digitado
+    // ou escolhido de uma lista que pode estar desatualizada no navegador.
+    const aprovados = await listApprovedStudents()
+    const email = data.studentEmail.trim().toLowerCase()
+    const aluno = aprovados.find((u) => (u.email ?? '').toLowerCase() === email)
+    if (!aluno?.email) throw new Error('Esse e-mail não corresponde a um aluno aprovado. Atualize a lista e tente de novo.')
+
+    const store = redacoesStore()
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const submission: RedacaoSubmission = {
+      id,
+      studentEmail: aluno.email,
+      studentName: aluno.name || 'Aluno',
+      title: (data.title ?? '') || 'Redação sem título',
+      deliveryMethod: 'lancada',
+      fileName: '',
+      fileDataUrl: '',
+      submittedAt: new Date().toISOString(),
+      status: 'pendente',
+      grade: null,
+      competencyScores: null,
+      feedback: null,
+      correctedAt: null,
+      correctedFileName: null,
+      correctedFileDataUrl: null,
+    }
+    await store.setJSON(id, submission)
 
     const { fileDataUrl: _omit, ...meta } = submission
     return meta
@@ -202,7 +266,7 @@ export const getRedacaoFile = createServerFn({ method: 'GET' })
       return { fileName: submission.correctedFileName ?? 'correcao', fileDataUrl: submission.correctedFileDataUrl }
     }
 
-    if (submission.deliveryMethod === 'presencial') throw new Error('Essa redação foi entregue presencialmente, não há arquivo.')
+    if (submission.deliveryMethod !== 'upload') throw new Error('Essa redação não tem arquivo original — foi registrada sem upload.')
     return { fileName: submission.fileName, fileDataUrl: submission.fileDataUrl }
   })
 
