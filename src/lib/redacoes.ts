@@ -7,7 +7,7 @@ import { assertActiveSession } from './session-guard.server'
 import { enforceRateLimit } from './rate-limit'
 import { validateUpload } from './upload-validation'
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_LENGTH } from './upload-limits'
-import { competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
+import { boundedText, competencyScore, dataUrl, fileName as fileNameSchema, id as idSchema, optionalText } from './schemas'
 import type { Competency } from './competencies'
 import { notificarNovaRedacao } from './notificar-redacao'
 import { notificarRedacaoCorrigida } from './notificar-redacao-corrigida'
@@ -54,7 +54,7 @@ function studentDisplayName(user: unknown) {
 export const submitRedacao = createServerFn({ method: 'POST' })
   .validator(
     z.object({
-      title: optionalText(300),
+      title: boundedText(300),
       fileName: fileNameSchema,
       fileDataUrl: dataUrl(MAX_FILE_DATA_URL_LENGTH),
     }),
@@ -82,7 +82,7 @@ export const submitRedacao = createServerFn({ method: 'POST' })
       id,
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
-      title: (data.title ?? '') || 'Redação sem título',
+      title: data.title,
       deliveryMethod: 'upload',
       fileName: data.fileName,
       fileDataUrl: data.fileDataUrl,
@@ -111,7 +111,7 @@ export const submitRedacao = createServerFn({ method: 'POST' })
 // Aluno que escreveu a redação no papel, em sala, e não tem arquivo pra enviar —
 // só confirma a entrega presencial e a redação entra na fila de correção mesmo assim.
 export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
-  .validator(z.object({ title: optionalText(300) }))
+  .validator(z.object({ title: boundedText(300) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
@@ -126,7 +126,7 @@ export const submitRedacaoPresencial = createServerFn({ method: 'POST' })
       id,
       studentEmail: user.email ?? '',
       studentName: studentDisplayName(user),
-      title: (data.title ?? '') || 'Redação sem título',
+      title: data.title,
       deliveryMethod: 'presencial',
       fileName: '',
       fileDataUrl: '',

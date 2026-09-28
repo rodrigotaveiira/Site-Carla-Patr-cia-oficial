@@ -71,6 +71,7 @@ function RedacoesPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    if (!title.trim()) { setError('Escreva o tema da redação — use um dos temas propostos ou digite o seu.'); return }
     if (!file) { setError('Escolha uma foto ou um arquivo da sua redação.'); return }
 
     setSaving(true)
@@ -90,6 +91,7 @@ function RedacoesPage() {
 
   async function handlePresencialConfirm() {
     setPresencialError('')
+    if (!title.trim()) { setPresencialError('Escreva o tema da redação — use um dos temas propostos ou digite o seu.'); return }
     if (!presencialConfirmed) return
     setPresencialSaving(true)
     try {
@@ -202,8 +204,8 @@ function RedacoesPage() {
         {deliveryMode === 'upload' ? (
           <form onSubmit={handleSubmit} className="panel-card" style={{ display: 'grid', gap: 12, borderRadius: '0 0 10px 10px', marginTop: 0 }}>
             <div className="field">
-              <label>Tema (opcional)</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" />
+              <label>Tema</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Escolha um tema proposto acima ou digite o seu" />
             </div>
             <div className="field">
               <label>Foto ou arquivo da redação</label>
@@ -230,8 +232,8 @@ function RedacoesPage() {
         ) : (
           <div className="panel-card" style={{ display: 'grid', gap: 12, borderRadius: '0 0 10px 10px', marginTop: 0 }}>
             <div className="field">
-              <label>Tema (opcional)</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Inteligência artificial e sociedade" />
+              <label>Tema</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Escolha um tema proposto acima ou digite o seu" />
             </div>
             <p style={{ color: 'var(--muted)', fontSize: 13, margin: 0 }}>
               Use esta opção só se você já entregou a folha da redação em mãos para a professora. Ela vai entrar na fila de correção normalmente, sem arquivo anexado.
