@@ -1291,6 +1291,9 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    <em> do navegador) pelo mesmo motivo do negrito acima: o contexto ao redor
    pode ter suas próprias regras de estilo, e aqui não é opcional. */
 .texto-destacado-italico { font-style: italic; }
+/* Palavra marcada com ##assim## — mesmo arquivo. Cor roxa da marca, a mesma
+   que já sinaliza destaque no resto do site (links, eyebrow, etc.). */
+.texto-destacado-cor { color: var(--purple); }
 
 /* Formulário da aba de admin do calendário. */
 .calendar-admin-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
