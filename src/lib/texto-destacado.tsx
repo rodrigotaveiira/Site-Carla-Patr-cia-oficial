@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 
 // Marcadores de destaque dentro do texto colado em "Questões para treino": a
-// professora escreve `==palavra==` pra negrito ou `~~palavra~~` pra itálico
-// ao redor do trecho que quer realçar (no texto-base, no enunciado ou numa
-// alternativa), e isso vira `<strong>`/`<em>` na tela — tanto na conferência
-// do admin quanto na prova do aluno.
+// professora escreve `==palavra==` pra negrito, `~~palavra~~` pra itálico ou
+// `##palavra##` pra cor ao redor do trecho que quer realçar (no texto-base,
+// no enunciado ou numa alternativa), e isso vira `<strong>`/`<em>`/`<span>`
+// na tela — tanto na conferência do admin quanto na prova do aluno.
 //
 // `<strong>` (não `<mark>`) pro negrito: é negrito de verdade que se
 // destaca, não uma marcação com fundo — e o peso em CSS é forçado pra 900
@@ -15,15 +15,18 @@ import type { ReactNode } from 'react'
 // lacuna de exercício ("complete: ______"), e viraria itálico por engano.
 // Dois travessões não aparecem em texto corrido nem em lacuna.
 //
+// `##` pra cor: usa a cor roxa da marca (ver `.texto-destacado-cor` em
+// styles.css), a mesma que já sinaliza destaque no resto do site.
+//
 // Não é HTML de verdade: nunca passa por dangerouslySetInnerHTML, só
 // reconhece esses marcadores específicos dentro de uma string e devolve o
 // resto como texto puro — não abre brecha de XSS mesmo colando texto de
 // qualquer lugar. `.` não casa quebra de linha, então o marcador não
 // atravessa parágrafos por acidente.
-const DESTAQUE = /==(.+?)==|~~(.+?)~~/g
+const DESTAQUE = /==(.+?)==|~~(.+?)~~|##(.+?)##/g
 
 export function renderComDestaque(texto: string): ReactNode {
-  if (!texto || (!texto.includes('==') && !texto.includes('~~'))) return texto
+  if (!texto || (!texto.includes('==') && !texto.includes('~~') && !texto.includes('##'))) return texto
 
   const partes: ReactNode[] = []
   let ultimoIndice = 0
@@ -32,11 +35,13 @@ export function renderComDestaque(texto: string): ReactNode {
   for (const match of texto.matchAll(DESTAQUE)) {
     const indice = match.index ?? 0
     if (indice > ultimoIndice) partes.push(texto.slice(ultimoIndice, indice))
-    partes.push(
-      match[1] !== undefined
-        ? <strong key={chave++} className="texto-destacado">{match[1]}</strong>
-        : <em key={chave++} className="texto-destacado-italico">{match[2]}</em>,
-    )
+    if (match[1] !== undefined) {
+      partes.push(<strong key={chave++} className="texto-destacado">{match[1]}</strong>)
+    } else if (match[2] !== undefined) {
+      partes.push(<em key={chave++} className="texto-destacado-italico">{match[2]}</em>)
+    } else {
+      partes.push(<span key={chave++} className="texto-destacado-cor">{match[3]}</span>)
+    }
     ultimoIndice = indice + match[0].length
   }
 

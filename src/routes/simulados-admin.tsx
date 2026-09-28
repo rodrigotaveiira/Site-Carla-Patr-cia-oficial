@@ -552,8 +552,8 @@ function SimuladosAdminPage() {
             Cada questão começa numa linha nova — <b>QUESTÃO 1</b> ou <b>1)</b> — e cada alternativa com <b>(A)</b>, <b>A)</b> ou <b>a)</b>.
             Texto-base é opcional: comece com uma linha <b>TEXTO 1</b> e cole o texto embaixo;
             ele vale para as questões que vierem depois, até aparecer um novo bloco TEXTO. Linha cortada no meio pelo
-            PDF é remontada sozinha. Pra destacar uma palavra, envolva com <b>==negrito==</b> ou <b>~~itálico~~</b>
-            (no texto-base, no enunciado ou numa alternativa).
+            PDF é remontada sozinha. Pra destacar uma palavra, envolva com <b>==negrito==</b>, <b>~~itálico~~</b>
+            ou <b>##cor##</b> (no texto-base, no enunciado ou numa alternativa).
           </p>
           <textarea
             value={questionsText}
