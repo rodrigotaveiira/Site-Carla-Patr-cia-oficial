@@ -1,12 +1,14 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import {
-  BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, MessageSquareText, Monitor, PencilLine, PenLine, ScrollText, Send, Target, TrendingUp, Users, Video, Zap,
+  Bell, BellOff, BookCheck, BookMarked, CalendarClock, CalendarDays, CircleHelp, FileCheck2, Files, GraduationCap, Images, Library, MessageCircleHeart, MessageSquareText, Monitor, PencilLine, PenLine, ScrollText, Send, Target, TrendingUp, Users, Video, Zap,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
 import { getAdminNotificationCounts, type AdminNotificationCounts } from '@/lib/admin-notifications'
+import { getAvisosDeNovidade, setAvisosDeNovidade } from '@/lib/notification-settings'
+import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/admin')({
@@ -49,6 +51,65 @@ const links = [
   { icon: ScrollText, label: 'Edital da prova', to: '/conteudo-admin/edital', description: 'PDFs do edital oficial da prova.', badgeKey: undefined },
 ] as const
 
+function AvisosDeNovidadeToggle() {
+  const showToast = useToast()
+  const [ativo, setAtivo] = useState<boolean | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    getAvisosDeNovidade()
+      .then((r) => setAtivo(r.ativo))
+      .catch((error) => console.error('Não foi possível carregar a configuração de avisos:', error))
+  }, [])
+
+  async function handleToggle() {
+    if (ativo === null) return
+    setSaving(true)
+    try {
+      const resultado = await setAvisosDeNovidade({ data: { ativo: !ativo } })
+      setAtivo(resultado.ativo)
+      showToast(resultado.ativo ? 'Avisos automáticos reativados.' : 'Avisos automáticos pausados até você reativar.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível salvar.', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const pausado = ativo === false
+
+  return (
+    <div
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+        marginTop: 18, padding: '14px 18px', borderRadius: 10,
+        background: pausado ? '#fef2f2' : 'var(--lilac-tint)',
+        border: pausado ? '1px solid #fecaca' : 'none',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        {pausado ? <BellOff size={18} color="#dc2626" style={{ flexShrink: 0 }} /> : <Bell size={18} color="var(--purple)" style={{ flexShrink: 0 }} />}
+        <div style={{ minWidth: 0 }}>
+          <b style={{ color: 'var(--navy)', fontSize: 13.5 }}>
+            Avisos automáticos de conteúdo novo {pausado ? 'pausados' : 'ativos'}
+          </b>
+          <div className="list-meta" style={{ marginTop: 2 }}>
+            E-mail pra turma de material, mentoria e conteúdo novo. Pause antes de inserir vários itens em sequência, pra não gastar a cota diária.
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={handleToggle}
+        disabled={ativo === null || saving}
+        className={pausado ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'}
+        style={{ flexShrink: 0 }}
+      >
+        {saving ? 'Salvando...' : pausado ? 'Reativar avisos' : 'Pausar avisos'}
+      </button>
+    </div>
+  )
+}
+
 function AdminHubPage() {
   const [counts, setCounts] = useState<AdminNotificationCounts | null>(null)
 
@@ -61,6 +122,8 @@ function AdminHubPage() {
       <VoltarAoPainel />
       <h1>Painel admin</h1>
       <p className="panel-subtitle">Gerencie todo o conteúdo da área do aluno a partir daqui.</p>
+
+      <AvisosDeNovidadeToggle />
 
       <div className="nav-grid">
         {links.map(({ icon: Icon, label, to, description, badgeKey }) => {

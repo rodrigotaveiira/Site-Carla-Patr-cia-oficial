@@ -4,6 +4,7 @@ import {
   montarEmailNovaMentoria,
 } from './email-mentoria-avisos'
 import { avisarAlunos, avisarTodosOsAlunos } from './notificar-alunos'
+import { avisosDeNovidadeEstaoAtivos } from './notification-settings'
 
 // Avisos sobre a agenda de mentorias. Chamados de dentro das server functions
 // DEPOIS que a alteração já está gravada — e nenhum deles lança: o horário
@@ -28,6 +29,7 @@ export async function notificarNovaMentoria(params: {
   titulo?: string
   descricao?: string
 }): Promise<void> {
+  if (!(await avisosDeNovidadeEstaoAtivos())) return
   await avisarTodosOsAlunos('mentoria-nova', ({ nome }) =>
     montarEmailNovaMentoria({ nomeAluno: nome, ...params }),
   )
@@ -46,6 +48,7 @@ export async function notificarMentoriaAlterada(params: {
   horaFimDepois?: string
   tituloDepois?: string
 }): Promise<void> {
+  if (!(await avisosDeNovidadeEstaoAtivos())) return
   const { alunos, ...dados } = params
   await avisarAlunos(
     'mentoria-alterada',
@@ -63,6 +66,7 @@ export async function notificarMentoriaCancelada(params: {
   horaFim?: string
   titulo?: string
 }): Promise<void> {
+  if (!(await avisosDeNovidadeEstaoAtivos())) return
   const { alunos, ...dados } = params
   await avisarAlunos(
     'mentoria-cancelada',
