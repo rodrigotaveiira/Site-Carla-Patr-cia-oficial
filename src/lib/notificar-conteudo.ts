@@ -1,5 +1,6 @@
 import { montarEmailNovoConteudo } from './email-novo-material'
 import { avisarTodosOsAlunos } from './notificar-alunos'
+import { avisosDeNovidadeEstaoAtivos } from './notification-settings'
 
 // Avisa por e-mail todo aluno conhecido sobre um arquivo novo numa seção de
 // conteúdo (Dicas, Biblioteca, Questões, Simulados, Repertórios, Gabaritos,
@@ -14,6 +15,7 @@ export async function notificarNovoConteudo(params: {
   titulo: string
   descricao: string
 }): Promise<void> {
+  if (!(await avisosDeNovidadeEstaoAtivos())) return
   await avisarTodosOsAlunos('conteúdo', ({ nome }) =>
     montarEmailNovoConteudo({
       nomeAluno: nome,

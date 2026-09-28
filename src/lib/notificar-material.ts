@@ -1,5 +1,6 @@
 import { montarEmailNovoMaterial } from './email-novo-material'
 import { avisarTodosOsAlunos } from './notificar-alunos'
+import { avisosDeNovidadeEstaoAtivos } from './notification-settings'
 
 // Avisa por e-mail todo aluno conhecido sobre um material novo já liberado.
 // Chamada de dentro de addMaterial, DEPOIS que o material já foi salvo — por
@@ -8,6 +9,7 @@ import { avisarTodosOsAlunos } from './notificar-alunos'
 // der erro, o material continua liberado normalmente e o problema fica só no
 // log, em vez de virar erro na tela da professora depois que ela já salvou.
 export async function notificarNovoMaterial(params: { titulo: string; descricao: string }): Promise<void> {
+  if (!(await avisosDeNovidadeEstaoAtivos())) return
   await avisarTodosOsAlunos('material', ({ nome }) =>
     montarEmailNovoMaterial({
       nomeAluno: nome,
