@@ -10,6 +10,7 @@ import { downloadDataUrl } from '@/lib/download-file'
 import { EmptyState } from '@/components/EmptyState'
 import { ListSkeleton } from '@/components/ListSkeleton'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
+import { RichTextContent } from '@/components/RichText'
 
 export const Route = createFileRoute('/_app/redacoes')({
   beforeLoad: async () => {
@@ -329,7 +330,7 @@ function RedacoesPage() {
                       ))}
                     </div>
                   )}
-                  {submission.feedback && <p style={{ color: '#4b5563', fontSize: 14, margin: '10px 0 0' }}>{submission.feedback}</p>}
+                  {submission.feedback && <RichTextContent value={submission.feedback} format={submission.feedbackFormat} style={{ color: '#4b5563', fontSize: 14, margin: '10px 0 0' }} />}
                   {submission.correctedFileName && (
                     <button
                       onClick={() => handleDownloadCorrection(submission.id)}
