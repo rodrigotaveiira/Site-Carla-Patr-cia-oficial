@@ -1751,3 +1751,22 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
   .conquista-badge.desbloqueada:hover, .conquistas-missao-cta:hover { transform: none; }
   .conquistas-missao-cta:hover svg { transform: none; }
 }
+
+/* Devolutiva da redação em texto rico (editor da professora + exibição pro aluno).
+   Só estrutura: as cores e o marca-texto vêm do próprio HTML sanitizado. */
+.rich-text p { margin: 0 0 .6em; }
+.rich-text > :last-child { margin-bottom: 0; }
+.rich-text ul, .rich-text ol { margin: 0 0 .6em; padding-left: 1.4em; }
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: .15em 0; }
+.rich-text span[style*="background"] { border-radius: 2px; }
+.rich-text-editor { border: 1px solid var(--line); border-radius: 8px; background: #fff; transition: border-color .15s, box-shadow .15s; }
+.rich-text-editor:focus-within { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(109,40,217,.14); }
+.rich-text-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-bottom: 1px solid var(--line); }
+.rich-text-toolbar button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 30px; color: var(--navy); background: none; border: 0; border-radius: 6px; cursor: pointer; transition: background .15s, color .15s; }
+.rich-text-toolbar button:hover { color: var(--purple); background: var(--lilac-tint); }
+.rich-text-toolbar button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(109,40,217,.22); }
+.rich-text-input { position: relative; min-height: 84px; max-height: 480px; overflow-y: auto; padding: 11px 13px; font-size: 14px; line-height: 1.55; color: var(--ink); caret-color: var(--purple); outline: none; overflow-wrap: anywhere; }
+.rich-text-input.is-empty::before { content: attr(data-placeholder); position: absolute; left: 13px; top: 11px; color: var(--muted); pointer-events: none; }
+.correction-card > .correction-feedback { margin: 1em 0; color: #7d8693; font-size: 13px; line-height: 1.6; }

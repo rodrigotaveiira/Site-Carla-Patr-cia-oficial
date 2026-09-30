@@ -12,6 +12,7 @@ import type { Competency } from './competencies'
 import { notificarNovaRedacao } from './notificar-redacao'
 import { notificarRedacaoCorrigida } from './notificar-redacao-corrigida'
 import { listApprovedStudents } from './student-evolution'
+import { isRichTextEmpty, sanitizeRichText } from './rich-text.server'
 
 export type CompetencyScore = Competency & { value: number }
 
@@ -32,6 +33,9 @@ export type RedacaoSubmission = {
   grade: number | null
   competencyScores: CompetencyScore[] | null
   feedback: string | null
+  // 'html': a devolutiva é HTML sanitizado (editor rico). Ausente/null:
+  // devolutiva antiga, salva como texto puro antes do editor rico.
+  feedbackFormat?: 'html' | null
   correctedAt: string | null
   correctedFileName: string | null
   correctedFileDataUrl: string | null
@@ -275,7 +279,9 @@ export const correctRedacao = createServerFn({ method: 'POST' })
     z.object({
       id: idSchema,
       scores: z.array(competencyScore).min(1),
-      feedback: z.string().max(20000),
+      // HTML do editor rico — o limite é folgado porque o HTML carrega a
+      // formatação. É sanitizado antes de salvar.
+      feedback: z.string().max(200000),
       correctionFileName: fileNameSchema.optional(),
       correctionFileDataUrl: dataUrl(MAX_FILE_DATA_URL_LENGTH).optional(),
     }),
@@ -300,6 +306,9 @@ export const correctRedacao = createServerFn({ method: 'POST' })
       })
     }
 
+    const feedbackHtml = sanitizeRichText(data.feedback)
+    if (feedbackHtml.length > 100000) throw new Error('O comentário ficou longo demais. Encurte o texto e tente de novo.')
+
     const store = redacoesStore()
     const submission = await store.get(data.id, { type: 'json' }) as RedacaoSubmission | null
     if (!submission) throw new Error('Redação não encontrada.')
@@ -317,7 +326,8 @@ export const correctRedacao = createServerFn({ method: 'POST' })
       status: 'corrigida',
       grade,
       competencyScores: cleanScores,
-      feedback: data.feedback.trim(),
+      feedback: isRichTextEmpty(feedbackHtml) ? '' : feedbackHtml,
+      feedbackFormat: 'html',
       correctedAt: new Date().toISOString(),
       // Se a professora não anexou uma foto nova nesta edição, mantém a que já existia.
       correctedFileName: data.correctionFileDataUrl ? data.correctionFileName! : submission.correctedFileName,

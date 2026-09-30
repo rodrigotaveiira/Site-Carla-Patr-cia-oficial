@@ -32,6 +32,7 @@ import { OnboardingModal } from '@/components/OnboardingModal'
 import { MonthReviewModal } from '@/components/MonthReviewModal'
 import { EmptyState } from '@/components/EmptyState'
 import { ProgressRing } from '@/components/ProgressRing'
+import { RichTextContent } from '@/components/RichText'
 
 const WHATSAPP_LINK = 'https://wa.me/5522999325306'
 
@@ -868,7 +869,7 @@ function DashboardPage() {
           ) : (
             <section className="dashboard-card correction-card">
               <div className="card-title"><div><span>Redação corrigida</span><h3>{latestCorrection ? latestCorrection.title : 'Nenhuma correção ainda'}</h3></div>{latestCorrection && <span className="grade">{latestCorrection.grade}/40</span>}</div>
-              <p>{latestCorrection ? (latestCorrection.feedback || 'Sua correção está pronta.') : 'Envie sua primeira redação para receber uma correção detalhada pelos critérios da banca Econ Rio.'}</p>
+              {latestCorrection?.feedback ? <RichTextContent value={latestCorrection.feedback} format={latestCorrection.feedbackFormat} className="correction-feedback" /> : <p>{latestCorrection ? 'Sua correção está pronta.' : 'Envie sua primeira redação para receber uma correção detalhada pelos critérios da banca Econ Rio.'}</p>}
               <div className="competencies">{competencyScheme.map((competency) => {
                 const score = latestCorrection?.competencyScores?.find((s) => s.id === competency.id)
                 const value = score?.value ?? 0

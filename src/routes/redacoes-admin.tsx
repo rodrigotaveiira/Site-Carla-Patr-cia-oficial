@@ -12,6 +12,8 @@ import {
 import { downloadDataUrl } from '@/lib/download-file'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
+import { RichTextEditor } from '@/components/RichText'
+import { plainTextToHtml } from '@/lib/rich-text'
 
 export const Route = createFileRoute('/redacoes-admin')({
   beforeLoad: async () => {
@@ -118,7 +120,8 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
     return { ...competency, value: existing?.value ?? 0 }
   })
   const [scores, setScores] = useState<CompetencyScore[]>(initialScores)
-  const [feedback, setFeedback] = useState(submission.feedback ?? '')
+  // Devolutivas antigas eram texto puro; o editor rico trabalha com HTML.
+  const [feedback, setFeedback] = useState(() => (submission.feedbackFormat === 'html' ? submission.feedback ?? '' : plainTextToHtml(submission.feedback ?? '')))
   const [correctionFile, setCorrectionFile] = useState<File | null>(null)
   const correctionFileInputRef = useRef<HTMLInputElement>(null)
   const [downloadingCorrection, setDownloadingCorrection] = useState(false)
@@ -232,7 +235,7 @@ function CorrectionForm({ submission, scheme, onSaved }: { submission: Submissio
         </button>
       </div>
 
-      <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Comentário para o aluno" rows={3} />
+      <RichTextEditor initialHtml={feedback} onChange={setFeedback} placeholder="Comentário para o aluno" />
       <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
         {saving ? 'Salvando...' : 'Salvar correção'}
       </button>
