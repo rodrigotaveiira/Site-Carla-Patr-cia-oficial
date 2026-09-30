@@ -140,3 +140,20 @@ export const replyRecado = createServerFn({ method: 'POST' })
 
     return updated
   })
+
+// Apaga um recado de vez — some da lista da professora e da página do aluno.
+// O sino de avisos e o contador de não lidos são calculados a partir deste
+// mesmo store, então não sobra nada pra limpar em outro lugar.
+export const deleteRecado = createServerFn({ method: 'POST' })
+  .validator(z.object({ id: idSchema }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !isStaff(user)) throw new Error('Acesso negado.')
+
+    const store = recadosStore()
+    const existing = await store.get(data.id, { type: 'json' }) as Recado | null
+    if (!existing) throw new Error('Recado não encontrado.')
+
+    await store.delete(data.id)
+    return { ok: true }
+  })

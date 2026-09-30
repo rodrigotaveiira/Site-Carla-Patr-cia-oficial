@@ -1,10 +1,10 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { MessageCircleHeart, Send } from 'lucide-react'
+import { MessageCircleHeart, Send, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { isStaff } from '@/lib/roles'
-import { listAllRecados, markRecadoRead, replyRecado, type Recado } from '@/lib/recados'
+import { deleteRecado, listAllRecados, markRecadoRead, replyRecado, type Recado } from '@/lib/recados'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
@@ -23,11 +23,13 @@ export const Route = createFileRoute('/recados-admin')({
   component: RecadosAdminPage,
 })
 
-function RecadoCard({ recado, onMarkRead, markingId, onReplied }: {
+function RecadoCard({ recado, onMarkRead, markingId, onReplied, onDelete, deletingId }: {
   recado: Recado
   onMarkRead: (id: string) => void
   markingId: string | null
   onReplied: (updated: Recado) => void
+  onDelete: (recado: Recado) => void
+  deletingId: string | null
 }) {
   const showToast = useToast()
   const [replyText, setReplyText] = useState('')
@@ -68,11 +70,22 @@ function RecadoCard({ recado, onMarkRead, markingId, onReplied }: {
             {recado.studentEmail} · {new Date(recado.createdAt).toLocaleDateString('pt-BR')} às {new Date(recado.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </div>
         </div>
-        {!recado.read && (
-          <button onClick={() => onMarkRead(recado.id)} disabled={markingId === recado.id} className="btn btn-ghost btn-sm">
-            {markingId === recado.id ? '...' : 'Marcar como lido'}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {!recado.read && (
+            <button onClick={() => onMarkRead(recado.id)} disabled={markingId === recado.id} className="btn btn-ghost btn-sm">
+              {markingId === recado.id ? '...' : 'Marcar como lido'}
+            </button>
+          )}
+          <button
+            onClick={() => onDelete(recado)}
+            disabled={deletingId === recado.id}
+            className="btn btn-ghost btn-sm"
+            style={{ color: '#b91c1c' }}
+            aria-label={`Excluir recado de ${recado.studentName}`}
+          >
+            <Trash2 size={13} /> {deletingId === recado.id ? 'Excluindo...' : 'Excluir'}
           </button>
-        )}
+        </div>
       </div>
       <p style={{ margin: '12px 0 0', color: '#374151', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{recado.message}</p>
 
@@ -124,6 +137,7 @@ function RecadosAdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [markingId, setMarkingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -151,6 +165,20 @@ function RecadosAdminPage() {
     }
   }
 
+  async function handleDelete(recado: Recado) {
+    if (!confirm(`Excluir o recado de "${recado.studentName}"? Ele também some da página do aluno. Essa ação não pode ser desfeita.`)) return
+    setDeletingId(recado.id)
+    try {
+      await deleteRecado({ data: { id: recado.id } })
+      setRecados((prev) => prev.filter((r) => r.id !== recado.id))
+      showToast('Recado excluído.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível excluir o recado.', 'error')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const unreadCount = recados.filter((r) => !r.read).length
 
   return (
@@ -173,6 +201,8 @@ function RecadosAdminPage() {
             markingId={markingId}
             onMarkRead={handleMarkRead}
             onReplied={(updated) => setRecados((prev) => prev.map((r) => (r.id === updated.id ? updated : r)))}
+            onDelete={handleDelete}
+            deletingId={deletingId}
           />
         ))}
         {!loading && !error && recados.length === 0 && <p className="empty-state">Nenhum recado ainda.</p>}
