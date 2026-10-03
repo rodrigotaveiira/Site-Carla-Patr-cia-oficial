@@ -232,7 +232,7 @@ function AprovadosAdminPage() {
             <div key={item.id} className="list-row">
               <div style={{ display: 'flex', gap: 12, alignItems: 'center', minWidth: 0 }}>
                 <img
-                  src={item.photoDataUrl}
+                  src={item.photoUrl}
                   alt={item.name}
                   style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid var(--line)' }}
                 />

@@ -51,6 +51,7 @@ import { Route as AppRedacoesRouteImport } from './routes/_app/redacoes'
 import { Route as AppSimuladosRouteImport } from './routes/_app/simulados'
 import { Route as ConteudoAdminSecaoRouteImport } from './routes/conteudo-admin.$secao'
 import { Route as EmBreveSecaoRouteImport } from './routes/em-breve.$secao'
+import { Route as FotoAprovadoIdRouteImport } from './routes/foto-aprovado.$id'
 import { Route as AppConteudoSecaoRouteImport } from './routes/_app/conteudo.$secao'
 
 const IndexRoute = IndexRouteImport.update({
@@ -262,6 +263,11 @@ const EmBreveSecaoRoute = EmBreveSecaoRouteImport.update({
   path: '/em-breve/$secao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FotoAprovadoIdRoute = FotoAprovadoIdRouteImport.update({
+  id: '/foto-aprovado/$id',
+  path: '/foto-aprovado/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppConteudoSecaoRoute = AppConteudoSecaoRouteImport.update({
   id: '/conteudo/$secao',
   path: '/conteudo/$secao',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/simulados': typeof AppSimuladosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
+  '/foto-aprovado/$id': typeof FotoAprovadoIdRoute
   '/conteudo/$secao': typeof AppConteudoSecaoRoute
 }
 export interface FileRoutesByTo {
@@ -354,6 +361,7 @@ export interface FileRoutesByTo {
   '/simulados': typeof AppSimuladosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
+  '/foto-aprovado/$id': typeof FotoAprovadoIdRoute
   '/conteudo/$secao': typeof AppConteudoSecaoRoute
 }
 export interface FileRoutesById {
@@ -400,6 +408,7 @@ export interface FileRoutesById {
   '/_app/simulados': typeof AppSimuladosRoute
   '/conteudo-admin/$secao': typeof ConteudoAdminSecaoRoute
   '/em-breve/$secao': typeof EmBreveSecaoRoute
+  '/foto-aprovado/$id': typeof FotoAprovadoIdRoute
   '/_app/conteudo/$secao': typeof AppConteudoSecaoRoute
 }
 export interface FileRouteTypes {
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/simulados'
     | '/conteudo-admin/$secao'
     | '/em-breve/$secao'
+    | '/foto-aprovado/$id'
     | '/conteudo/$secao'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -490,6 +500,7 @@ export interface FileRouteTypes {
     | '/simulados'
     | '/conteudo-admin/$secao'
     | '/em-breve/$secao'
+    | '/foto-aprovado/$id'
     | '/conteudo/$secao'
   id:
     | '__root__'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/_app/simulados'
     | '/conteudo-admin/$secao'
     | '/em-breve/$secao'
+    | '/foto-aprovado/$id'
     | '/_app/conteudo/$secao'
   fileRoutesById: FileRoutesById
 }
@@ -570,6 +582,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   ConteudoAdminSecaoRoute: typeof ConteudoAdminSecaoRoute
   EmBreveSecaoRoute: typeof EmBreveSecaoRoute
+  FotoAprovadoIdRoute: typeof FotoAprovadoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -868,6 +881,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmBreveSecaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/foto-aprovado/$id': {
+      id: '/foto-aprovado/$id'
+      path: '/foto-aprovado/$id'
+      fullPath: '/foto-aprovado/$id'
+      preLoaderRoute: typeof FotoAprovadoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/conteudo/$secao': {
       id: '/_app/conteudo/$secao'
       path: '/conteudo/$secao'
@@ -942,6 +962,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   ConteudoAdminSecaoRoute: ConteudoAdminSecaoRoute,
   EmBreveSecaoRoute: EmBreveSecaoRoute,
+  FotoAprovadoIdRoute: FotoAprovadoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

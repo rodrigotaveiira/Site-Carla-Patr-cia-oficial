@@ -248,7 +248,7 @@ function GaleriaAprovados({ aprovados }: { aprovados: ApprovedStudent[] }) {
           {aprovados.map((item) => (
             <article className="aprovado-card" key={item.id}>
               <div className="aprovado-photo">
-                <img src={item.photoDataUrl} alt={item.name} loading="lazy" />
+                <img src={item.photoUrl} alt={item.name} loading="lazy" />
                 {item.year && <span className="aprovado-year">{item.year}</span>}
                 <div className="aprovado-name-overlay">
                   <h3 title={item.name}>{item.name}</h3>

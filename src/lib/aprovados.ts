@@ -1,28 +1,25 @@
 import { createServerFn } from '@tanstack/react-start'
-import { getStore } from '@netlify/blobs'
 import { getServerUser } from './auth'
 import { userHasRole } from './roles'
+import { aprovadosStore, type StoredApprovedStudent } from './aprovados.server'
 
-export type ApprovedStudent = {
-  id: string
-  name: string
-  university: string
-  course: string // pode ficar vazio (opcional no cadastro)
-  year: string // ano de aprovação (ex.: "2026") — opcional, usado pra ordenar a galeria
-  quote: string // depoimento curto, opcional
-  photoFileName: string
-  photoDataUrl: string // base64 — já redimensionada/comprimida no navegador antes do envio
-  createdAt: string
+// O que sai pro navegador. A foto NÃO vai junto em base64: é servida como
+// imagem de verdade em /foto-aprovado/<id> (routes/foto-aprovado.$id.ts).
+// Embutida, cada foto aparecia duas vezes no HTML da home (no <img> e no
+// payload de hidratação do loader) — com 16 aprovados a home passou de 4,7 MB,
+// e o Google só lê os primeiros ~2 MB de uma página (issue #316).
+export type ApprovedStudent = Omit<StoredApprovedStudent, 'photoDataUrl'> & { photoUrl: string }
+
+// O id nunca é reaproveitado e a foto não é editável (só excluir e cadastrar
+// de novo), então a URL pode ter cache longo sem risco de mostrar foto velha.
+function toPublic({ photoDataUrl: _omit, ...item }: StoredApprovedStudent): ApprovedStudent {
+  return { ...item, photoUrl: `/foto-aprovado/${item.id}` }
 }
 
 // Tamanho máximo aceito pra foto já comprimida (base64). O admin redimensiona
 // e comprime no navegador antes de enviar, então isso raramente é atingido —
 // é só um teto de segurança contra fotos enormes escapando da compressão.
 const MAX_PHOTO_DATA_URL_LENGTH = 2_500_000
-
-function aprovadosStore() {
-  return getStore({ name: 'aprovados-galeria', consistency: 'strong' })
-}
 
 async function requireAdmin() {
   const user = await getServerUser()
@@ -41,7 +38,7 @@ export const listAprovados = createServerFn({ method: 'GET' }).handler(async ():
   const items: ApprovedStudent[] = []
   for (const blob of blobs) {
     const value = await store.get(blob.key, { type: 'json' })
-    if (value) items.push(value as ApprovedStudent)
+    if (value) items.push(toPublic(value as StoredApprovedStudent))
   }
 
   // Mais recentes primeiro: ano de aprovação (desc), depois data de cadastro (desc).
@@ -81,7 +78,7 @@ export const addAprovado = createServerFn({ method: 'POST' })
 
     const store = aprovadosStore()
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    const item: ApprovedStudent = {
+    const item: StoredApprovedStudent = {
       id,
       name: data.name.trim(),
       university: data.university.trim(),
@@ -94,7 +91,7 @@ export const addAprovado = createServerFn({ method: 'POST' })
     }
 
     await store.setJSON(id, item)
-    return item
+    return toPublic(item)
   })
 
 export const deleteAprovado = createServerFn({ method: 'POST' })
