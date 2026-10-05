@@ -23,6 +23,10 @@ import type { ReactNode } from 'react'
 // resto como texto puro — não abre brecha de XSS mesmo colando texto de
 // qualquer lugar. `.` não casa quebra de linha, então o marcador não
 // atravessa parágrafos por acidente.
+//
+// Os marcadores podem vir um dentro do outro (`##==palavra==##` = negrito e
+// colorido) — o editor visual gera assim quando o trecho tem mais de um
+// destaque — então o miolo de cada um passa de novo por aqui.
 const DESTAQUE = /==(.+?)==|~~(.+?)~~|##(.+?)##/g
 
 export function renderComDestaque(texto: string): ReactNode {
@@ -36,11 +40,11 @@ export function renderComDestaque(texto: string): ReactNode {
     const indice = match.index ?? 0
     if (indice > ultimoIndice) partes.push(texto.slice(ultimoIndice, indice))
     if (match[1] !== undefined) {
-      partes.push(<strong key={chave++} className="texto-destacado">{match[1]}</strong>)
+      partes.push(<strong key={chave++} className="texto-destacado">{renderComDestaque(match[1])}</strong>)
     } else if (match[2] !== undefined) {
-      partes.push(<em key={chave++} className="texto-destacado-italico">{match[2]}</em>)
+      partes.push(<em key={chave++} className="texto-destacado-italico">{renderComDestaque(match[2])}</em>)
     } else {
-      partes.push(<span key={chave++} className="texto-destacado-cor">{match[3]}</span>)
+      partes.push(<span key={chave++} className="texto-destacado-cor">{renderComDestaque(match[3])}</span>)
     }
     ultimoIndice = indice + match[0].length
   }

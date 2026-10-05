@@ -12,6 +12,7 @@ import { agruparPorTextoBase, parseActivityText, parseGabaritoText, serializarAt
 import { releaseInstantMs } from '@/lib/simulado-release'
 import { formatarHora } from '@/lib/formato'
 import { TextoBase } from '@/components/TextoBase'
+import { EditorTextoDestacado } from '@/components/EditorTextoDestacado'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 import {
@@ -552,15 +553,14 @@ function SimuladosAdminPage() {
             Cada questão começa numa linha nova — <b>QUESTÃO 1</b> ou <b>1)</b> — e cada alternativa com <b>(A)</b>, <b>A)</b> ou <b>a)</b>.
             Texto-base é opcional: comece com uma linha <b>TEXTO 1</b> e cole o texto embaixo;
             ele vale para as questões que vierem depois, até aparecer um novo bloco TEXTO. Linha cortada no meio pelo
-            PDF é remontada sozinha. Pra destacar uma palavra, envolva com <b>==negrito==</b>, <b>~~itálico~~</b>
-            ou <b>##cor##</b> (no texto-base, no enunciado ou numa alternativa).
+            PDF é remontada sozinha. Negrito, itálico e grifo/cor do texto colado continuam destacados pro aluno —
+            e dá pra destacar mais pelos botões acima do campo (no texto-base, no enunciado ou numa alternativa).
           </p>
-          <textarea
+          <EditorTextoDestacado
             value={questionsText}
-            onChange={(e) => setQuestionsText(e.target.value)}
+            onChange={setQuestionsText}
             placeholder={QUESTIONS_PLACEHOLDER}
-            rows={14}
-            style={{ fontFamily: 'monospace', fontSize: 13 }}
+            ariaLabel="Textos e questões"
           />
         </div>
         <div className="field">
