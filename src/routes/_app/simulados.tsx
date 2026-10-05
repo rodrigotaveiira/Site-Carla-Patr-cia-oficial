@@ -154,7 +154,7 @@ function SimuladosPage() {
                   <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                       {correction?.correct ? <CheckCircle2 size={18} color="#15803d" style={{ flexShrink: 0, marginTop: 1 }} /> : <XCircle size={18} color="#dc2626" style={{ flexShrink: 0, marginTop: 1 }} />}
-                      <b style={estiloEnunciado}>{question.number}) {renderComDestaque(question.statement)}</b>
+                      <span className="enunciado-questao" style={estiloEnunciado}><b>{question.number})</b> {renderComDestaque(question.statement)}</span>
                     </div>
                     <div style={{ display: 'grid', gap: 4, marginTop: 10, marginLeft: 26 }}>
                       {question.options.map((option) => {
@@ -198,7 +198,7 @@ function SimuladosPage() {
               {grupo.passages.map((passage) => <TextoBase key={passage.id} passage={passage} estilo={estiloTextoBase} />)}
               {grupo.questions.map((question) => (
                 <div key={question.id} className="panel-card plain" style={{ marginTop: 0 }}>
-                  <b style={estiloEnunciado}>{question.number}) {renderComDestaque(question.statement)}</b>
+                  <span className="enunciado-questao" style={estiloEnunciado}><b>{question.number})</b> {renderComDestaque(question.statement)}</span>
                   <div style={{ display: 'grid', gap: 6, marginTop: 12 }}>
                     {question.options.map((option) => {
                       const checked = answers[question.id] === option.letter

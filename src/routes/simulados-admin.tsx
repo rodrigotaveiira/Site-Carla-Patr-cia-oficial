@@ -188,7 +188,7 @@ function SimuladoCard({ simulado, onChanged, onEdit }: { simulado: Simulado; onC
               {grupo.questions.map((question) => (
                 <div key={question.id} style={{ background: 'var(--lilac-tint)', borderRadius: 8, padding: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                    <b style={{ color: 'var(--navy)', fontSize: 13 }}>{question.number}) {renderComDestaque(question.statement)}</b>
+                    <span className="enunciado-questao" style={{ color: 'var(--navy)', fontSize: 13 }}><b>{question.number})</b> {renderComDestaque(question.statement)}</span>
                     {question.correctLetter ? (
                       <span style={{ color: '#15803d', fontWeight: 700, fontSize: 12, whiteSpace: 'nowrap' }}>Gabarito: {question.correctLetter}</span>
                     ) : (
@@ -373,7 +373,7 @@ function AparenciaEditor() {
                 <div style={{ padding: 16, background: '#fff', border: '1px solid var(--line)', borderRadius: 10 }}>
                   <TextoBase passage={PASSAGEM_DE_EXEMPLO} estilo={estiloDaParte(aparencia, 'textoBase')} />
                   <div style={{ marginTop: 12 }}>
-                    <b style={estiloDaParte(aparencia, 'enunciado')}>1) De acordo com o texto, o autor defende que</b>
+                    <span className="enunciado-questao" style={estiloDaParte(aparencia, 'enunciado')}><b>1)</b> De acordo com o texto, o autor <strong className="texto-destacado">defende</strong> que</span>
                     <div style={{ display: 'grid', gap: 5, marginTop: 10 }}>
                       {ALTERNATIVAS_DE_EXEMPLO.map((alternativa) => (
                         <span key={alternativa} style={estiloDaParte(aparencia, 'alternativas')}>{alternativa}</span>
