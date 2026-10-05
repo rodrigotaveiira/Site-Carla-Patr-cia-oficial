@@ -92,8 +92,9 @@ function trimBlankEdges(lines: string[]): string[] {
   return lines.slice(start, end)
 }
 
-// Enunciado vira uma linha só (é como sempre foi exibido). As quebras de linha
-// que importam preservar são as do texto-base, não as do enunciado.
+// Alternativas viram uma linha só. O enunciado mantém as quebras de linha como
+// foram coladas (ver joinStatement) — tem questão que lista "I. ... / II. ..."
+// antes da pergunta.
 //
 // Texto copiado de PDF quebra a linha no meio da palavra ("tornar-\nse"). Sem
 // desfazer isso, o aluno lia "tornar- se".
@@ -101,27 +102,46 @@ function trimBlankEdges(lines: string[]): string[] {
 // que faz parte da palavra do hífen que o PDF inventou ao quebrar a linha.
 const ENCLITICOS = new Set(['se','me','te','lhe','lhes','nos','vos','o','a','os','as','lo','la','los','las','no','na','nas','los','me'])
 
+// Linha cortada no meio de uma palavra hifenizada. Dois casos diferentes:
+// "tornar-" + "se" é hífen de verdade (pronome enclítico) e fica;
+// "infraestru-" + "tura" é só quebra do PDF e o hífen sai. Devolve null
+// quando não é esse caso.
+function emendarHifen(anterior: string, atual: string): string | null {
+  if (!/[A-Za-zÀ-ÿ]-$/.test(anterior) || !/^[a-zà-ÿ]/.test(atual)) return null
+  const primeiraPalavra = atual.split(/[^A-Za-zÀ-ÿ]/)[0].toLowerCase()
+  return ENCLITICOS.has(primeiraPalavra) ? anterior + atual : anterior.slice(0, -1) + atual
+}
+
 export function juntarLinhas(lines: string[]): string {
   let saida = ''
   for (const linha of lines) {
     const atual = linha.trim()
     if (!atual) continue
     if (!saida) { saida = atual; continue }
-    // Linha cortada no meio de uma palavra hifenizada. Dois casos diferentes:
-    // "tornar-" + "se" é hífen de verdade (pronome enclítico) e fica;
-    // "infraestru-" + "tura" é só quebra do PDF e o hífen sai.
-    if (/[A-Za-zÀ-ÿ]-$/.test(saida) && /^[a-zà-ÿ]/.test(atual)) {
-      const primeiraPalavra = atual.split(/[^A-Za-zÀ-ÿ]/)[0].toLowerCase()
-      saida = ENCLITICOS.has(primeiraPalavra) ? saida + atual : saida.slice(0, -1) + atual
-    } else {
-      saida = saida + ' ' + atual
-    }
+    saida = emendarHifen(saida, atual) ?? saida + ' ' + atual
   }
   return saida.replace(/\s+/g, ' ').trim()
 }
 
+// Enunciado: cada linha colada continua sendo uma linha, e linha em branco
+// vira um parágrafo (várias seguidas contam como uma). Só a palavra cortada
+// pelo PDF é emendada. Exibido com pre-wrap (.enunciado-questao em styles.css).
 function joinStatement(lines: string[]): string {
-  return juntarLinhas(lines)
+  const saida: string[] = []
+  let paragrafo = false
+  for (const linha of lines) {
+    const atual = linha.trim().replace(/\s+/g, ' ')
+    if (!atual) { paragrafo = saida.length > 0; continue }
+    const ultima = saida.length - 1
+    const emendada = !paragrafo && ultima >= 0 ? emendarHifen(saida[ultima], atual) : null
+    if (emendada !== null) saida[ultima] = emendada
+    else {
+      if (paragrafo) saida.push('')
+      saida.push(atual)
+    }
+    paragrafo = false
+  }
+  return saida.join('\n')
 }
 
 /**

@@ -1305,8 +1305,9 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
    têm normal e negrito, e a Manrope é carregada só até 800. */
 .texto-destacado { font-weight: 800; }
 /* Enunciado da questão: peso normal, como numa prova impressa — só o número
-   fica em negrito. Assim o ==negrito== destacado aparece em qualquer fonte. */
-.enunciado-questao { font-weight: 400; line-height: 1.55; }
+   fica em negrito. Assim o ==negrito== destacado aparece em qualquer fonte.
+   pre-wrap: as quebras de linha coladas ("I. ... / II. ... / pergunta") ficam. */
+.enunciado-questao { font-weight: 400; line-height: 1.55; white-space: pre-wrap; overflow-wrap: break-word; }
 /* Palavra marcada com ~~assim~~ — mesmo arquivo. Explícito (não só confiar no
    <em> do navegador) pelo mesmo motivo do negrito acima: o contexto ao redor
    pode ter suas próprias regras de estilo, e aqui não é opcional. */
