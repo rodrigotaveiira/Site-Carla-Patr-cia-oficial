@@ -7,9 +7,9 @@ import type { ReactNode } from 'react'
 // na tela — tanto na conferência do admin quanto na prova do aluno.
 //
 // `<strong>` (não `<mark>`) pro negrito: é negrito de verdade que se
-// destaca, não uma marcação com fundo — e o peso em CSS é forçado pra 900
-// porque o enunciado já é exibido dentro de um <b>, então um simples "bold"
-// ficaria do mesmo peso do resto do texto e o destaque desapareceria ali.
+// destaca, não uma marcação com fundo. Pra ele aparecer, o texto em volta
+// não pode ser negrito — por isso o enunciado tem peso normal
+// (`.enunciado-questao` em styles.css).
 //
 // `~~` (não `_texto_`) pro itálico: um traço só embaixo aparece sozinho em
 // lacuna de exercício ("complete: ______"), e viraria itálico por engano.

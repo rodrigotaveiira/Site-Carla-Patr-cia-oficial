@@ -1299,10 +1299,14 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
 .texto-base-corpo { color: var(--navy); font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: break-word; }
 
 /* Palavra marcada com ==assim== no texto colado pela professora — ver
-   src/lib/texto-destacado.tsx. 900 (não 700): o enunciado já é exibido
-   dentro de um <b>, então um peso comum de negrito ficaria igual ao resto
-   do texto e o destaque sumiria justo ali. */
-.texto-destacado { font-weight: 900; }
+   src/lib/texto-destacado.tsx. O enunciado tem peso normal de propósito
+   (.enunciado-questao): ele já foi todo em negrito, e aí o destaque sumia —
+   Georgia e Arial (fontes que a professora pode escolher na aparência) só
+   têm normal e negrito, e a Manrope é carregada só até 800. */
+.texto-destacado { font-weight: 800; }
+/* Enunciado da questão: peso normal, como numa prova impressa — só o número
+   fica em negrito. Assim o ==negrito== destacado aparece em qualquer fonte. */
+.enunciado-questao { font-weight: 400; line-height: 1.55; }
 /* Palavra marcada com ~~assim~~ — mesmo arquivo. Explícito (não só confiar no
    <em> do navegador) pelo mesmo motivo do negrito acima: o contexto ao redor
    pode ter suas próprias regras de estilo, e aqui não é opcional. */
