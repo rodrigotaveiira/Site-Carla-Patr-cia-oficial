@@ -481,7 +481,7 @@ function SimuladosAdminPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     try {
       const todasAsTentativas = await listAllSimuladoAttempts()
-      setTentativasExistentes(todasAsTentativas.filter((a) => a.simuladoId === simulado.id).length)
+      setTentativasExistentes(new Set(todasAsTentativas.filter((a) => a.simuladoId === simulado.id).map((a) => a.studentEmail)).size)
     } catch {
       // Não bloqueia a edição por causa disso — só fica sem o aviso de quantos já responderam.
     }

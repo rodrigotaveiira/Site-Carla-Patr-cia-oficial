@@ -95,18 +95,6 @@ function attemptsStore() {
   return getStore({ name: 'simulado-attempts', consistency: 'strong' })
 }
 
-// Cada aluno responde uma serie uma unica vez - sem indice por aluno+serie,
-// entao varre a store inteira (mesmo padrao ja usado em listMySimuladoAttempts).
-async function findExistingAttempt(studentEmail: string, simuladoId: string): Promise<SimuladoAttempt | null> {
-  const store = attemptsStore()
-  const { blobs } = await store.list()
-  for (const blob of blobs) {
-    const value = await store.get(blob.key, { type: 'json' }) as SimuladoAttempt | null
-    if (value && value.studentEmail === studentEmail && value.simuladoId === simuladoId) return value
-  }
-  return null
-}
-
 function studentDisplayName(user: unknown) {
   const u = user as Record<string, any>
   return u?.name || u?.user_metadata?.full_name || u?.userMetadata?.full_name || 'Aluno'
@@ -332,12 +320,9 @@ export const submitSimuladoAttempt = createServerFn({ method: 'POST' })
     if (!isReleased(simulado) && !isStaff(user)) throw new Error('Esse conjunto ainda não foi liberado.')
     if (simulado.questions.length === 0) throw new Error('Esse simulado não tem questões.')
 
-    // Uma tentativa por aluno por serie. Staff fica isento pra poder testar a
-    // propria serie quantas vezes precisar antes de liberar pra turma.
-    if (!isStaff(user) && (await findExistingAttempt(user.email ?? '', simulado.id))) {
-      throw new Error('Você já respondeu essa série. Cada série pode ser respondida uma única vez.')
-    }
-
+    // O aluno pode refazer a série quantas vezes quiser — cada envio vira uma
+    // tentativa nova e todas contam na nota (ver notas-admin e student-evolution).
+    // O rate limit acima é o que segura abuso.
     let score = 0
     const corrections = simulado.questions.map((question) => {
       const chosen = data.answers[question.id] ?? null

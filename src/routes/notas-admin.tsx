@@ -248,7 +248,7 @@ function NotasAdminPage() {
       <p className="panel-subtitle">
         {aba === 'redacao'
           ? 'Todas as notas de redação, organizadas por aluno. Toque em um aluno para ver o histórico completo.'
-          : 'Notas das questões para treino, organizadas por aluno. Cada série vale uma tentativa.'}
+          : 'Notas das questões para treino, organizadas por aluno. O aluno pode refazer a série quantas vezes quiser — todas as tentativas entram na média.'}
       </p>
 
       <div className="tab-switch" style={{ marginTop: 16 }} role="tablist">
