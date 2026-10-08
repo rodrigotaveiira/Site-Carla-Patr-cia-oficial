@@ -144,9 +144,8 @@ export const getStudentProgress = createServerFn({ method: 'GET' }).handler(asyn
     simuladosContados.add(value.id)
   }
 
-  // Cada aluno responde cada conjunto uma vez só, mas a contagem passa por um
-  // Set mesmo assim: se um dia existir mais de uma tentativa do mesmo conjunto,
-  // ela não pode contar duas vezes e estourar o denominador.
+  // O aluno pode refazer o mesmo conjunto várias vezes, então a contagem passa
+  // por um Set: refazer não pode contar duas vezes e estourar o denominador.
   const attemptsStore = getStore({ name: 'simulado-attempts', consistency: 'strong' })
   const { blobs: attemptBlobs } = await attemptsStore.list()
   const simuladosRespondidosSet = new Set<string>()
