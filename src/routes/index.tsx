@@ -351,7 +351,7 @@ function HomePage() {
       <section className="hero" id="inicio">
         <div className="hero-orb orb-one" />
         <motion.div className="hero-copy" initial={{ opacity: 0, x: -35 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .8 }}>
-          <div className="eyebrow"><span /> Estratégia que transforma resultados</div>
+          <div className="eyebrow"><span /> Professora Carla Patrícia Medina</div>
           <h1>Sua aprovação começa por uma <em>redação de excelência.</em></h1>
           <p>Aulas de Redação e Gramática com metodologia própria, correção personalizada e acompanhamento individual para quem busca excelência nos vestibulares.</p>
           <div className="hero-proof">

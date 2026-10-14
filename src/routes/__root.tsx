@@ -88,12 +88,12 @@ export const Route = createRootRoute({
       {
         property: 'og:image',
         content:
-          'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=85',
+          'https://carlapatriciamedina.com/carla-hero.webp',
       },
 
       {
         property: 'og:image:alt',
-        content: 'Carla Patrícia Medina — Redação e Gramática',
+        content: 'Professora Carla Patrícia Medina',
       },
 
       // Twitter / X
@@ -105,7 +105,7 @@ export const Route = createRootRoute({
       {
         name: 'twitter:image',
         content:
-          'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=85',
+          'https://carlapatriciamedina.com/carla-hero.webp',
       },
     ],
 
@@ -166,35 +166,54 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'Person',
+              '@graph': [
+                // O WebSite é o que o Google usa pro nome do site no topo do
+                // resultado; sem ele a busca pelo nome não tem um "dono" claro.
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://carlapatriciamedina.com/#website',
+                  name: 'Carla Patrícia Medina',
+                  alternateName: ['Carla Medina', 'Professora Carla Patrícia Medina'],
+                  url: 'https://carlapatriciamedina.com/',
+                  inLanguage: 'pt-BR',
+                  publisher: { '@id': 'https://carlapatriciamedina.com/#person' },
+                },
 
-              name: 'Carla Patrícia Medina',
+                {
+                  '@type': 'Person',
+                  '@id': 'https://carlapatriciamedina.com/#person',
 
-              jobTitle: 'Professora de Redação e Língua Portuguesa',
+                  name: 'Carla Patrícia Medina',
 
-              description:
-                'Professora de Redação e Gramática com mais de 22 anos de experiência, oferecendo aulas, correções e preparação para ENEM, vestibulares e concursos.',
+                  image: 'https://carlapatriciamedina.com/carla-hero.webp',
 
-              url: 'https://carlapatriciamedina.com/',
+                  jobTitle: 'Professora de Redação e Língua Portuguesa',
 
-              sameAs: [
-                'https://instagram.com/carlapatricia.medina',
+                  description:
+                    'Professora de Redação e Gramática com mais de 22 anos de experiência, oferecendo aulas, correções e preparação para ENEM, vestibulares e concursos.',
+
+                  url: 'https://carlapatriciamedina.com/',
+
+                  sameAs: [
+                    'https://www.instagram.com/carlapatricia.medina/',
+                  ],
+
+                  knowsAbout: [
+                    'Redação',
+                    'Gramática',
+                    'Língua Portuguesa',
+                    'ENEM',
+                    'Vestibulares',
+                    'Concursos',
+                  ],
+
+                  worksFor: {
+                    '@type': 'EducationalOrganization',
+                    name: 'Carla Patrícia Medina — Redação e Gramática',
+                    url: 'https://carlapatriciamedina.com/',
+                  },
+                },
               ],
-
-              knowsAbout: [
-                'Redação',
-                'Gramática',
-                'Língua Portuguesa',
-                'ENEM',
-                'Vestibulares',
-                'Concursos',
-              ],
-
-              worksFor: {
-                '@type': 'EducationalOrganization',
-                name: 'Carla Patrícia Medina — Redação e Gramática',
-                url: 'https://carlapatriciamedina.com/',
-              },
             }),
           }}
         />
