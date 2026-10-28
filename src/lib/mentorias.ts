@@ -6,6 +6,7 @@ import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
 import { notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
+import { marcarMentoriaIndividualCanceladaNaPlanilha, registrarMentoriaIndividualNaPlanilha } from './planilha-agendamento'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
@@ -118,6 +119,13 @@ export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
       await notificarMentoriaCancelada({
         alunos: [existing.student],
         emGrupo: false,
+        data: existing.date,
+        hora: existing.time,
+      })
+
+      // A mentoria não vai mais acontecer: na planilha ela vira "Cancelado".
+      await marcarMentoriaIndividualCanceladaNaPlanilha({
+        nomeAluno: existing.student.name,
         data: existing.date,
         hora: existing.time,
       })
@@ -239,6 +247,13 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
         duracao: slot.duration,
         emGrupo: false,
       })
+      // Mesma lógica: `registrarMentoriaIndividualNaPlanilha` também nunca lança.
+      await registrarMentoriaIndividualNaPlanilha({
+        nomeAluno: studentName,
+        data: slot.date,
+        hora: slot.time,
+        duracao: slot.duration,
+      })
 
       return updated
     } catch (error) {
@@ -289,6 +304,13 @@ export const cancelMentoriaSlot = createServerFn({ method: 'POST' })
       } catch {
         // limpeza best-effort — não impede o cancelamento em si
       }
+
+      // Nunca lança: o cancelamento já está gravado.
+      await marcarMentoriaIndividualCanceladaNaPlanilha({
+        nomeAluno: slot.student.name,
+        data: slot.date,
+        hora: slot.time,
+      })
     }
 
     return updated
