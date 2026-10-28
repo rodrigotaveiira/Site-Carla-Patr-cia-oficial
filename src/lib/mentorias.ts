@@ -6,7 +6,11 @@ import { userHasRole } from './roles'
 import { STORES } from './blob-stores'
 import { notificarAgendamento } from './notificar-agendamento'
 import { notificarMentoriaCancelada, notificarNovaMentoria } from './notificar-mentoria'
-import { marcarMentoriaIndividualCanceladaNaPlanilha, registrarMentoriaIndividualNaPlanilha } from './planilha-agendamento'
+import {
+  marcarMentoriaIndividualCanceladaNaPlanilha,
+  registrarMentoriaIndividualNaPlanilha,
+  sincronizarMentoriasIndividuaisNaPlanilha,
+} from './planilha-agendamento'
 import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
@@ -134,7 +138,29 @@ export const deleteMentoriaSlot = createServerFn({ method: 'POST' })
     return { ok: true }
   })
 
-const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
+// Botão do admin: põe na planilha as mentorias individuais futuras já
+// reservadas que ficaram de fora (ex.: marcadas antes da integração). Só o
+// nome do aluno sai daqui — o e-mail fica no site.
+export const sincronizarPlanilhaMentoriaIndividual = createServerFn({ method: 'POST' }).handler(async () => {
+  const user = await getServerUser()
+  if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+
+  const store = slotsStore()
+  const { blobs } = await store.list()
+  const today = new Date().toISOString().slice(0, 10)
+  const reservadas = []
+
+  for (const blob of blobs) {
+    const slot = (await store.get(blob.key, { type: 'json' })) as MentoriaSlot | null
+    if (slot?.status === 'booked' && slot.student && slot.date >= today) {
+      reservadas.push({ nomeAluno: slot.student.name, data: slot.date, hora: slot.time, duracao: slot.duration })
+    }
+  }
+
+  return sincronizarMentoriasIndividuaisNaPlanilha(reservadas)
+})
+
+const AGENDAMENTO_RATE_LIMIT ={ action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
 
 export const bookMentoriaSlot = createServerFn({ method: 'POST' })
   .validator(z.object({ id: idSchema }))
