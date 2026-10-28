@@ -3,7 +3,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { readLocalUser } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole } from '@/lib/roles'
-import { createMentoriaSlot, deleteMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import {
+  createMentoriaSlot,
+  deleteMentoriaSlot,
+  listMentoriaSlots,
+  sincronizarPlanilhaMentoriaIndividual,
+  type MentoriaSlot,
+} from '@/lib/mentorias'
 import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
@@ -31,6 +37,7 @@ function MentoriasAdminPage() {
   const [time, setTime] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [sincronizando, setSincronizando] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -79,6 +86,24 @@ function MentoriasAdminPage() {
     }
   }
 
+  async function handleSincronizar() {
+    setSincronizando(true)
+    try {
+      const { adicionadas, datasCorrigidas } = await sincronizarPlanilhaMentoriaIndividual()
+      const partes = [
+        adicionadas === 0
+          ? 'Nenhuma mentoria faltando'
+          : `${adicionadas} mentoria${adicionadas > 1 ? 's adicionadas' : ' adicionada'}`,
+        datasCorrigidas > 0 && `${datasCorrigidas} data${datasCorrigidas > 1 ? 's corrigidas' : ' corrigida'}`,
+      ].filter(Boolean)
+      showToast(`Planilha atualizada: ${partes.join(', ')}.`)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível atualizar a planilha.', 'error')
+    } finally {
+      setSincronizando(false)
+    }
+  }
+
   const sorted = [...slots].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
 
   return (
@@ -103,7 +128,18 @@ function MentoriasAdminPage() {
       {error && <p className="form-error">{error}</p>}
 
       <section>
-        <h2 className="panel-section-title">Horários cadastrados</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <h2 className="panel-section-title">Horários cadastrados</h2>
+          <button
+            type="button"
+            onClick={handleSincronizar}
+            disabled={sincronizando}
+            className="btn btn-ghost btn-sm"
+            title="Coloca na planilha as mentorias já reservadas que ainda não estão lá"
+          >
+            {sincronizando ? 'Sincronizando...' : 'Sincronizar com a planilha'}
+          </button>
+        </div>
         {loading && <p className="panel-subtitle">Carregando...</p>}
         <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
           {sorted.map((slot) => (

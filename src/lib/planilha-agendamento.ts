@@ -360,12 +360,47 @@ function serialDeData(data: string): number {
 
 const texto = (valor: string) => ({ userEnteredValue: { stringValue: valor } })
 
-export async function registrarMentoriaIndividualNaPlanilha(params: {
-  nomeAluno: string
-  data: string
-  hora: string
-  duracao: number
-}): Promise<void> {
+const celulaDeData = (data: string) => ({
+  userEnteredValue: { numberValue: serialDeData(data) },
+  userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'dd/mm/yyyy' } },
+})
+
+type MentoriaIndividual = { nomeAluno: string; data: string; hora: string; duracao: number }
+
+// Valores tipados (stringValue/numberValue), não "USER_ENTERED": um nome de
+// aluno começando com "=" fica texto, nunca vira fórmula.
+function linhaIndividual(m: MentoriaIndividual) {
+  return {
+    values: [
+      celulaDeData(m.data),
+      texto(diaDaSemana(m.data)),
+      // "09h30": o zero à esquerda faz a ordem alfabética bater com a do relógio.
+      texto(formatarHora(m.hora)),
+      texto(`${m.duracao} min`),
+      texto(m.nomeAluno),
+      texto(STATUS_AGENDADO),
+      texto(agoraEmBrasilia()),
+    ],
+  }
+}
+
+// Reordena tudo abaixo do cabeçalho por Data e depois Horário. Dias com
+// várias mentorias ficam agrupados, em ordem de horário.
+function ordenarAbaIndividual(sheetId: number) {
+  return {
+    sortRange: {
+      range: { sheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: CABECALHO_INDIVIDUAL.length },
+      sortSpecs: [
+        { dimensionIndex: IND_COLUNA_DATA, sortOrder: 'ASCENDING' },
+        { dimensionIndex: IND_COLUNA_HORARIO, sortOrder: 'ASCENDING' },
+      ],
+    },
+  }
+}
+
+const CAMPOS_LINHA = 'userEnteredValue,userEnteredFormat.numberFormat'
+
+export async function registrarMentoriaIndividualNaPlanilha(params: MentoriaIndividual): Promise<void> {
   try {
     const conexao = await conectar()
     if (!conexao) return
@@ -373,41 +408,14 @@ export async function registrarMentoriaIndividualNaPlanilha(params: {
     const sheetId = await garantirAbaIndividual(conexao, aba)
     if (sheetId === null) return
 
-    // Valores tipados (stringValue/numberValue), não "USER_ENTERED": um nome
-    // de aluno começando com "=" fica texto, nunca vira fórmula.
-    const linha = {
-      values: [
-        {
-          userEnteredValue: { numberValue: serialDeData(params.data) },
-          userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'dd/mm/yyyy' } },
-        },
-        texto(diaDaSemana(params.data)),
-        // "09h30": o zero à esquerda faz a ordem alfabética bater com a do relógio.
-        texto(formatarHora(params.hora)),
-        texto(`${params.duracao} min`),
-        texto(params.nomeAluno),
-        texto(STATUS_AGENDADO),
-        texto(agoraEmBrasilia()),
-      ],
-    }
-
-    // Acrescenta a linha e reordena tudo abaixo do cabeçalho por Data e depois
-    // Horário — na mesma chamada, então a planilha nunca fica no meio do
-    // caminho. Dias com várias mentorias ficam agrupados, em ordem de horário.
+    // Acrescenta a linha e reordena na mesma chamada, então a planilha nunca
+    // fica no meio do caminho.
     const escrita = await requisicao(conexao, ':batchUpdate', {
       method: 'POST',
       body: JSON.stringify({
         requests: [
-          { appendCells: { sheetId, rows: [linha], fields: 'userEnteredValue,userEnteredFormat.numberFormat' } },
-          {
-            sortRange: {
-              range: { sheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: CABECALHO_INDIVIDUAL.length },
-              sortSpecs: [
-                { dimensionIndex: IND_COLUNA_DATA, sortOrder: 'ASCENDING' },
-                { dimensionIndex: IND_COLUNA_HORARIO, sortOrder: 'ASCENDING' },
-              ],
-            },
-          },
+          { appendCells: { sheetId, rows: [linhaIndividual(params)], fields: CAMPOS_LINHA } },
+          ordenarAbaIndividual(sheetId),
         ],
       }),
     })
@@ -513,4 +521,89 @@ export async function marcarMentoriaIndividualCanceladaNaPlanilha(params: {
     // Rede caiu, timeout, chave inválida: o cancelamento já está gravado.
     console.error('[planilha-agendamento] erro inesperado ao marcar cancelamento —', erro)
   }
+}
+
+function serialParaData(serial: number): string {
+  return new Date(Date.UTC(1899, 11, 30) + Math.round(serial) * 86_400_000).toISOString().slice(0, 10)
+}
+
+// Acerta a aba "Individual" com o que está reservado no site: acrescenta as
+// mentorias futuras que não têm linha "Agendado" (ex.: marcadas antes da
+// integração existir), converte datas gravadas como texto pela primeira
+// versão pra data de verdade, e reordena. Rodar de novo não duplica nada.
+// Diferente das outras funções daqui, LANÇA erro: é um botão do admin, e a
+// Carla precisa ver se não deu certo.
+export async function sincronizarMentoriasIndividuaisNaPlanilha(
+  reservadas: MentoriaIndividual[],
+): Promise<{ adicionadas: number; datasCorrigidas: number }> {
+  const conexao = await conectar()
+  if (!conexao) throw new Error('A integração com a planilha não está configurada.')
+  const aba = abaIndividual()
+  const sheetId = await garantirAbaIndividual(conexao, aba)
+  if (sheetId === null) throw new Error('Não foi possível abrir a aba da planilha.')
+
+  // UNFORMATTED_VALUE: data de verdade vem como número, data antiga como
+  // texto "dd/mm/aaaa" — é assim que dá pra saber quais converter.
+  const leitura = await requisicao(
+    conexao,
+    `/values/${encodeURIComponent(aba)}!A1:G5000?valueRenderOption=UNFORMATTED_VALUE`,
+  )
+  if (!leitura.ok) {
+    console.error('[planilha-agendamento] falha ao ler a aba individual —', await leitura.text())
+    throw new Error('Não foi possível ler a planilha.')
+  }
+  const { values } = (await leitura.json()) as { values?: (string | number)[][] }
+  const linhas = values ?? []
+
+  const requests: object[] = []
+  const jaNaPlanilha = new Set<string>()
+  const chave = (data: string, hora: string, aluno: string) => `${data}|${hora}|${aluno.trim().toLowerCase()}`
+
+  // i = 1: pula o cabeçalho.
+  for (let i = 1; i < linhas.length; i++) {
+    const l = linhas[i] ?? []
+    const celulaData = l[IND_COLUNA_DATA]
+    let data: string | null = null
+
+    if (typeof celulaData === 'number') {
+      data = serialParaData(celulaData)
+    } else if (typeof celulaData === 'string') {
+      const m = celulaData.trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+      if (m) {
+        data = `${m[3]}-${m[2]}-${m[1]}`
+        requests.push({
+          updateCells: {
+            range: { sheetId, startRowIndex: i, endRowIndex: i + 1, startColumnIndex: 0, endColumnIndex: 1 },
+            rows: [{ values: [celulaDeData(data)] }],
+            fields: CAMPOS_LINHA,
+          },
+        })
+      }
+    }
+
+    if (data && String(l[IND_COLUNA_STATUS] ?? '').trim() === STATUS_AGENDADO) {
+      jaNaPlanilha.add(chave(data, String(l[IND_COLUNA_HORARIO] ?? '').trim(), String(l[IND_COLUNA_ALUNO] ?? '')))
+    }
+  }
+  const datasCorrigidas = requests.length
+
+  const faltando = reservadas.filter((m) => !jaNaPlanilha.has(chave(m.data, formatarHora(m.hora), m.nomeAluno)))
+  if (faltando.length > 0) {
+    requests.push({ appendCells: { sheetId, rows: faltando.map(linhaIndividual), fields: CAMPOS_LINHA } })
+  }
+  requests.push(ordenarAbaIndividual(sheetId))
+
+  const escrita = await requisicao(conexao, ':batchUpdate', {
+    method: 'POST',
+    body: JSON.stringify({ requests }),
+  })
+  if (!escrita.ok) {
+    console.error('[planilha-agendamento] falha ao sincronizar a aba individual —', await escrita.text())
+    throw new Error('Não foi possível atualizar a planilha.')
+  }
+
+  console.log(
+    `[planilha-agendamento] aba "${aba}" sincronizada — ${faltando.length} adicionada(s), ${datasCorrigidas} data(s) corrigida(s)`,
+  )
+  return { adicionadas: faltando.length, datasCorrigidas }
 }
