@@ -126,7 +126,6 @@ function MentoriasPage() {
           style={{
             background: 'var(--lilac-tint)',
             border: '1px solid #e0dcf0',
-            borderLeft: '4px solid var(--purple)',
             borderRadius: 8,
             padding: '14px 16px',
             margin: '16px 0',
