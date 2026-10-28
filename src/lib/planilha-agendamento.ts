@@ -303,18 +303,25 @@ async function requisicao(conexao: Conexao, caminho: string, init: RequestInit =
   })
 }
 
-// Cria a aba "Individual" com cabeçalho se ela ainda não existir. Se dois
-// agendamentos chegarem juntos na primeira vez, o segundo addSheet falha com
-// "já existe" — tudo bem, a aba existe e o append logo depois funciona.
-async function garantirAbaIndividual(conexao: Conexao, aba: string): Promise<boolean> {
-  const meta = await requisicao(conexao, '?fields=sheets.properties.title')
+async function idDaAba(conexao: Conexao, aba: string): Promise<number | null | undefined> {
+  const meta = await requisicao(conexao, '?fields=sheets.properties(sheetId,title)')
   if (!meta.ok) {
     console.error('[planilha-agendamento] falha ao ler as abas da planilha —', await meta.text())
-    return false
+    return undefined
   }
 
-  const { sheets } = (await meta.json()) as { sheets?: { properties?: { title?: string } }[] }
-  if (sheets?.some((s) => s.properties?.title === aba)) return true
+  const { sheets } = (await meta.json()) as { sheets?: { properties?: { sheetId?: number; title?: string } }[] }
+  return sheets?.find((s) => s.properties?.title === aba)?.properties?.sheetId ?? null
+}
+
+// Devolve o id interno da aba "Individual", criando-a com cabeçalho se ela
+// ainda não existir (`null` = não deu pra ler nem criar). Se dois
+// agendamentos chegarem juntos na primeira vez, o segundo addSheet falha com
+// "já existe" — tudo bem, relê e segue com a aba que o outro criou.
+async function garantirAbaIndividual(conexao: Conexao, aba: string): Promise<number | null> {
+  const existente = await idDaAba(conexao, aba)
+  if (existente === undefined) return null
+  if (existente !== null) return existente
 
   const criacao = await requisicao(conexao, ':batchUpdate', {
     method: 'POST',
@@ -322,8 +329,13 @@ async function garantirAbaIndividual(conexao: Conexao, aba: string): Promise<boo
   })
   if (!criacao.ok) {
     console.log(`[planilha-agendamento] não criou a aba "${aba}" (pode já existir) —`, await criacao.text())
-    return true
+    return (await idDaAba(conexao, aba)) ?? null
   }
+
+  const { replies } = (await criacao.json()) as {
+    replies?: { addSheet?: { properties?: { sheetId?: number } } }[]
+  }
+  const sheetId = replies?.[0]?.addSheet?.properties?.sheetId ?? null
 
   const cabecalho = await requisicao(conexao, `/values/${encodeURIComponent(aba)}!A1:G1?valueInputOption=RAW`, {
     method: 'PUT',
@@ -334,8 +346,19 @@ async function garantirAbaIndividual(conexao: Conexao, aba: string): Promise<boo
   } else {
     console.log(`[planilha-agendamento] aba "${aba}" criada com cabeçalho`)
   }
-  return true
+  return sheetId
 }
+
+// Número de série de data do Sheets (dias desde 30/12/1899). Gravar a data
+// como número — e não como texto — é o que deixa a ordenação cronológica; o
+// formato dd/mm/aaaa vai junto na célula, então ela continua aparecendo (e
+// sendo lida pelo cancelamento) como "30/10/2026".
+function serialDeData(data: string): number {
+  const [ano, mes, dia] = data.split('-').map(Number)
+  return (Date.UTC(ano!, mes! - 1, dia!) - Date.UTC(1899, 11, 30)) / 86_400_000
+}
+
+const texto = (valor: string) => ({ userEnteredValue: { stringValue: valor } })
 
 export async function registrarMentoriaIndividualNaPlanilha(params: {
   nomeAluno: string
@@ -347,35 +370,124 @@ export async function registrarMentoriaIndividualNaPlanilha(params: {
     const conexao = await conectar()
     if (!conexao) return
     const aba = abaIndividual()
-    if (!(await garantirAbaIndividual(conexao, aba))) return
+    const sheetId = await garantirAbaIndividual(conexao, aba)
+    if (sheetId === null) return
 
-    const linha = [
-      formatarDataCurta(params.data),
-      diaDaSemana(params.data),
-      formatarHora(params.hora),
-      `${params.duracao} min`,
-      params.nomeAluno,
-      STATUS_AGENDADO,
-      agoraEmBrasilia(),
-    ]
+    // Valores tipados (stringValue/numberValue), não "USER_ENTERED": um nome
+    // de aluno começando com "=" fica texto, nunca vira fórmula.
+    const linha = {
+      values: [
+        {
+          userEnteredValue: { numberValue: serialDeData(params.data) },
+          userEnteredFormat: { numberFormat: { type: 'DATE', pattern: 'dd/mm/yyyy' } },
+        },
+        texto(diaDaSemana(params.data)),
+        // "09h30": o zero à esquerda faz a ordem alfabética bater com a do relógio.
+        texto(formatarHora(params.hora)),
+        texto(`${params.duracao} min`),
+        texto(params.nomeAluno),
+        texto(STATUS_AGENDADO),
+        texto(agoraEmBrasilia()),
+      ],
+    }
 
-    // RAW: a data fica como texto "dd/mm/aaaa", igual ao que o cancelamento
-    // procura depois — USER_ENTERED viraria data do Sheets e mudaria o texto.
-    const escrita = await requisicao(
-      conexao,
-      `/values/${encodeURIComponent(aba)}!A:G:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
-      { method: 'POST', body: JSON.stringify({ values: [linha] }) },
-    )
+    // Acrescenta a linha e reordena tudo abaixo do cabeçalho por Data e depois
+    // Horário — na mesma chamada, então a planilha nunca fica no meio do
+    // caminho. Dias com várias mentorias ficam agrupados, em ordem de horário.
+    const escrita = await requisicao(conexao, ':batchUpdate', {
+      method: 'POST',
+      body: JSON.stringify({
+        requests: [
+          { appendCells: { sheetId, rows: [linha], fields: 'userEnteredValue,userEnteredFormat.numberFormat' } },
+          {
+            sortRange: {
+              range: { sheetId, startRowIndex: 1, startColumnIndex: 0, endColumnIndex: CABECALHO_INDIVIDUAL.length },
+              sortSpecs: [
+                { dimensionIndex: IND_COLUNA_DATA, sortOrder: 'ASCENDING' },
+                { dimensionIndex: IND_COLUNA_HORARIO, sortOrder: 'ASCENDING' },
+              ],
+            },
+          },
+        ],
+      }),
+    })
 
     if (!escrita.ok) {
       console.error('[planilha-agendamento] falha ao registrar mentoria individual —', await escrita.text())
     } else {
-      console.log(`[planilha-agendamento] mentoria individual registrada na aba "${aba}"`)
+      console.log(`[planilha-agendamento] mentoria individual registrada e ordenada na aba "${aba}"`)
     }
   } catch (erro) {
     // Rede caiu, timeout, chave inválida: o agendamento já está gravado.
     console.error('[planilha-agendamento] erro inesperado ao registrar mentoria individual —', erro)
   }
+}
+
+type BuscaCancelamento = { nomeAluno: string; data: string; hora: string }
+
+function ehALinha(l: string[], busca: BuscaCancelamento, status: string): boolean {
+  return (
+    (l[IND_COLUNA_DATA] ?? '').trim() === formatarDataCurta(busca.data) &&
+    (l[IND_COLUNA_HORARIO] ?? '').trim() === formatarHora(busca.hora) &&
+    (l[IND_COLUNA_ALUNO] ?? '').trim().toLowerCase() === busca.nomeAluno.trim().toLowerCase() &&
+    (l[IND_COLUNA_STATUS] ?? '').trim() === status
+  )
+}
+
+async function escreverStatus(conexao: Conexao, aba: string, linhaPlanilha: number, status: string) {
+  return requisicao(conexao, `/values/${encodeURIComponent(aba)}!F${linhaPlanilha}?valueInputOption=RAW`, {
+    method: 'PUT',
+    body: JSON.stringify({ values: [[status]] }),
+  })
+}
+
+async function tentarMarcarCancelado(
+  conexao: Conexao,
+  aba: string,
+  busca: BuscaCancelamento,
+): Promise<'feito' | 'linha-mudou' | 'desistiu'> {
+  const leitura = await requisicao(conexao, `/values/${encodeURIComponent(aba)}!A1:G5000`)
+  if (!leitura.ok) {
+    console.error('[planilha-agendamento] falha ao ler a aba individual —', await leitura.text())
+    return 'desistiu'
+  }
+
+  const { values } = (await leitura.json()) as { values?: string[][] }
+  // Só existe uma linha "Agendado" por aluno + data + horário: um horário
+  // remarcado depois de cancelado deixa a antiga como "Cancelado".
+  const indice = (values ?? []).findIndex((l) => ehALinha(l, busca, STATUS_AGENDADO))
+
+  if (indice === -1) {
+    console.log(
+      `[planilha-agendamento] nenhuma linha "Agendado" de "${busca.nomeAluno}" em ${formatarDataCurta(busca.data)} às ${formatarHora(busca.hora)} na aba "${aba}" — nada foi alterado`,
+    )
+    return 'desistiu'
+  }
+
+  const linhaPlanilha = indice + 1 // values[] é 0-based; a planilha é 1-based
+  const escrita = await escreverStatus(conexao, aba, linhaPlanilha, STATUS_CANCELADO)
+  if (!escrita.ok) {
+    console.error('[planilha-agendamento] falha ao marcar cancelamento —', await escrita.text())
+    return 'desistiu'
+  }
+
+  const conferencia = await requisicao(conexao, `/values/${encodeURIComponent(aba)}!A${linhaPlanilha}:G${linhaPlanilha}`)
+  if (conferencia.ok) {
+    const { values: linhaAtual } = (await conferencia.json()) as { values?: string[][] }
+    if (!ehALinha(linhaAtual?.[0] ?? [], busca, STATUS_CANCELADO)) {
+      // Marcou a linha de outra pessoa. Devolve "Agendado" — o caso comum,
+      // já que linhas recém-movidas são de agendamentos novos — e deixa no
+      // log, caso aquela linha já estivesse "Cancelado" antes.
+      await escreverStatus(conexao, aba, linhaPlanilha, STATUS_AGENDADO)
+      console.warn(
+        `[planilha-agendamento] linha ${linhaPlanilha} da aba "${aba}" foi marcada por engano e voltou pra "Agendado" — conferir à mão se ela já estava cancelada`,
+      )
+      return 'linha-mudou'
+    }
+  }
+
+  console.log(`[planilha-agendamento] linha ${linhaPlanilha} da aba "${aba}" marcada como cancelada`)
+  return 'feito'
 }
 
 export async function marcarMentoriaIndividualCanceladaNaPlanilha(params: {
@@ -388,52 +500,14 @@ export async function marcarMentoriaIndividualCanceladaNaPlanilha(params: {
     if (!conexao) return
     const aba = abaIndividual()
 
-    const leitura = await requisicao(conexao, `/values/${encodeURIComponent(aba)}!A1:G5000`)
-    if (!leitura.ok) {
-      console.error('[planilha-agendamento] falha ao ler a aba individual —', await leitura.text())
-      return
-    }
-
-    const { values } = (await leitura.json()) as { values?: string[][] }
-    const linhas = values ?? []
-    const dataBusca = formatarDataCurta(params.data)
-    const horaBusca = formatarHora(params.hora)
-    const alunoBusca = params.nomeAluno.trim().toLowerCase()
-
-    // De baixo pra cima: se o mesmo horário foi marcado, cancelado e marcado
-    // de novo, o que vale é o agendamento mais recente ainda "Agendado".
-    let indice = -1
-    for (let i = linhas.length - 1; i >= 0; i--) {
-      const l = linhas[i] ?? []
-      if (
-        (l[IND_COLUNA_DATA] ?? '').trim() === dataBusca &&
-        (l[IND_COLUNA_HORARIO] ?? '').trim() === horaBusca &&
-        (l[IND_COLUNA_ALUNO] ?? '').trim().toLowerCase() === alunoBusca &&
-        (l[IND_COLUNA_STATUS] ?? '').trim() === STATUS_AGENDADO
-      ) {
-        indice = i
-        break
-      }
-    }
-
-    if (indice === -1) {
-      console.log(
-        `[planilha-agendamento] nenhuma linha "Agendado" de "${params.nomeAluno}" em ${dataBusca} às ${horaBusca} na aba "${aba}" — nada foi alterado`,
-      )
-      return
-    }
-
-    const linhaPlanilha = indice + 1 // values[] é 0-based; a planilha é 1-based
-    const escrita = await requisicao(
-      conexao,
-      `/values/${encodeURIComponent(aba)}!F${linhaPlanilha}?valueInputOption=RAW`,
-      { method: 'PUT', body: JSON.stringify({ values: [[STATUS_CANCELADO]] }) },
-    )
-
-    if (!escrita.ok) {
-      console.error('[planilha-agendamento] falha ao marcar cancelamento —', await escrita.text())
-    } else {
-      console.log(`[planilha-agendamento] linha ${linhaPlanilha} da aba "${aba}" marcada como cancelada`)
+    // O cancelamento escreve numa linha pelo número dela, mas um agendamento
+    // de outro aluno no mesmo instante reordena a aba e pode mover as linhas
+    // entre a leitura e a escrita. Por isso confere depois de escrever e, se
+    // pegou a linha errada, desfaz e procura de novo (uma vez).
+    for (let tentativa = 1; tentativa <= 2; tentativa++) {
+      const resultado = await tentarMarcarCancelado(conexao, aba, params)
+      if (resultado !== 'linha-mudou') return
+      console.log(`[planilha-agendamento] a aba "${aba}" mudou durante o cancelamento — tentativa ${tentativa}`)
     }
   } catch (erro) {
     // Rede caiu, timeout, chave inválida: o cancelamento já está gravado.
