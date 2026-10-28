@@ -16,6 +16,7 @@ import {
 import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
+import { RichTextEditor } from '@/components/RichText'
 
 export const Route = createFileRoute('/mentorias-admin')({
   beforeLoad: async () => {
@@ -41,7 +42,11 @@ function MentoriasAdminPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [sincronizando, setSincronizando] = useState(false)
-  const [aviso, setAviso] = useState('')
+  // `null` até carregar: o editor só monta com o aviso atual em mãos (ele não
+  // é controlado), e se a leitura falhar não aparece — senão salvar um editor
+  // vazio apagaria o aviso que existe.
+  const [aviso, setAviso] = useState<string | null>(null)
+  const [erroAviso, setErroAviso] = useState(false)
   const [salvandoAviso, setSalvandoAviso] = useState(false)
 
   async function load() {
@@ -60,15 +65,14 @@ function MentoriasAdminPage() {
     void load()
     getAvisoMentoriaIndividual()
       .then(setAviso)
-      .catch(() => showToast('Não foi possível carregar o aviso aos alunos.', 'error'))
+      .catch(() => setErroAviso(true))
   }, [])
 
   async function handleSalvarAviso(event: FormEvent) {
     event.preventDefault()
     setSalvandoAviso(true)
     try {
-      const salvo = await salvarAvisoMentoriaIndividual({ data: { texto: aviso } })
-      setAviso(salvo)
+      const salvo = await salvarAvisoMentoriaIndividual({ data: { html: aviso ?? '' } })
       showToast(salvo ? 'Aviso salvo. Os alunos já veem antes de marcar.' : 'Aviso removido.')
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Não foi possível salvar o aviso.', 'error')
@@ -152,22 +156,27 @@ function MentoriasAdminPage() {
       <section>
         <h2 className="panel-section-title">Aviso aos alunos</h2>
         <p className="panel-subtitle">
-          Aparece em destaque na página de agendamento, antes da lista de horários. Deixe em branco pra não mostrar nada.
+          Aparece em destaque na página de agendamento, antes da lista de horários. Pode colar direto do Google Docs:
+          negrito, grifos e cores continuam. Enter começa um parágrafo novo; Enter duas vezes deixa uma linha em
+          branco. Deixe vazio pra não mostrar nada.
         </p>
-        <form onSubmit={handleSalvarAviso} style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-          <textarea
-            value={aviso}
-            onChange={(event) => setAviso(event.target.value)}
-            rows={5}
-            maxLength={2000}
-            placeholder="Ex.: Traga sua última redação corrigida. Em caso de imprevisto, cancele com pelo menos 24h de antecedência."
-          />
-          <div>
-            <button type="submit" disabled={salvandoAviso} className="btn btn-primary">
-              {salvandoAviso ? 'Salvando...' : 'Salvar aviso'}
-            </button>
-          </div>
-        </form>
+        {erroAviso && <p className="form-error">Não foi possível carregar o aviso atual. Recarregue a página.</p>}
+        {aviso === null && !erroAviso && <p className="panel-subtitle">Carregando...</p>}
+        {aviso !== null && (
+          <form onSubmit={handleSalvarAviso} style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+            <RichTextEditor
+              initialHtml={aviso}
+              onChange={setAviso}
+              ariaLabel="Aviso aos alunos"
+              placeholder="Ex.: Traga sua última redação corrigida. Em caso de imprevisto, cancele com pelo menos 24h de antecedência."
+            />
+            <div>
+              <button type="submit" disabled={salvandoAviso} className="btn btn-primary">
+                {salvandoAviso ? 'Salvando...' : 'Salvar aviso'}
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
       <section>
