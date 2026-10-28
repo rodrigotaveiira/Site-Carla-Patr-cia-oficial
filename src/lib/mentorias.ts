@@ -15,6 +15,8 @@ import { assertActiveSession } from './session-guard.server'
 import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
 import { durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
+import { isRichTextEmpty, sanitizeRichText } from './rich-text.server'
+import { plainTextToHtml } from './rich-text'
 
 export type MentoriaSlot = {
   id: string
@@ -49,38 +51,49 @@ function makeSlotId(date: string, time: string) {
 export const DURACAO_PADRAO_MIN = 30
 
 const AVISO_CHAVE = 'individual'
-const AVISO_MAX = 2000
+// Teto do HTML que chega do editor (o colado do Google Docs vem cheio de
+// estilo) e do que sobra depois de sanitizar — este é o que vai pro aluno.
+const AVISO_MAX_ENTRADA = 200_000
+const AVISO_MAX_SALVO = 30_000
 
 function avisoStore() {
   return getStore({ name: STORES.mentoriaAviso, consistency: 'strong' })
 }
 
-// Aviso da Carla mostrado no topo da página de agendamento. Mesma regra de
-// acesso da lista de horários: só quem pode marcar mentoria lê.
+// Aviso da Carla mostrado no topo da página de agendamento, como HTML já
+// sanitizado (negrito, grifos, cores, listas — o que vem colado do Google
+// Docs). A primeira versão gravava texto puro em `texto`; esse caso é
+// convertido pra HTML na leitura. Mesma regra de acesso da lista de
+// horários: só quem pode marcar mentoria lê.
 export const getAvisoMentoriaIndividual = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await getServerUser()
   if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
     throw new Error('Acesso negado.')
   }
 
-  const aviso = (await avisoStore().get(AVISO_CHAVE, { type: 'json' })) as { texto?: string } | null
-  return aviso?.texto ?? ''
+  const aviso = (await avisoStore().get(AVISO_CHAVE, { type: 'json' })) as { html?: string; texto?: string } | null
+  if (aviso?.html) return aviso.html
+  return aviso?.texto ? plainTextToHtml(aviso.texto) : ''
 })
 
-// Texto vazio apaga o aviso — aí a caixa some da página do aluno.
+// Aviso vazio apaga — aí a caixa some da página do aluno.
 export const salvarAvisoMentoriaIndividual = createServerFn({ method: 'POST' })
-  .validator(z.object({ texto: z.string().trim().max(AVISO_MAX) }))
+  .validator(z.object({ html: z.string().max(AVISO_MAX_ENTRADA) }))
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
 
-    if (!data.texto) {
+    // A sanitização é a barreira de verdade: o resultado vai pro aluno via
+    // dangerouslySetInnerHTML (ver rich-text.server.ts).
+    const html = sanitizeRichText(data.html)
+    if (isRichTextEmpty(html)) {
       await avisoStore().delete(AVISO_CHAVE)
       return ''
     }
+    if (html.length > AVISO_MAX_SALVO) throw new Error('O aviso ficou longo demais. Encurte um pouco o texto.')
 
-    await avisoStore().setJSON(AVISO_CHAVE, { texto: data.texto, atualizadoEm: new Date().toISOString() })
-    return data.texto
+    await avisoStore().setJSON(AVISO_CHAVE, { html, atualizadoEm: new Date().toISOString() })
+    return html
   })
 
 // Precisa de login: cada horário carrega nome e e-mail do aluno que reservou

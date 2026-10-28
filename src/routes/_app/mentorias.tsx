@@ -16,6 +16,7 @@ import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
+import { RichTextContent } from '@/components/RichText'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/mentorias')({
@@ -132,7 +133,8 @@ function MentoriasPage() {
           }}
         >
           <b style={{ color: 'var(--navy)', display: 'block', marginBottom: 6 }}>Antes de marcar, leia:</b>
-          <p style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.55 }}>{aviso}</p>
+          {/* HTML já sanitizado no servidor ao salvar (rich-text.server.ts). */}
+          <RichTextContent value={aviso} format="html" style={{ lineHeight: 1.55 }} />
         </section>
       )}
 

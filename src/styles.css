@@ -1766,6 +1766,8 @@ a.onboarding-feature:hover .onboarding-feature-seta { opacity: 1; transform: tra
 /* Devolutiva da redação em texto rico (editor da professora + exibição pro aluno).
    Só estrutura: as cores e o marca-texto vêm do próprio HTML sanitizado. */
 .rich-text p { margin: 0 0 .6em; }
+/* Parágrafo vazio (linha em branco colada do Docs) ocupa uma linha em vez de sumir. */
+.rich-text p:empty { min-height: 1.5em; min-height: 1lh; }
 .rich-text > :last-child { margin-bottom: 0; }
 .rich-text ul, .rich-text ol { margin: 0 0 .6em; padding-left: 1.4em; }
 .rich-text ul { list-style: disc; }
