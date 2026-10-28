@@ -45,6 +45,44 @@ function makeSlotId(date: string, time: string) {
   return `${date}_${time}`
 }
 
+/** Duração de cada mentoria individual nova, em minutos. */
+export const DURACAO_PADRAO_MIN = 30
+
+const AVISO_CHAVE = 'individual'
+const AVISO_MAX = 2000
+
+function avisoStore() {
+  return getStore({ name: STORES.mentoriaAviso, consistency: 'strong' })
+}
+
+// Aviso da Carla mostrado no topo da página de agendamento. Mesma regra de
+// acesso da lista de horários: só quem pode marcar mentoria lê.
+export const getAvisoMentoriaIndividual = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await getServerUser()
+  if (!user || (!userHasRole(user, 'aprovado') && !userHasRole(user, 'admin'))) {
+    throw new Error('Acesso negado.')
+  }
+
+  const aviso = (await avisoStore().get(AVISO_CHAVE, { type: 'json' })) as { texto?: string } | null
+  return aviso?.texto ?? ''
+})
+
+// Texto vazio apaga o aviso — aí a caixa some da página do aluno.
+export const salvarAvisoMentoriaIndividual = createServerFn({ method: 'POST' })
+  .validator(z.object({ texto: z.string().trim().max(AVISO_MAX) }))
+  .handler(async ({ data }) => {
+    const user = await getServerUser()
+    if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
+
+    if (!data.texto) {
+      await avisoStore().delete(AVISO_CHAVE)
+      return ''
+    }
+
+    await avisoStore().setJSON(AVISO_CHAVE, { texto: data.texto, atualizadoEm: new Date().toISOString() })
+    return data.texto
+  })
+
 // Precisa de login: cada horário carrega nome e e-mail do aluno que reservou
 // (student), e essa função fica exposta como endpoint de rede independente
 // da tela — sem essa checagem, qualquer um sem conta conseguiria listar
@@ -82,7 +120,7 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
       id,
       date: data.date,
       time: data.time,
-      duration: data.duration || 40,
+      duration: data.duration || DURACAO_PADRAO_MIN,
       status: 'available',
       student: null,
       createdAt: new Date().toISOString(),

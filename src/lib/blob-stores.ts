@@ -26,4 +26,7 @@ export const STORES = {
   // Mesma ideia, só que pro grupo de mentoria futuro em que o aluno está
   // inscrito agora (no máximo um) — ver mentorias-grupo.ts.
   mentoriaGrupoAtiva: 'mentoria-grupo-active-booking',
+  // Aviso que a Carla escreve pros alunos lerem antes de marcar mentoria
+  // individual. Uma chave só: 'individual'.
+  mentoriaAviso: 'mentoria-aviso',
 } as const
