@@ -4,7 +4,14 @@ import { useEffect, useState } from 'react'
 import { readLocalUser, useIdentity } from '@/lib/identity-context'
 import { getServerUser } from '@/lib/auth'
 import { userHasRole, isStaff } from '@/lib/roles'
-import { bookMentoriaSlot, cancelMentoriaSlot, listMentoriaSlots, type MentoriaSlot } from '@/lib/mentorias'
+import {
+  bookMentoriaSlot,
+  cancelMentoriaSlot,
+  DURACAO_PADRAO_MIN,
+  getAvisoMentoriaIndividual,
+  listMentoriaSlots,
+  type MentoriaSlot,
+} from '@/lib/mentorias'
 import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
@@ -40,6 +47,12 @@ function MentoriasPage() {
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
   // Horário escolhido, esperando o aluno confirmar com a senha.
   const [pendingSlot, setPendingSlot] = useState<MentoriaSlot | null>(null)
+  const [aviso, setAviso] = useState('')
+
+  useEffect(() => {
+    // Sem aviso (ou se falhar), a página segue normal — a caixa só não aparece.
+    getAvisoMentoriaIndividual().then(setAviso).catch(() => {})
+  }, [])
 
   async function load() {
     setLoading(true)
@@ -105,7 +118,23 @@ function MentoriasPage() {
     <div className="panel">
       <VoltarAoPainel destino="/dashboard" />
       <h1 style={{ marginBottom: 4 }}>Mentoria individual</h1>
-      <p className="panel-subtitle">Escolha um horário disponível para conversar com Carlinha. Lembre-se de que cada encontro dura 40 minutos.</p>
+      <p className="panel-subtitle">Escolha um horário disponível para conversar com Carlinha. Lembre-se de que cada encontro dura {DURACAO_PADRAO_MIN} minutos.</p>
+
+      {aviso && (
+        <section
+          aria-label="Aviso da professora"
+          style={{
+            background: 'var(--lilac-tint)',
+            border: '1px solid #e0dcf0',
+            borderRadius: 8,
+            padding: '14px 16px',
+            margin: '16px 0',
+          }}
+        >
+          <b style={{ color: 'var(--navy)', display: 'block', marginBottom: 6 }}>Antes de marcar, leia:</b>
+          <p style={{ whiteSpace: 'pre-wrap', margin: 0, lineHeight: 1.55 }}>{aviso}</p>
+        </section>
+      )}
 
       {actionError && (
         <div className="form-error" style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: 12, margin: '16px 0' }}>

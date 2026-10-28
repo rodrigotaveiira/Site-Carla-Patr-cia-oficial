@@ -6,7 +6,10 @@ import { userHasRole } from '@/lib/roles'
 import {
   createMentoriaSlot,
   deleteMentoriaSlot,
+  DURACAO_PADRAO_MIN,
+  getAvisoMentoriaIndividual,
   listMentoriaSlots,
+  salvarAvisoMentoriaIndividual,
   sincronizarPlanilhaMentoriaIndividual,
   type MentoriaSlot,
 } from '@/lib/mentorias'
@@ -38,6 +41,8 @@ function MentoriasAdminPage() {
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [sincronizando, setSincronizando] = useState(false)
+  const [aviso, setAviso] = useState('')
+  const [salvandoAviso, setSalvandoAviso] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -53,7 +58,24 @@ function MentoriasAdminPage() {
 
   useEffect(() => {
     void load()
+    getAvisoMentoriaIndividual()
+      .then(setAviso)
+      .catch(() => showToast('Não foi possível carregar o aviso aos alunos.', 'error'))
   }, [])
+
+  async function handleSalvarAviso(event: FormEvent) {
+    event.preventDefault()
+    setSalvandoAviso(true)
+    try {
+      const salvo = await salvarAvisoMentoriaIndividual({ data: { texto: aviso } })
+      setAviso(salvo)
+      showToast(salvo ? 'Aviso salvo. Os alunos já veem antes de marcar.' : 'Aviso removido.')
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Não foi possível salvar o aviso.', 'error')
+    } finally {
+      setSalvandoAviso(false)
+    }
+  }
 
   async function handleAdd(event: FormEvent) {
     event.preventDefault()
@@ -64,7 +86,7 @@ function MentoriasAdminPage() {
     }
     setSaving(true)
     try {
-      await createMentoriaSlot({ data: { date, time, duration: 40 } })
+      await createMentoriaSlot({ data: { date, time, duration: DURACAO_PADRAO_MIN } })
       setDate('')
       setTime('')
       await load()
@@ -126,6 +148,27 @@ function MentoriasAdminPage() {
         </button>
       </form>
       {error && <p className="form-error">{error}</p>}
+
+      <section>
+        <h2 className="panel-section-title">Aviso aos alunos</h2>
+        <p className="panel-subtitle">
+          Aparece em destaque na página de agendamento, antes da lista de horários. Deixe em branco pra não mostrar nada.
+        </p>
+        <form onSubmit={handleSalvarAviso} style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+          <textarea
+            value={aviso}
+            onChange={(event) => setAviso(event.target.value)}
+            rows={5}
+            maxLength={2000}
+            placeholder="Ex.: Traga sua última redação corrigida. Em caso de imprevisto, cancele com pelo menos 24h de antecedência."
+          />
+          <div>
+            <button type="submit" disabled={salvandoAviso} className="btn btn-primary">
+              {salvandoAviso ? 'Salvando...' : 'Salvar aviso'}
+            </button>
+          </div>
+        </form>
+      </section>
 
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
