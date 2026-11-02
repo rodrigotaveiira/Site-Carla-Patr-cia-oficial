@@ -11,7 +11,7 @@ import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
 import { boundedText, capacity as capacitySchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { z } from 'zod'
-import { agendamentoEncerrado, prazoPadraoDeAgendamento } from './prazo-agendamento'
+import { agendamentoEncerrado, validarPrazoDeAgendamento } from './prazo-agendamento'
 
 const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
 
@@ -157,6 +157,10 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: boundedText(200),
       description: boundedText(2000),
       capacity: capacitySchema,
+      // Até quando os alunos podem entrar (horário de Brasília). Os dois em
+      // branco = sem prazo.
+      prazoData: isoDate.optional(),
+      prazoHora: hhmm.optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -169,6 +173,12 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     const duration = duracaoEntre(data.time, data.endTime)
     if (duration <= 0) throw new Error('O término precisa ser depois do início.')
+    const bookingDeadline = validarPrazoDeAgendamento({
+      prazoData: data.prazoData,
+      prazoHora: data.prazoHora,
+      dataMentoria: data.date,
+      horaMentoria: data.time,
+    })
 
     const store = slotsStore()
     const id = makeSlotId(data.date, data.time)
@@ -183,7 +193,7 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       capacity,
       students: [],
       createdAt: new Date().toISOString(),
-      bookingDeadline: prazoPadraoDeAgendamento(),
+      bookingDeadline,
     }
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
@@ -212,6 +222,8 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: boundedText(200),
       description: boundedText(2000),
       capacity: capacitySchema,
+      prazoData: isoDate.optional(),
+      prazoHora: hhmm.optional(),
     }),
   )
   .handler(async ({ data }) => {
@@ -223,6 +235,14 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
 
     const duration = duracaoEntre(data.time, data.endTime)
     if (duration <= 0) throw new Error('O término precisa ser depois do início.')
+    // Editar substitui o prazo: os campos vêm preenchidos com o atual, e
+    // apagar os dois tira o prazo.
+    const bookingDeadline = validarPrazoDeAgendamento({
+      prazoData: data.prazoData,
+      prazoHora: data.prazoHora,
+      dataMentoria: data.date,
+      horaMentoria: data.time,
+    })
 
     const store = slotsStore()
     const entry = await store.getWithMetadata(data.id, { type: 'json' })
@@ -249,6 +269,7 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       title: data.title.trim(),
       description: data.description.trim(),
       capacity,
+      bookingDeadline,
     }
 
     if (mudouChave) {
