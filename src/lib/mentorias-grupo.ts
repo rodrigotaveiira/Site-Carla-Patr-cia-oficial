@@ -11,6 +11,7 @@ import { assertRecentAuth } from './reauth'
 import { enforceRateLimit } from './rate-limit'
 import { boundedText, capacity as capacitySchema, hhmm, id as idSchema, isoDate } from './schemas'
 import { z } from 'zod'
+import { agendamentoEncerrado, prazoPadraoDeAgendamento } from './prazo-agendamento'
 
 const AGENDAMENTO_RATE_LIMIT = { action: 'mentoria-agendamento', windowMs: 24 * 60 * 60 * 1000, max: 8 } as const
 
@@ -38,6 +39,8 @@ export type MentoriaGrupoSlot = {
   capacity: number // quantas pessoas cabem no grupo
   students: MentoriaGrupoStudent[]
   createdAt: string
+  /** Até quando aluno pode entrar (ISO) — ver prazo-agendamento.ts. Ausente = sem prazo. */
+  bookingDeadline?: string
 }
 
 /** Título mostrado quando o grupo é anterior ao campo existir. */
@@ -180,6 +183,7 @@ export const createMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       capacity,
       students: [],
       createdAt: new Date().toISOString(),
+      bookingDeadline: prazoPadraoDeAgendamento(),
     }
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
@@ -401,6 +405,10 @@ export const joinMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       }
       if (slot.students.length >= slot.capacity) {
         throw new Error('Esse grupo acabou de lotar. Escolha outro horário.')
+      }
+      // A tela já mostra "inscrições encerradas"; aqui é a regra de verdade.
+      if (!isAdmin && agendamentoEncerrado(slot)) {
+        throw new Error('O prazo pra entrar nesse grupo já acabou.')
       }
 
       const studentName =

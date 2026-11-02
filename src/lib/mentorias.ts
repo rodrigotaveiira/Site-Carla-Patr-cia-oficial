@@ -17,6 +17,7 @@ import { enforceRateLimit } from './rate-limit'
 import { durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
 import { isRichTextEmpty, sanitizeRichText } from './rich-text.server'
 import { plainTextToHtml } from './rich-text'
+import { agendamentoEncerrado, prazoPadraoDeAgendamento } from './prazo-agendamento'
 
 export type MentoriaSlot = {
   id: string
@@ -26,6 +27,8 @@ export type MentoriaSlot = {
   status: 'available' | 'booked'
   student: { email: string; name: string } | null
   createdAt: string
+  /** Até quando aluno pode marcar (ISO) — ver prazo-agendamento.ts. Ausente = sem prazo. */
+  bookingDeadline?: string
 }
 
 type ActiveBookingClaim = { slotId: string; date: string; claimedAt: string }
@@ -137,6 +140,7 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
       status: 'available',
       student: null,
       createdAt: new Date().toISOString(),
+      bookingDeadline: prazoPadraoDeAgendamento(),
     }
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
@@ -280,6 +284,11 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
       const slot = entry.data as MentoriaSlot
       if (slot.status !== 'available') {
         throw new Error('Esse horário acabou de ser reservado por outro aluno. Escolha outro.')
+      }
+      // A tela já esconde horário com prazo vencido; aqui é a regra de verdade
+      // (a tela pode estar aberta desde antes do prazo acabar).
+      if (!isAdmin && agendamentoEncerrado(slot)) {
+        throw new Error('O prazo pra agendar esse horário já acabou.')
       }
 
       const studentName =

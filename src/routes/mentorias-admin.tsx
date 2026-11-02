@@ -17,6 +17,7 @@ import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 import { RichTextEditor } from '@/components/RichText'
+import { agendamentoEncerrado, formatarPrazo } from '@/lib/prazo-agendamento'
 
 export const Route = createFileRoute('/mentorias-admin')({
   beforeLoad: async () => {
@@ -203,7 +204,15 @@ function MentoriasAdminPage() {
                     Reservado por {slot.student.name} ({slot.student.email})
                   </div>
                 )}
-                {slot.status === 'available' && <div className="list-meta">Disponível</div>}
+                {slot.status === 'available' && (
+                  <div className="list-meta">
+                    {agendamentoEncerrado(slot)
+                      ? 'Prazo de agendamento encerrado'
+                      : slot.bookingDeadline
+                        ? `Disponível · alunos podem agendar até ${formatarPrazo(slot.bookingDeadline)}`
+                        : 'Disponível'}
+                  </div>
+                )}
               </div>
               <button onClick={() => handleDelete(slot.id)} className="btn btn-danger btn-sm">
                 Excluir

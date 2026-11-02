@@ -10,6 +10,7 @@ import {
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { formatarHora } from '@/lib/formato'
+import { agendamentoEncerrado, formatarPrazo } from '@/lib/prazo-agendamento'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
@@ -309,6 +310,10 @@ function MentoriasGrupoAdminPage() {
                     <b style={{ color: 'var(--navy)' }}>{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</b>
                     <div className="list-meta" style={{ marginTop: 2 }}>
                       {slot.date} · {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))} · {slot.students.length}/{slot.capacity} vagas
+                      {slot.bookingDeadline &&
+                        (agendamentoEncerrado(slot)
+                          ? ' · inscrições encerradas'
+                          : ` · inscrições até ${formatarPrazo(slot.bookingDeadline)}`)}
                     </div>
                     {slot.description && (
                       <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>

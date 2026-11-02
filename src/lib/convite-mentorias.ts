@@ -8,6 +8,7 @@ import { optionalText, id as idSchema } from './schemas'
 import { MENTORIA_GRUPO_TITULO_PADRAO, terminoDoGrupo, type MentoriaGrupoSlot } from './mentorias-grupo'
 import { montarEmailConviteMentorias, montarLembreteConviteMentorias, type GrupoComVaga } from './email-convite-mentorias'
 import { avisarTodosOsAlunos } from './notificar-alunos'
+import { agendamentoEncerrado } from './prazo-agendamento'
 import { nomeDoAutor, salvarLembrete } from './lembretes'
 
 // Convite pras mentorias em grupo que ainda têm vaga: a professora escolhe
@@ -72,6 +73,9 @@ async function lerGruposComVaga(): Promise<VagaMentoriaGrupo[]> {
   for (const blob of blobs) {
     const value = (await store.get(blob.key, { type: 'json' })) as MentoriaGrupoSlot | null
     if (!value || value.date < limite) continue
+    // Com o prazo de inscrição vencido o aluno não consegue mais entrar —
+    // convidar pra esse grupo só geraria erro do lado dele.
+    if (agendamentoEncerrado(value)) continue
     const vaga = paraVaga(value)
     if (vaga.vagas > 0) vagas.push(vaga)
   }

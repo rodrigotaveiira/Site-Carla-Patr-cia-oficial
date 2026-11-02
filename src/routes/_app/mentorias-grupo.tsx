@@ -12,6 +12,7 @@ import { confirmSchedulingAuth } from '@/lib/reauth'
 import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
+import { agendamentoEncerrado, formatarPrazo } from '@/lib/prazo-agendamento'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/mentorias-grupo')({
@@ -66,8 +67,12 @@ function MentoriasGrupoPage() {
   // Até MAX_GRUPOS_SIMULTANEOS grupos ao mesmo tempo — sem distinção de tipo
   // (ver joinMentoriaGrupoSlot).
   const grupoCheio = mySlots.length >= MAX_GRUPOS_SIMULTANEOS
+  // Grupo lotado ou com prazo de inscrição vencido sai da lista (o servidor também recusa).
   const openSlots = futureSlots.filter(
-    (slot) => slot.students.length < slot.capacity && !slot.students.some((student) => student.email === user?.email),
+    (slot) =>
+      slot.students.length < slot.capacity &&
+      !agendamentoEncerrado(slot) &&
+      !slot.students.some((student) => student.email === user?.email),
   )
 
   const grouped = openSlots.reduce<Record<string, MentoriaGrupoSlot[]>>((acc, slot) => {
@@ -186,6 +191,7 @@ function MentoriasGrupoPage() {
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           <Users size={14} /> {slot.students.length}/{slot.capacity} vagas
                         </span>
+                        {slot.bookingDeadline && <span>Inscrições até {formatarPrazo(slot.bookingDeadline)}</span>}
                       </div>
                       {slot.description && (
                         <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>

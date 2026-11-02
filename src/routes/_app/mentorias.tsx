@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { ConfirmPasswordModal } from '@/components/ConfirmPasswordModal'
 import { formatarHora } from '@/lib/formato'
 import { RichTextContent } from '@/components/RichText'
+import { agendamentoEncerrado, formatarPrazo } from '@/lib/prazo-agendamento'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
 export const Route = createFileRoute('/_app/mentorias')({
@@ -74,7 +75,8 @@ function MentoriasPage() {
   const today = new Date().toISOString().slice(0, 10)
   const futureSlots = slots.filter((slot) => slot.date >= today)
   const mySlots = futureSlots.filter((slot) => slot.status === 'booked' && slot.student?.email === user?.email)
-  const availableSlots = futureSlots.filter((slot) => slot.status === 'available')
+  // Horário com prazo de agendamento vencido some da lista (o servidor também recusa).
+  const availableSlots = futureSlots.filter((slot) => slot.status === 'available' && !agendamentoEncerrado(slot))
   const hasBooking = mySlots.length > 0
 
   const grouped = availableSlots.reduce<Record<string, MentoriaSlot[]>>((acc, slot) => {
@@ -190,6 +192,9 @@ function MentoriasPage() {
                     className="btn btn-ghost"
                   >
                     <Clock3 size={14} /> {formatarHora(slot.time)}
+                    {slot.bookingDeadline && (
+                      <small style={{ fontWeight: 500, opacity: 0.75 }}>· agende até {formatarPrazo(slot.bookingDeadline)}</small>
+                    )}
                   </button>
                 ))}
               </div>
