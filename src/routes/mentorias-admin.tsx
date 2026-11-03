@@ -17,6 +17,7 @@ import { formatarHora } from '@/lib/formato'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 import { RichTextEditor } from '@/components/RichText'
+import { agendamentoEncerrado, formatarPrazo } from '@/lib/prazo-agendamento'
 
 export const Route = createFileRoute('/mentorias-admin')({
   beforeLoad: async () => {
@@ -39,6 +40,10 @@ function MentoriasAdminPage() {
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  // Prazo pra agendar. Não é limpo depois de adicionar: costuma ser o mesmo
+  // pra vários horários cadastrados em sequência.
+  const [prazoData, setPrazoData] = useState('')
+  const [prazoHora, setPrazoHora] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
   const [sincronizando, setSincronizando] = useState(false)
@@ -88,9 +93,22 @@ function MentoriasAdminPage() {
       setError('Preencha a data e o horário.')
       return
     }
+    if (prazoData && !prazoHora) {
+      setError('Informe também o horário limite pra agendar.')
+      return
+    }
     setSaving(true)
     try {
-      await createMentoriaSlot({ data: { date, time, duration: DURACAO_PADRAO_MIN } })
+      await createMentoriaSlot({
+        data: {
+          date,
+          time,
+          duration: DURACAO_PADRAO_MIN,
+          prazoData: prazoData || undefined,
+          // Sem data, a hora que sobrou no campo (desabilitado) não conta.
+          prazoHora: (prazoData && prazoHora) || undefined,
+        },
+      })
       setDate('')
       setTime('')
       await load()
@@ -147,10 +165,29 @@ function MentoriasAdminPage() {
           <label>Horário</label>
           <input type="time" value={time} onChange={(event) => setTime(event.target.value)} style={{ width: 'auto' }} />
         </div>
+        <div className="field">
+          <label>Agendamento até (opcional)</label>
+          <input type="date" value={prazoData} onChange={(event) => setPrazoData(event.target.value)} style={{ width: 'auto' }} />
+        </div>
+        <div className="field">
+          <label>Horário limite</label>
+          <input
+            type="time"
+            value={prazoHora}
+            onChange={(event) => setPrazoHora(event.target.value)}
+            disabled={!prazoData}
+            style={{ width: 'auto' }}
+          />
+        </div>
         <button type="submit" disabled={saving} className="btn btn-primary">
           {saving ? 'Adicionando...' : 'Adicionar horário'}
         </button>
       </form>
+      <p className="panel-card-hint" style={{ margin: '6px 0 0' }}>
+        Se preenchido, os alunos só conseguem marcar esse horário até a data e o horário limite. Depois disso ele sai da
+        lista, mesmo que esteja livre. O prazo continua preenchido pros próximos horários que você adicionar. Deixe em
+        branco pra deixar aberto até a mentoria.
+      </p>
       {error && <p className="form-error">{error}</p>}
 
       <section>
@@ -203,7 +240,15 @@ function MentoriasAdminPage() {
                     Reservado por {slot.student.name} ({slot.student.email})
                   </div>
                 )}
-                {slot.status === 'available' && <div className="list-meta">Disponível</div>}
+                {slot.status === 'available' && (
+                  <div className="list-meta">
+                    {agendamentoEncerrado(slot)
+                      ? 'Prazo de agendamento encerrado'
+                      : slot.bookingDeadline
+                        ? `Disponível · alunos podem agendar até ${formatarPrazo(slot.bookingDeadline)}`
+                        : 'Disponível'}
+                  </div>
+                )}
               </div>
               <button onClick={() => handleDelete(slot.id)} className="btn btn-danger btn-sm">
                 Excluir

@@ -17,6 +17,7 @@ import { enforceRateLimit } from './rate-limit'
 import { durationMinutes, hhmm, id as idSchema, isoDate } from './schemas'
 import { isRichTextEmpty, sanitizeRichText } from './rich-text.server'
 import { plainTextToHtml } from './rich-text'
+import { agendamentoEncerrado, validarPrazoDeAgendamento } from './prazo-agendamento'
 
 export type MentoriaSlot = {
   id: string
@@ -26,6 +27,8 @@ export type MentoriaSlot = {
   status: 'available' | 'booked'
   student: { email: string; name: string } | null
   createdAt: string
+  /** Até quando aluno pode marcar (ISO) — ver prazo-agendamento.ts. Ausente = sem prazo. */
+  bookingDeadline?: string
 }
 
 type ActiveBookingClaim = { slotId: string; date: string; claimedAt: string }
@@ -120,7 +123,17 @@ export const listMentoriaSlots = createServerFn({ method: 'GET' }).handler(async
 })
 
 export const createMentoriaSlot = createServerFn({ method: 'POST' })
-  .validator(z.object({ date: isoDate, time: hhmm, duration: durationMinutes }))
+  .validator(
+    z.object({
+      date: isoDate,
+      time: hhmm,
+      duration: durationMinutes,
+      // Até quando os alunos podem marcar (horário de Brasília). Os dois em
+      // branco = sem prazo.
+      prazoData: isoDate.optional(),
+      prazoHora: hhmm.optional(),
+    }),
+  )
   .handler(async ({ data }) => {
     const user = await getServerUser()
     if (!user || !userHasRole(user, 'admin')) throw new Error('Acesso negado.')
@@ -137,6 +150,12 @@ export const createMentoriaSlot = createServerFn({ method: 'POST' })
       status: 'available',
       student: null,
       createdAt: new Date().toISOString(),
+      bookingDeadline: validarPrazoDeAgendamento({
+        prazoData: data.prazoData,
+        prazoHora: data.prazoHora,
+        dataMentoria: data.date,
+        horaMentoria: data.time,
+      }),
     }
 
     const result = await store.setJSON(id, slot, { onlyIfNew: true })
@@ -280,6 +299,11 @@ export const bookMentoriaSlot = createServerFn({ method: 'POST' })
       const slot = entry.data as MentoriaSlot
       if (slot.status !== 'available') {
         throw new Error('Esse horário acabou de ser reservado por outro aluno. Escolha outro.')
+      }
+      // A tela já esconde horário com prazo vencido; aqui é a regra de verdade
+      // (a tela pode estar aberta desde antes do prazo acabar).
+      if (!isAdmin && agendamentoEncerrado(slot)) {
+        throw new Error('O prazo pra agendar esse horário já acabou.')
       }
 
       const studentName =

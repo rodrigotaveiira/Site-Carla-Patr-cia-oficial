@@ -10,6 +10,7 @@ import {
   type MentoriaGrupoSlot,
 } from '@/lib/mentorias-grupo'
 import { formatarHora } from '@/lib/formato'
+import { agendamentoEncerrado, camposDoPrazo, formatarPrazo } from '@/lib/prazo-agendamento'
 import { useToast } from '@/lib/toast'
 import { VoltarAoPainel } from '@/components/VoltarAoPainel'
 
@@ -38,6 +39,10 @@ function MentoriasGrupoAdminPage() {
   const [time, setTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [capacity, setCapacity] = useState('6')
+  // Prazo pra entrar no grupo. Não é limpo depois de adicionar: costuma ser o
+  // mesmo pra vários grupos cadastrados em sequência.
+  const [prazoData, setPrazoData] = useState('')
+  const [prazoHora, setPrazoHora] = useState('')
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
 
@@ -48,6 +53,8 @@ function MentoriasGrupoAdminPage() {
   const [editTime, setEditTime] = useState('')
   const [editEndTime, setEditEndTime] = useState('')
   const [editCapacity, setEditCapacity] = useState('')
+  const [editPrazoData, setEditPrazoData] = useState('')
+  const [editPrazoHora, setEditPrazoHora] = useState('')
   const [editError, setEditError] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
@@ -95,9 +102,20 @@ function MentoriasGrupoAdminPage() {
       setError('Informe quantas pessoas o grupo terá.')
       return
     }
+    if (prazoData && !prazoHora) {
+      setError('Informe também o horário limite pra entrar no grupo.')
+      return
+    }
     setSaving(true)
     try {
-      await createMentoriaGrupoSlot({ data: { date, time, endTime, title, description, capacity: capacityNumber } })
+      await createMentoriaGrupoSlot({
+        data: {
+          date, time, endTime, title, description, capacity: capacityNumber,
+          prazoData: prazoData || undefined,
+          // Sem data, a hora que sobrou no campo (desabilitado) não conta.
+          prazoHora: (prazoData && prazoHora) || undefined,
+        },
+      })
       setTitle('')
       setDescription('')
       setDate('')
@@ -148,6 +166,9 @@ function MentoriasGrupoAdminPage() {
     // o horário que ele já tinha na prática.
     setEditEndTime(terminoDoGrupo(slot))
     setEditCapacity(String(slot.capacity))
+    const prazo = camposDoPrazo(slot.bookingDeadline)
+    setEditPrazoData(prazo.data)
+    setEditPrazoHora(prazo.hora)
     setEditError('')
   }
 
@@ -183,10 +204,18 @@ function MentoriasGrupoAdminPage() {
       setEditError('Informe quantas pessoas o grupo terá.')
       return
     }
+    if (editPrazoData && !editPrazoHora) {
+      setEditError('Informe também o horário limite pra entrar no grupo.')
+      return
+    }
     setEditSaving(true)
     try {
       await updateMentoriaGrupoSlot({
-        data: { id, date: editDate, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber },
+        data: {
+          id, date: editDate, time: editTime, endTime: editEndTime, title: editTitle, description: editDescription, capacity: capacityNumber,
+          prazoData: editPrazoData || undefined,
+          prazoHora: (editPrazoData && editPrazoHora) || undefined,
+        },
       })
       setEditingId(null)
       await load()
@@ -247,6 +276,27 @@ function MentoriasGrupoAdminPage() {
             <input id="grupo-vagas" type="number" min={1} value={capacity} onChange={(event) => setCapacity(event.target.value)} />
           </div>
         </div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div className="field" style={{ flex: '1 1 140px' }}>
+            <label htmlFor="grupo-prazo-data">Inscrições até (opcional)</label>
+            <input id="grupo-prazo-data" type="date" value={prazoData} onChange={(event) => setPrazoData(event.target.value)} />
+          </div>
+          <div className="field" style={{ flex: '1 1 110px' }}>
+            <label htmlFor="grupo-prazo-hora">Horário limite</label>
+            <input
+              id="grupo-prazo-hora"
+              type="time"
+              value={prazoHora}
+              onChange={(event) => setPrazoHora(event.target.value)}
+              disabled={!prazoData}
+            />
+          </div>
+        </div>
+        <p className="panel-card-hint" style={{ margin: '-4px 0 0' }}>
+          Se preenchido, os alunos só conseguem entrar no grupo até a data e o horário limite. Depois disso ele sai da
+          lista, mesmo com vaga. O prazo continua preenchido pros próximos grupos. Deixe em branco pra deixar aberto até
+          a mentoria.
+        </p>
         <button type="submit" disabled={saving} className="btn btn-primary" style={{ width: 'fit-content' }}>
           {saving ? 'Adicionando...' : 'Adicionar grupo'}
         </button>
@@ -294,6 +344,21 @@ function MentoriasGrupoAdminPage() {
                         />
                       </div>
                     </div>
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <div className="field" style={{ flex: '1 1 140px' }}>
+                        <label>Inscrições até (opcional)</label>
+                        <input type="date" value={editPrazoData} onChange={(event) => setEditPrazoData(event.target.value)} />
+                      </div>
+                      <div className="field" style={{ flex: '1 1 110px' }}>
+                        <label>Horário limite</label>
+                        <input
+                          type="time"
+                          value={editPrazoHora}
+                          onChange={(event) => setEditPrazoHora(event.target.value)}
+                          disabled={!editPrazoData}
+                        />
+                      </div>
+                    </div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <button onClick={() => handleSaveEdit(slot.id)} disabled={editSaving} className="btn btn-primary btn-sm">
                         {editSaving ? 'Salvando...' : 'Salvar'}
@@ -309,6 +374,10 @@ function MentoriasGrupoAdminPage() {
                     <b style={{ color: 'var(--navy)' }}>{slot.title || MENTORIA_GRUPO_TITULO_PADRAO}</b>
                     <div className="list-meta" style={{ marginTop: 2 }}>
                       {slot.date} · {formatarHora(slot.time)} às {formatarHora(terminoDoGrupo(slot))} · {slot.students.length}/{slot.capacity} vagas
+                      {slot.bookingDeadline &&
+                        (agendamentoEncerrado(slot)
+                          ? ' · inscrições encerradas'
+                          : ` · inscrições até ${formatarPrazo(slot.bookingDeadline)}`)}
                     </div>
                     {slot.description && (
                       <div style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>{slot.description}</div>
