@@ -1,5 +1,6 @@
 import { HeadContent, Link, Scripts, createRootRoute } from '@tanstack/react-router'
-import { Compass } from 'lucide-react'
+import { Compass, TriangleAlert } from 'lucide-react'
+import { useEffect } from 'react'
 import { CallbackHandler } from '@/components/CallbackHandler'
 import { IdentityProvider } from '@/lib/identity-context'
 import { ToastProvider } from '@/lib/toast'
@@ -33,6 +34,72 @@ function NotFoundPage() {
         <Link to="/dashboard" className="btn btn-primary">
           Ir para o dashboard
         </Link>
+
+        <Link to="/" className="btn btn-ghost">
+          Voltar para o início
+        </Link>
+      </div>
+    </main>
+  )
+}
+
+// Tela de erro do site inteiro.
+//
+// Sem isto, qualquer falha de renderizacao cai no ErrorComponent padrao do
+// TanStack Router: "Something went wrong! / Show Error", em ingles, sem
+// identidade visual, sem titulo proprio e sem noindex. Em outubro/2026 essa
+// tela foi parar no Google COMO O TITULO E A DESCRICAO do site (ver #342): o
+// Googlebot executa JavaScript e indexa o DOM renderizado, entao ele guardou
+// a tela de erro em vez da home. Como nao sobrava mais nenhum texto na pagina,
+// a unica frase visivel virou o nome do site no resultado da busca.
+//
+// Por isso esta tela declara `noindex, nofollow` e troca o titulo: se uma falha
+// voltar a acontecer, o buscador nao pode registrar o erro como sendo o site da
+// Carla. O titulo vai num efeito, e nao numa tag <title>, porque o __root ja
+// declara uma e o navegador fica com a primeira do documento.
+function ErrorPage({ error }: { error: Error }) {
+  // A falha em si nao pode sumir: fica no console pra quem for investigar.
+  useEffect(() => {
+    console.error('Erro na renderizacao da pagina:', error)
+  }, [error])
+
+  useEffect(() => {
+    document.title = 'Algo deu errado | Carla Patrícia Medina'
+  }, [])
+
+  return (
+    <main className="panel" style={{ textAlign: 'center' }}>
+      <meta name="robots" content="noindex, nofollow" />
+
+      <div className="designed-empty" style={{ padding: '60px 0 20px' }}>
+        <span className="designed-empty-icon">
+          <TriangleAlert />
+        </span>
+
+        <b style={{ fontSize: 17 }}>Algo deu errado por aqui</b>
+
+        <p>
+          A página não carregou como deveria. Normalmente é coisa passageira —
+          recarregar já resolve. Se continuar, é só avisar a professora.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: 10,
+          justifyContent: 'center',
+          flexWrap: 'wrap',
+          marginTop: 8,
+        }}
+      >
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => window.location.reload()}
+        >
+          Recarregar a página
+        </button>
 
         <Link to="/" className="btn btn-ghost">
           Voltar para o início
@@ -153,6 +220,7 @@ export const Route = createRootRoute({
 
   shellComponent: RootDocument,
   notFoundComponent: NotFoundPage,
+  errorComponent: ErrorPage,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
