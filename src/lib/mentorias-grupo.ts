@@ -41,6 +41,12 @@ export type MentoriaGrupoSlot = {
   createdAt: string
   /** Até quando aluno pode entrar (ISO) — ver prazo-agendamento.ts. Ausente = sem prazo. */
   bookingDeadline?: string
+  /**
+   * Quando uma vaga deste grupo foi liberada por um aluno que saiu (ISO).
+   * Presente = o prazo acima não vale mais. Ver agendamentoEncerrado em
+   * prazo-agendamento.ts.
+   */
+  reopenedAt?: string
 }
 
 /** Título mostrado quando o grupo é anterior ao campo existir. */
@@ -270,6 +276,9 @@ export const updateMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       description: data.description.trim(),
       capacity,
       bookingDeadline,
+      // A Carla acabou de dizer qual é o prazo deste grupo: vale o que ela
+      // pôs agora, não a reabertura de uma saída anterior.
+      reopenedAt: undefined,
     }
 
     if (mudouChave) {
@@ -518,9 +527,12 @@ export const leaveMentoriaGrupoSlot = createServerFn({ method: 'POST' })
       throw new Error('Você não está nesse grupo.')
     }
 
+    // `reopenedAt`: a vaga volta pros outros alunos mesmo com o prazo de
+    // agendamento vencido — mesmo motivo do cancelMentoriaSlot (#344).
     const updated: MentoriaGrupoSlot = {
       ...slot,
       students: slot.students.filter((student) => student.email !== user.email),
+      reopenedAt: new Date().toISOString(),
     }
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
     if (!result?.modified) throw new Error('Não foi possível sair do grupo, tente novamente.')
