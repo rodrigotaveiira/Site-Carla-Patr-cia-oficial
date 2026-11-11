@@ -43,7 +43,21 @@ export function validarPrazoDeAgendamento(params: {
   return prazo
 }
 
-export function agendamentoEncerrado(slot: { bookingDeadline?: string }, agora = Date.now()): boolean {
+// Horario que vagou por cancelamento ignora o prazo (`reopenedAt`).
+//
+// O prazo existe pra fechar a agenda com antecedencia, e isso faz sentido pra
+// um horario que nunca foi agendado. Pra um que vagou, nao ha antecedencia a
+// preservar: ha uma vaga a preencher, e a alternativa e um buraco na agenda da
+// Carla com ninguem podendo pegar. Ver #344, em que o horario de 12/11 as 18h
+// ficou livre e invisivel por seis dias depois que a aluna cancelou.
+//
+// A regra mora aqui, e nao no filtro da tela, pra valer de uma vez pra lista do
+// aluno, pra recusa no servidor, pro painel da Carla e pro convite por e-mail.
+export function agendamentoEncerrado(
+  slot: { bookingDeadline?: string; reopenedAt?: string },
+  agora = Date.now(),
+): boolean {
+  if (slot.reopenedAt) return false
   return !!slot.bookingDeadline && agora > Date.parse(slot.bookingDeadline)
 }
 

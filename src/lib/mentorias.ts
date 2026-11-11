@@ -29,6 +29,12 @@ export type MentoriaSlot = {
   createdAt: string
   /** Até quando aluno pode marcar (ISO) — ver prazo-agendamento.ts. Ausente = sem prazo. */
   bookingDeadline?: string
+  /**
+   * Quando este horário vagou por cancelamento (ISO). Presente = o prazo
+   * acima não vale mais, o horário fica aberto até a mentoria acontecer.
+   * Ver agendamentoEncerrado em prazo-agendamento.ts.
+   */
+  reopenedAt?: string
 }
 
 type ActiveBookingClaim = { slotId: string; date: string; claimedAt: string }
@@ -392,7 +398,15 @@ export const cancelMentoriaSlot = createServerFn({ method: 'POST' })
       throw new Error('Você só pode cancelar os seus próprios horários.')
     }
 
-    const updated: MentoriaSlot = { ...slot, status: 'available', student: null }
+    // `reopenedAt`: a vaga volta pros outros alunos mesmo que o prazo de
+    // agendamento já tenha vencido. Sem isso o horário fica livre no banco e
+    // invisível na tela, e ninguém consegue pegar (#344).
+    const updated: MentoriaSlot = {
+      ...slot,
+      status: 'available',
+      student: null,
+      reopenedAt: new Date().toISOString(),
+    }
     const result = await store.setJSON(data.id, updated, { onlyIfMatch: entry.etag })
     if (!result?.modified) throw new Error('Não foi possível cancelar, tente novamente.')
 
